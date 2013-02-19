@@ -91,10 +91,10 @@ template <class T>
 void newMethod2 () {
 	int *dims = new int [3];
 	dims [0] = 7;
-	dims [1] = 6;
-	dims [2] = 0;
+	dims [1] = 3;
+	dims [2] = 3;
 	dynamicArrayList<T> &list = *new dynamicArrayList<T> (dims);
-	int nDims = list.getNumOfDimensions ();
+	int nDims = list.getNDims ();
 	
 	int *idx = new int [3];
 	for (int i = 0; i < dims [0]; i++) {
@@ -231,8 +231,8 @@ int main () {
 	//newMethod7 ();
 	//return 0;
 
-	newMethod6 ();
-	return 0;
+	//newMethod6 ();
+	//return 0;
 
 	//newMethod ();
 	newMethod2<double> ();

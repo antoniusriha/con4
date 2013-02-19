@@ -32,9 +32,161 @@
 
 using namespace std;
 
+namespace {
+
+template <class T>
+class dal {
+public:
+	virtual ~dal<T> () {}
+	virtual ostream &output (ostream &os) const = 0;
+	virtual const T getItem (int *index) const = 0;
+	virtual void setItem (int *index, T value) = 0;
+	virtual list<T> &sortQuickly () const { throw new logic_error (errMsg); }
+	virtual list<T> &sortBubbly () const { throw new logic_error (errMsg); }
+	
+private:
+	static const char *errMsg;
+};
+
+template <class T>
+const char *dal<T>::errMsg = "Sorting is not supported by this instance.";
+
+template <class T>
+class dal1dImpl : public dal<T> {
+public:
+	dal1dImpl (int *dims) : dim (dims [0]) { iList = new T [dim]; }
+	~dal1dImpl () { delete [] iList; }
+
+	ostream &output (ostream &os) const {
+		os << "List with length " << dim << endl << endl;
+		for (T *i = iList; i < iList + dim; i++)
+			os << *i << " ";
+		return os;
+	}
+	
+	const T getItem (int *index) const { return iList [index [0]]; }
+	void setItem (int *index, T value) { iList [index [0]] = value; }
+	list<T> &sortQuickly () const { throw; }
+	list<T> &sortBubbly () const { throw; }
+	
+private:
+	T *iList;
+	const int dim;
+};
+
+template <class T>
+class dal2dImpl : public dal<T> {
+public:
+	dal2dImpl (int *dims) : dims (dims) {
+		iList = new T* [dims [0]];
+		for (T **i = iList; i < iList + dims [0]; i++)
+			*i = new T [dims [1]];
+	}
+	
+	~dal2dImpl () {
+		for (T **i = iList; i < iList + dims [0]; i++)
+			delete [] *i;
+		delete [] iList;
+	}
+
+	ostream &output (ostream &os) const {
+		os << dims [0] << "x" << dims [1] << "-Matrix" << endl << endl;
+		for (T **i = iList; i < iList + dims [0]; i++) {
+			for (T *j = *i; j < *i + dims [1]; j++)
+				os << *j << " ";
+			os << endl;
+		}
+		return os;
+	}
+	
+	const T getItem (int *index) const { return iList [index [0]][index [1]]; }
+	void setItem (int *index, T value) { iList [index [0]][index[1]] = value; }
+	
+private:
+	T **iList;
+	const int * const dims;
+};
+
+template <class T>
+class dal3dImpl : public dal<T> {
+public:
+	dal3dImpl (int *dims) : dims (dims) {
+		iList = new T** [dims [0]];
+		for (T ***i = iList; i < iList + dims [0]; i++) {
+			*i = new T* [dims [1]];
+			for (T **j = *i; j < *i + dims [1]; j++)
+				*j = new T [dims [2]];
+		}
+	}
+	
+	~dal3dImpl () {
+		for (T ***i = iList; i < iList + dims [0]; i++) {
+			for (T **j = *i; j < *i + dims [1]; j++)
+				delete [] *j;
+			delete [] *i;
+		}
+		delete [] iList;
+	}
+
+	ostream &output (ostream &os) const {
+		os << dims [0] << "x" << dims [1] << "x" << dims [2] << "-Matrix" << endl << endl;
+		for (T ***i = iList; i < iList + dims [0]; i++) {
+			for (T **j = *i; j < *i + dims [1]; j++) {
+				for (T *k = *j; k < *j + dims [2]; k++)
+					os << *k << " ";
+				os << "| ";
+			}
+			os << endl << endl;
+		}
+		return os;
+	}
+	
+	const T getItem (int *index) const {
+		return iList [index [0]][index [1]][index[2]];
+	}
+	
+	void setItem (int *index, T value) {
+		iList [index [0]][index[1]][index[2]] = value;
+	}
+	
+private:
+	T ***iList;
+	const int * const dims;
+};
+
+}
+
 template <class T>
 class dynamicArrayList : public list<T> {
 public:
+	dynamicArrayList<T> (int *dims) : list<T> (dims), iList (createDal (dims)) {}
+	~dynamicArrayList<T> () { delete &iList; }
+	
+	friend ostream &operator<< (ostream &os, const dynamicArrayList<T> &obj) {
+		return obj.iList.output (os);
+	}
+	
+	const T getItem (int *index) const { return iList.getItem (index); }
+	void setItem (int *index, T value) { iList.setItem (index, value); }
+	
+private:
+	list<T> &sortQuickly () const { return iList.sortQuickly (); }
+	list<T> &sortBubbly () const { return iList.sortBubbly (); }
+	
+	dal<T> &createDal (int *dims) {
+		dal<T> *list;
+		int nDims = this->getNDims ();
+		if (nDims == 1) list = new dal1dImpl<T> (dims);
+		else if (nDims == 2) list = new dal2dImpl<T> (dims);
+		else list = new dal3dImpl<T> (dims);
+		return *list;
+	}
+	
+	dal<T> &iList;
+};
+
+/*
+
 	class dalIterator {
 	public:
 		dalIterator () : curtPos (0), curl1Pos (0), curl2Pos (0),
@@ -140,118 +292,7 @@ public:
 		T **l1Ptr;
 		T ***l2Ptr;
 	};
-	
-	dynamicArrayList<T> (int *dims) : list<T> (dims) {
-		int nDims = this->getNumOfDimensions ();
-		
-		if (nDims == 1) iList = new T [dims [0]];
-		else if (nDims == 2) {
-			T **list = new T* [dims [0]];
-			for (T **i = list; i < list + dims [0]; i++)
-				*i = new T [dims [1]];
-			iList = list;
-		} else if (nDims == 3) {
-			T ***list = new T** [dims [0]];
-			for (T ***i = list; i < list + dims [0]; i++) {
-				*i = new T* [dims [1]];
-				for (T **j = *i; j < *i + dims [1]; j++)
-					*j = new T [dims [2]];
-			}
-			iList = list;
-		}
-	}
-	
-	void createList (int curDim) {
-		int nDims = this->getNumOfDimensions ();
-		if (curDim >= nDims) {
-			   
-			;
-		} else {
-			createList (curDim + 1);
-		}
-	}
-	
-	~dynamicArrayList<T> () {
-		int nDims = this->getNumOfDimensions ();
-		const int *dims = this->getDimensions ();
-		
-		if (nDims == 1) {
-			delete [] (T *)iList;
-		} else if (nDims == 2) {
-			for (int i = 0; i < dims [0]; i++)
-				delete [] ((T **)iList) [i];
-			delete [] (T **)iList;
-		} else if (nDims == 3) {
-			for (int i = 0; i < dims [0]; i++) {
-				for (int j = 0; j < dims [1]; j++)
-					delete [] ((T ***)iList) [i][j];
-				delete [] ((T ***)iList) [i];
-			}
-			delete [] (T ***)iList;
-		}
-	}
-	
-	friend ostream& operator<< (ostream& os, const dynamicArrayList<T> &obj) {
-		const int *dims = obj.getDimensions ();
-		int nDims = obj.getNumOfDimensions ();
-		
-		os << dims [0] << "x" << dims [1] << "x" << dims [2] << "-Matrix" << endl << endl;
-		
-		if (nDims == 1) {
-			T *list = (T *)obj.iList;
-			for (T *i = list; i < list + dims [0]; i++)
-				os << *i << " ";
-		} else if (nDims == 2) {
-			T **list = (T **)obj.iList;
-			for (T **i = list; i < list + dims [0]; i++) {
-				for (T *j = *i; j < *i + dims [1]; j++)
-					os << *j << " ";
-				os << endl;
-			}
-		} else {
-			T ***list = (T ***)obj.iList;
-			for (T ***i = list; i < list + dims [0]; i++) {
-				for (T **j = *i; j < *i + dims [1]; j++) {
-					for (T *k = *j; k < *j + dims [2]; k++)
-						os << *k << " ";
-					os << "| ";
-				}
-				os << endl << endl;
-			}
-		}
-		
-		return os;
-	}
-	
-	const T getItem (int *index) const { return getItem (index, 1, iList); }
-	void setItem (int *index, T value) { setItem (index, 1, value, iList); }
 
-	dalIterator begin () {
-		dalIterator dal = dalIterator (*this);
-		return dal;
-	}
-	
-	dalIterator end () {
-		return dalIterator (*this, true);
-	}
-	
-private:
-	list<T> *sortQuickly () {}
-	list<T> *sortBubbly () {}
-	
-	const T getItem (int *index, int curDim, void *list) const {
-		int nDims = this->getNumOfDimensions ();
-		if (curDim >= nDims) return ((T *)list) [index [curDim - 1]];
-		else return getItem (index, curDim + 1, ((T **)list) [index [curDim - 1]]);
-	}
-	
-	void setItem (int *index, int curDim, T value, void *list) {
-		int nDims = this->getNumOfDimensions ();
-		if (curDim >= nDims) ((T *)list) [index [curDim - 1]] = value;
-		else setItem (index, curDim + 1, value, ((T **)list) [index [curDim - 1]]);
-	}
-	
-	void *iList;
-};
+*/
 
 #endif

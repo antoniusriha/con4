@@ -93,7 +93,7 @@ template <class T>
 class doublyLinkedList : public list<T> {
 public:
 	doublyLinkedList<T> (int *dims) : list<T> (dims), root () {
-		int nDims = this->getNumOfDimensions ();
+		int nDims = this->getNDims ();
 		
 		if (nDims == 1) {
 			node<T> *l0 = new node<T> (dims [0]);
@@ -119,8 +119,8 @@ public:
 	}
 	
 	~doublyLinkedList () {
-		int nDims = this->getNumOfDimensions ();
-		const int *dims = this->getDimensions ();
+		int nDims = this->getNDims ();
+		const int *dims = this->getDims ();
 		
 		if (nDims == 1) {
 			delete (node<T> *)root;
@@ -136,8 +136,8 @@ public:
 	void setItem (int *index, T value) {}
 
 private:
-	list<T> *sortQuickly () {}
-	list<T> *sortBubbly () {}
+	list<T> &sortQuickly () const {}
+	list<T> &sortBubbly () const {}
 	
 	void *root;
 	const void *toor;
