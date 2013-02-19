@@ -1,5 +1,5 @@
 //
-// doublyLinkedList.h
+// DoublyLinkedList.h
 //
 // Author:
 //       Antonius Riha <antoniusriha@gmail.com>
@@ -28,40 +28,40 @@
 #define DOUBLY_LINKED_LIST_H
 
 #include <stdexcept>
-#include "list.h"
+#include "List.h"
 
 using namespace std;
 
 template <class T>
-class node {
+class Node {
 public:
-	node<T> (int size = 0) : value (0), prev (0), next (0) {
-		node<T> *cur = this;
+	Node<T> (int size = 0) : value (0), prev (0), next (0) {
+		Node<T> *cur = this;
 		// need to create toor (tail node) too, hence (size + 1)
 		for (int i = 0; i < size + 1; i++)
-			cur = new node<T> (cur);
+			cur = new Node<T> (cur);
 	}
 	
-	~node<T> () {}
+	~Node<T> () {}
 	
 	const T &getValue () const { return *value; }
 	void setValue (T &value) { this.value = &value; }
 	
-	const node<T> * const getRoot () const {
+	const Node<T> * const getRoot () const {
 		if (prev == 0) return this;
 		return prev->getRoot ();
 	}
 	
-	const node<T> * const getToor () const {
+	const Node<T> * const getToor () const {
 		if (next == 0) return this;
 		return next->getToor ();
 	}
 	
-	const node<T> * const first () const {
+	const Node<T> * const first () const {
 		return getRoot ().next;
 	}
 	
-	const node<T> * const last () const {
+	const Node<T> * const last () const {
 		return getToor ().prev;
 	}
 	
@@ -80,52 +80,52 @@ public:
 	bool remove (T &value) {}
 	
 private:
-	node<T> (node<T> *prev) : value (0), prev (prev), next (0) {
+	Node<T> (Node<T> *prev) : value (0), prev (prev), next (0) {
 		prev->next = this;
 	}
 
-	node<T> *prev;
-	node<T> *next;
+	Node<T> *prev;
+	Node<T> *next;
 	T *value;
 };
 
 template <class T>
-class doublyLinkedList : public list<T> {
+class DoublyLinkedList : public List<T> {
 public:
-	doublyLinkedList<T> (int *dims) : list<T> (dims), root () {
+	DoublyLinkedList<T> (int *dims) : List<T> (dims), root () {
 		int nDims = this->getNDims ();
 		
 		if (nDims == 1) {
-			node<T> *l0 = new node<T> (dims [0]);
+			Node<T> *l0 = new Node<T> (dims [0]);
 			root = l0;
 			toor = l0->getToor ();
 		} else if (nDims == 2) {
-			node<node<T> > *l0 = new node<node<T> > ();
+			Node<Node<T> > *l0 = new Node<Node<T> > ();
 			for (int i = 0; i < dims [0]; i++)
-				l0->add (*new node<T> (dims [1]));
+				l0->add (*new Node<T> (dims [1]));
 			root = l0;
 			toor = l0->getToor ();
 		} else {
-			node<node<node<T> > > *l0 = new node<node<node<T> > > ();
+			Node<Node<Node<T> > > *l0 = new Node<Node<Node<T> > > ();
 			for (int i = 0; i < dims [0]; i++) {
-				node<node<T> > l1 = *new node<node<T> > ();
+				Node<Node<T> > l1 = *new Node<Node<T> > ();
 				l0->add (l1);
 				for (int j = 0; j < dims [1]; j++)
-					l1.add (*new node<T> (dims [2]));
+					l1.add (*new Node<T> (dims [2]));
 			}
 			root = l0;
 			toor = l0->getToor ();
 		}
 	}
 	
-	~doublyLinkedList () {
+	~DoublyLinkedList () {
 		int nDims = this->getNDims ();
 		const int *dims = this->getDims ();
 		
 		if (nDims == 1) {
-			delete (node<T> *)root;
+			delete (Node<T> *)root;
 		} else if (nDims == 2) {
-			node<node<T> > *l0 = (node<node<T> > *)root;
+			Node<Node<T> > *l0 = (Node<Node<T> > *)root;
 			for (int i = 0; i < dims [0]; i++);
 				
 		} else {
@@ -136,8 +136,8 @@ public:
 	void setItem (int *index, T value) {}
 
 private:
-	list<T> &sortQuickly () const {}
-	list<T> &sortBubbly () const {}
+	List<T> &sortQuickly () const {}
+	List<T> &sortBubbly () const {}
 	
 	void *root;
 	const void *toor;

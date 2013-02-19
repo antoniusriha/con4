@@ -1,5 +1,5 @@
 build:
-	g++ -g list.cpp
+	g++ -g Test.cpp
 
 run: build
 	./a.out

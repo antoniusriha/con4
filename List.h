@@ -1,5 +1,5 @@
 //
-// list.h
+// List.h
 //
 // Author:
 //       Antonius Riha <antoniusriha@gmail.com>
@@ -27,16 +27,15 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include <iterator>
 #include <stdexcept>
 
 using namespace std;
 
 template <class T>
-class list {
+class List {
 public:
 	enum SortMode { Bubble, Quick };
-	virtual ~list<T> () {}
+	virtual ~List<T> () {}
 	virtual const T getItem (int *index) const = 0;
 	virtual void setItem (int *index, T value) = 0;
 	
@@ -77,7 +76,7 @@ public:
 		return count;
 	}
 	
-	list<T> *sort (SortMode mode) const {
+	List<T> *sort (SortMode mode) const {
 		if (nDims > 1)
 			throw new logic_error ("sort can only be called with 1d lists.");
 		
@@ -86,13 +85,13 @@ public:
 	}
 
 protected:
-	list<T> (int *dims) : dims (dims), nDims (getNDims (dims)) {
+	List<T> (int *dims) : dims (dims), nDims (getNDims (dims)) {
 		if (dims [0] == 0)
 			throw new logic_error ("The object must at least be 1d.");
 	}
 	
-	virtual list<T> &sortQuickly () const = 0;
-	virtual list<T> &sortBubbly () const = 0;
+	virtual List<T> &sortQuickly () const = 0;
+	virtual List<T> &sortBubbly () const = 0;
 
 private:
 	const int getNDims (int *dims) const {

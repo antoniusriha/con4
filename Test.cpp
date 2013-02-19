@@ -1,5 +1,5 @@
 //
-// list.cpp
+// List.cpp
 //
 // Author:
 //       Antonius Riha <antoniusriha@gmail.com>
@@ -25,8 +25,8 @@
 // THE SOFTWARE.
 
 #include <iostream>
-#include "dynamicArrayList.h"
-#include "doublyLinkedList.h"
+#include "DynamicArrayList.h"
+#include "DoublyLinkedList.h"
 
 using namespace std;
 
@@ -93,7 +93,7 @@ void newMethod2 () {
 	dims [0] = 7;
 	dims [1] = 3;
 	dims [2] = 3;
-	dynamicArrayList<T> &list = *new dynamicArrayList<T> (dims);
+	DynamicArrayList<T> &list = *new DynamicArrayList<T> (dims);
 	int nDims = list.getNDims ();
 	
 	int *idx = new int [3];
@@ -119,17 +119,17 @@ void newMethod2 () {
 	
 	cout << endl;
 	
-	//dynamicArrayList<int>::dalIterator it = list.begin ();
+	//DynamicArrayList<int>::dalIterator it = list.begin ();
 	//cout << *it << endl;
 	//it++;
 	//cout << *it << endl;
 	
-	//dynamicArrayList<int>::dalIterator it2 = list.end ();
+	//DynamicArrayList<int>::dalIterator it2 = list.end ();
 	//cout << *it2 << endl;
 	//--it2;
 	//cout << *it2 << endl;
 	
-	//for (dynamicArrayList<int>::dalIterator it3 = list.begin (); it3 != list.end (); ++it3)
+	//for (DynamicArrayList<int>::dalIterator it3 = list.begin (); it3 != list.end (); ++it3)
 	//	cout << *it3 << " ";
 	cout << endl;
 	delete &list;
@@ -178,7 +178,7 @@ void newMethod5 () {
 	dims [0] = 23;
 	dims [1] = 0;
 	dims [2] = 9;
-	doublyLinkedList<int> &list = *new doublyLinkedList<int> (dims);
+	DoublyLinkedList<int> &list = *new DoublyLinkedList<int> (dims);
 	
 	
 	

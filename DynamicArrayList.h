@@ -1,5 +1,5 @@
 //
-// dynamicArrayList.h
+// DynamicArrayList.h
 //
 // Author:
 //       Antonius Riha <antoniusriha@gmail.com>
@@ -28,34 +28,34 @@
 #define DYNAMIC_ARRAY_LIST_H
 
 #include <stdexcept>
-#include "list.h"
+#include "List.h"
 
 using namespace std;
 
 namespace {
 
 template <class T>
-class dal {
+class Dal {
 public:
-	virtual ~dal<T> () {}
+	virtual ~Dal<T> () {}
 	virtual ostream &output (ostream &os) const = 0;
 	virtual const T getItem (int *index) const = 0;
 	virtual void setItem (int *index, T value) = 0;
-	virtual list<T> &sortQuickly () const { throw new logic_error (errMsg); }
-	virtual list<T> &sortBubbly () const { throw new logic_error (errMsg); }
+	virtual List<T> &sortQuickly () const { throw new logic_error (errMsg); }
+	virtual List<T> &sortBubbly () const { throw new logic_error (errMsg); }
 	
 private:
 	static const char *errMsg;
 };
 
 template <class T>
-const char *dal<T>::errMsg = "Sorting is not supported by this instance.";
+const char *Dal<T>::errMsg = "Sorting is not supported by this instance.";
 
 template <class T>
-class dal1dImpl : public dal<T> {
+class Dal1dImpl : public Dal<T> {
 public:
-	dal1dImpl (int *dims) : dim (dims [0]) { iList = new T [dim]; }
-	~dal1dImpl () { delete [] iList; }
+	Dal1dImpl (int *dims) : dim (dims [0]) { iList = new T [dim]; }
+	~Dal1dImpl () { delete [] iList; }
 
 	ostream &output (ostream &os) const {
 		os << "List with length " << dim << endl << endl;
@@ -66,8 +66,8 @@ public:
 	
 	const T getItem (int *index) const { return iList [index [0]]; }
 	void setItem (int *index, T value) { iList [index [0]] = value; }
-	list<T> &sortQuickly () const { throw; }
-	list<T> &sortBubbly () const { throw; }
+	List<T> &sortQuickly () const { throw; }
+	List<T> &sortBubbly () const { throw; }
 	
 private:
 	T *iList;
@@ -75,15 +75,15 @@ private:
 };
 
 template <class T>
-class dal2dImpl : public dal<T> {
+class Dal2dImpl : public Dal<T> {
 public:
-	dal2dImpl (int *dims) : dims (dims) {
+	Dal2dImpl (int *dims) : dims (dims) {
 		iList = new T* [dims [0]];
 		for (T **i = iList; i < iList + dims [0]; i++)
 			*i = new T [dims [1]];
 	}
 	
-	~dal2dImpl () {
+	~Dal2dImpl () {
 		for (T **i = iList; i < iList + dims [0]; i++)
 			delete [] *i;
 		delete [] iList;
@@ -108,9 +108,9 @@ private:
 };
 
 template <class T>
-class dal3dImpl : public dal<T> {
+class Dal3dImpl : public Dal<T> {
 public:
-	dal3dImpl (int *dims) : dims (dims) {
+	Dal3dImpl (int *dims) : dims (dims) {
 		iList = new T** [dims [0]];
 		for (T ***i = iList; i < iList + dims [0]; i++) {
 			*i = new T* [dims [1]];
@@ -119,7 +119,7 @@ public:
 		}
 	}
 	
-	~dal3dImpl () {
+	~Dal3dImpl () {
 		for (T ***i = iList; i < iList + dims [0]; i++) {
 			for (T **j = *i; j < *i + dims [1]; j++)
 				delete [] *j;
@@ -129,7 +129,8 @@ public:
 	}
 
 	ostream &output (ostream &os) const {
-		os << dims [0] << "x" << dims [1] << "x" << dims [2] << "-Matrix" << endl << endl;
+		os << dims [0] << "x" << dims [1] << "x" << dims [2]
+			<< "-Matrix" << endl << endl;
 		for (T ***i = iList; i < iList + dims [0]; i++) {
 			for (T **j = *i; j < *i + dims [1]; j++) {
 				for (T *k = *j; k < *j + dims [2]; k++)
@@ -157,12 +158,12 @@ private:
 }
 
 template <class T>
-class dynamicArrayList : public list<T> {
+class DynamicArrayList : public List<T> {
 public:
-	dynamicArrayList<T> (int *dims) : list<T> (dims), iList (createDal (dims)) {}
-	~dynamicArrayList<T> () { delete &iList; }
+	DynamicArrayList<T> (int *dims) : List<T> (dims), iList (ctrDal (dims)) {}
+	~DynamicArrayList<T> () { delete &iList; }
 	
-	friend ostream &operator<< (ostream &os, const dynamicArrayList<T> &obj) {
+	friend ostream &operator<< (ostream &os, const DynamicArrayList<T> &obj) {
 		return obj.iList.output (os);
 	}
 	
@@ -170,19 +171,19 @@ public:
 	void setItem (int *index, T value) { iList.setItem (index, value); }
 	
 private:
-	list<T> &sortQuickly () const { return iList.sortQuickly (); }
-	list<T> &sortBubbly () const { return iList.sortBubbly (); }
+	List<T> &sortQuickly () const { return iList.sortQuickly (); }
+	List<T> &sortBubbly () const { return iList.sortBubbly (); }
 	
-	dal<T> &createDal (int *dims) {
-		dal<T> *list;
+	Dal<T> &ctrDal (int *dims) const {
+		Dal<T> *list;
 		int nDims = this->getNDims ();
-		if (nDims == 1) list = new dal1dImpl<T> (dims);
-		else if (nDims == 2) list = new dal2dImpl<T> (dims);
-		else list = new dal3dImpl<T> (dims);
+		if (nDims == 1) list = new Dal1dImpl<T> (dims);
+		else if (nDims == 2) list = new Dal2dImpl<T> (dims);
+		else list = new Dal3dImpl<T> (dims);
 		return *list;
 	}
 	
-	dal<T> &iList;
+	Dal<T> &iList;
 };
 
 /*
