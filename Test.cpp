@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include <algorithm>
 #include <iostream>
 #include "DynamicArrayList.h"
 #include "DoublyLinkedList.h"
@@ -226,7 +227,82 @@ void newMethod7 () {
 	delete [] k;
 }
 
+void newMethod8 () {
+	int *index1 = new int [2];
+	index1 [0] = 5;
+	index1 [1] = 4;
+	
+	int *idx = new int [2];
+	for (int *i = index1; i < index1 + 2; i++) {
+		cout << *i << endl;
+		*idx++ = *i;
+	}
+	
+	idx -= 2;
+	
+	for (int *i = idx; i < idx + 2; i++)
+		cout << *i << endl;
+		
+	delete [] index1;
+	delete [] idx;
+}
+
+void newMethod9 () {
+	int *index1 = new int [2];
+	index1 [0] = 5;
+	index1 [1] = 4;
+	
+	int *idx = new int [2];
+	copy (index1, index1 + 2, idx);
+	
+	for (int *i = idx; i < idx + 2; i++)
+		cout << *i << endl;
+		
+	delete [] index1;
+	delete [] idx;
+}
+
+void newMethod10 () {
+	bool fail = true;
+	for (int i = 0; fail = i < 5; i++)
+		if (i == 4) break;
+	cout << "success: " << !fail << endl;
+}
+
+void newMethod11 () {
+	int *index1 = new int [2];
+	index1 [0] = 5;
+	index1 [1] = 4;
+	
+	int *idx = new int [2];
+	idx [0] = 500;
+	idx [1] = -23;
+	cout << "before:" << endl;
+	for (int *i = idx; i < idx + 2; i++)
+		cout << *i << endl;
+	
+	cout << endl;
+	copy (index1, index1 + 2, idx);
+	
+	cout << "after:" << endl;
+	for (int *i = idx; i < idx + 2; i++)
+		cout << *i << endl;
+		
+	delete [] index1;
+	delete [] idx;
+}
+
 int main () {
+
+	newMethod11 ();
+	//newMethod10 ();
+	return 0;
+
+	//newMethod9 ();
+	//return 0;
+
+	//newMethod8 ();
+	//return 0;
 
 	//newMethod7 ();
 	//return 0;

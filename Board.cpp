@@ -1,5 +1,5 @@
 //
-// Board.h
+// Board.cpp
 //
 // Author:
 //       Antonius Riha <antoniusriha@gmail.com>
@@ -24,47 +24,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef BOARD_H
-#define BOARD_H
+#include "Board.h"
 
-#include <algorithm>
-#include "List.h"
-
-using namespace std;
-
-enum Player {
-	None,
-	Player1,
-	Player2
-};
-
-class Board {
-public:
-	Board (int rows, int cols, int nConnect);
-	Board (int rows, int cols, int zDepth, int nConnect);
-	~Board ();
+bool Board::connected (int *index, Player cur) const {
+	bool fail = true;
+	int *idx = new int [3];
 	
-	const int * const getDims () const { return iList.getDims (); }
-	int getNDims () const { return iList.getNDims (); }
-	Player getCurPlayer () const { return curPlayer; }
-	Player getWinner () const { return winner; }
-	int getNConnect () const { return nConnect; }
-	
-	void SetDisc (int *index);
-	bool UnsetDisc (int *index);
-	
-private:
-	bool connected (int *index, Player cur) const;
-	
-	bool isIndexValid (int *idx) const {
-		return idx [0] >= 0 && idx [1] >= 0 &&
-		       idx [0] < dims [0] && idx [1] < dims [1];
+	for (int i = -1; fail && i <= 1; i++) {
+		for (int j = -1; fail && j <= 1; j++) {
+			if (i == 0 && j == 0) continue;
+			copy (index, index + 3, idx);
+			for (int m = 1; fail = m < nConnect; m++) {
+				idx [0] += i;
+				idx [1] += j;
+				if (!isIndexValid (idx)) break;
+				Player val = iList.getItem (idx);
+				if (val != cur) break;
+			}
+		}
 	}
-
-	const int nConnect;
-	const List<Player> &iList;
-	Player curPlayer;
-	Player winner;
+	
+	delete [] idx;
+	return !fail;
 };
-
-#endif

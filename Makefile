@@ -1,5 +1,5 @@
 build:
-	g++ -g Test.cpp
+	g++ -std=c++0x -g Test.cpp
 
 run: build
 	./a.out
