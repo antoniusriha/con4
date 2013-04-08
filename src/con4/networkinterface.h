@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * networkinterface.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef NETWORKINTERFACE_H
+#define NETWORKINTERFACE_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include "game.h"
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
+class NetworkInterface {
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
+    NetworkInterface ();
+
 private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    Game _game;
 };
 
-#endif // MAINWINDOW_H
+#endif // NETWORKINTERFACE_H

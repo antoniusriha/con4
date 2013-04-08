@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * gameconfview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,31 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef GAMECONFVIEW_H
+#define GAMECONFVIEW_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include <QWidget>
+#include "joingamesetupview.h"
+#include "newgamesetupview.h"
 
 namespace Ui {
-class MainWindow;
+class GameConfView;
 }
 
-class MainWindow : public QMainWindow {
+class GameConfView : public QWidget {
     Q_OBJECT
     
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
+    explicit GameConfView (QWidget *parent = 0);
+    ~GameConfView ();
     
 private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    Ui::GameConfView *ui;
+    NewGameSetupView *newGameSetupView;
+    JoinGameSetupView *joinGameSetupView;
+
+private slots:
+    void gameTypeSelectionChanged (bool state);
 };
 
-#endif // MAINWINDOW_H
+#endif // GAMECONFVIEW_H

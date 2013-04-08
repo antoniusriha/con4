@@ -1,5 +1,5 @@
 /*
- * player.cpp
+ * networkproxy.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,8 +25,8 @@
  * THE SOFTWARE.
  */
 
-#include "player.h"
+#include "networkproxy.h"
 
-Player::Player()
+NetworkProxy::NetworkProxy()
 {
 }

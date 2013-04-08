@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * opponentservice.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include "opponentservice.h"
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
-
-namespace Ui {
-class MainWindow;
+OpponentService::OpponentService (QHostAddress host, quint16 port)
+    : Service (host, port) {
 }
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
-public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
-};
-
-#endif // MAINWINDOW_H

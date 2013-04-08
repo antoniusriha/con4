@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * indexservicetest.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef INDEXSERVICETEST_H
+#define INDEXSERVICETEST_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include <QObject>
+#include <QString>
+#include <QTextStream>
+#include <QHostAddress>
 
-namespace Ui {
-class MainWindow;
-}
+#include "../../src/con4/indexservice.h"
+#include "../../src/con4/networkgame.h"
 
-class MainWindow : public QMainWindow {
+class IndexServiceTest : public QObject {
     Q_OBJECT
-    
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
+    explicit IndexServiceTest (QObject *parent = 0);
+    ~IndexServiceTest ();
+    void runRegisterGameTest ();
+    void runRequestGameListTest ();
     
+private slots:
+    void _registerGameCompleted (Response resp);
+    void _requestGameListCompleted (GameListResponse resp);
+
 private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    IndexService _service;
+    NetworkGame *_game;
 };
 
-#endif // MAINWINDOW_H
+#endif // INDEXSERVICETEST_H

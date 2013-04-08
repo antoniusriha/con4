@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * aiplayer.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,22 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef AIPLAYER_H
+#define AIPLAYER_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
-
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
+class AIPlayer {
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
+    AIPlayer ();
+
+    int getDelay () const { return _delay; }
+    void setDelay (int value) {
+        if (value < 0) value = 0;
+        else if (value > 10000) value = 10000;
+        _delay = value;
+    }
+
 private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    int _delay;
 };
 
-#endif // MAINWINDOW_H
+#endif // AIPLAYER_H

@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * networkgame.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,26 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include "networkgame.h"
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
-
-namespace Ui {
-class MainWindow;
+NetworkGame::NetworkGame () : _isInitiator (false) {
 }
 
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
-public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
-};
+NetworkGame::NetworkGame (QHostAddress host, quint16 port)
+    : _isInitiator (true), _host (host), _port (port) {}
 
-#endif // MAINWINDOW_H
+NetworkGame::NetworkGame (QString name, QString player1, QHostAddress host,
+                          quint16 port, int width, int height, int depth, bool hasStarted)
+    : _isInitiator (false), _name (name), _host (host), _port (port) {
+    setPlayer1 (player1);
+    setWidth (width);
+    setHeight (height);
+    setDepth (depth);
+    _hasStarted = hasStarted;
+}
+
+NetworkGame::~NetworkGame () {
+}
+
+bool NetworkGame::areSettingsValid () const {
+}

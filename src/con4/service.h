@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * service.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,40 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef SERVICE_H
+#define SERVICE_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include <QStringList>
+#include <QThread>
+#include <QtNetwork/QHostAddress>
+#include <QTcpSocket>
 
-namespace Ui {
-class MainWindow;
-}
+#define MSG_BUF_SIZE 1024
+#define MSG_SPLIT_CHAR QChar::fromAscii(';')
+#define INVALID_RESP_ERR "Error: Invalid response from server."
 
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
-public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+struct Response {
+    bool Success;
+    QString ErrMsg;
 };
 
-#endif // MAINWINDOW_H
+class Service : public QThread {
+    Q_OBJECT
+public:
+    static quint16 toQuint16 (QString qsPort, bool *ok = 0);
+
+    Service (QHostAddress host, quint16 port);
+
+protected:
+    QHostAddress host () const { return _host; }
+    quint16 port () const { return _port; }
+
+    QStringList sendMsg (QString msg);
+    Response &fail (Response &resp, QString errMsg);
+
+private:
+    QHostAddress _host;
+    quint16 _port;
+};
+
+#endif // SERVICE_H

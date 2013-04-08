@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * joingamesetupview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,31 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef JOINGAMESETUPVIEW_H
+#define JOINGAMESETUPVIEW_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include <QWidget>
 
 namespace Ui {
-class MainWindow;
+class JoinGameSetupView;
 }
 
-class MainWindow : public QMainWindow {
+class JoinGameSetupView : public QWidget {
     Q_OBJECT
     
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
+    explicit JoinGameSetupView(QWidget *parent = 0);
+    ~JoinGameSetupView();
     
+signals:
+    void statusChanged (QString);
+
 private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    Ui::JoinGameSetupView *ui;
+
+private slots:
+    void joinClicked ();
+    void refreshClicked ();
 };
 
-#endif // MAINWINDOW_H
+#endif // JOINGAMESETUPVIEW_H

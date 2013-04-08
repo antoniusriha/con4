@@ -1,5 +1,5 @@
 /*
- * game.cpp
+ * gameconfview.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,7 +25,31 @@
  * THE SOFTWARE.
  */
 
-#include "game.h"
+#include "gameconfview.h"
+#include "ui_gameconfview.h"
 
-Game::Game() : _board (2, 3, 3, 3) {
+GameConfView::GameConfView (QWidget *parent) :
+    QWidget (parent), ui (new Ui::GameConfView) {
+
+    ui->setupUi (this);
+    newGameSetupView = (NewGameSetupView *)ui->phNewGameSetupView;
+    joinGameSetupView = (JoinGameSetupView *)ui->phJoinGameSetupView;
+    //    QObject::connect (&_myThread, SIGNAL (sendData (int)), this,
+    //                      SLOT (setText (int)), Qt::QueuedConnection);
+
+    QObject::connect (newGameSetupView, SIGNAL (statusChanged (QString)),
+                      ui->lblStatus, SLOT (setText (QString)));
+    QObject::connect (joinGameSetupView, SIGNAL (statusChanged (QString)),
+                      ui->lblStatus, SLOT (setText (QString)));
+}
+
+GameConfView::~GameConfView () {
+    delete ui;
+}
+
+void GameConfView::gameTypeSelectionChanged (bool state) {
+    ui->lblStatus->setText ("");
+    if (ui->rbNewGame->isChecked ())
+        ui->stackedWidget->setCurrentWidget (ui->phNewGameSetupView);
+    else ui->stackedWidget->setCurrentWidget (ui->phJoinGameSetupView);
 }

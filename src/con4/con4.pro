@@ -4,15 +4,46 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 TARGET = con4
 TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    mythread.cpp \
+    gameconfview.cpp \
+    joingamesetupview.cpp \
+    newgamesetupview.cpp \
+    game.cpp \
+    aiplayer.cpp \
+    board.cpp \
+    networkinterface.cpp \
+    networkproxy.cpp \
+    indexservice.cpp \
+    networkgame.cpp \
+    service.cpp \
+    opponentservice.cpp \
+    initiatorservice.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    mythread.h \
+    gameconfview.h \
+    joingamesetupview.h \
+    newgamesetupview.h \
+    game.h \
+    aiplayer.h \
+    board.h \
+    networkinterface.h \
+    networkproxy.h \
+    indexservice.h \
+    networkgame.h \
+    service.h \
+    opponentservice.h \
+    initiatorservice.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    gameconfview.ui \
+    joingamesetupview.ui \
+    newgamesetupview.ui

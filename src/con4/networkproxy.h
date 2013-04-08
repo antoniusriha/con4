@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * networkproxy.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,21 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef NETWORKPROXY_H
+#define NETWORKPROXY_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include <QObject>
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow {
+class NetworkProxy : QObject {
     Q_OBJECT
-    
+
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    NetworkProxy ();
+
+    void registerGame () const {}
+
+signals:
+
 };
 
-#endif // MAINWINDOW_H
+#endif // NETWORKPROXY_H

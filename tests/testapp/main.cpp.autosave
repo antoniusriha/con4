@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * main.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,13 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include <QDebug>
+#include "indexservicetest.h"
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+IndexServiceTest indexServiceTest;
 
-namespace Ui {
-class MainWindow;
+int main () {
+    indexServiceTest.runRegisterGameTest ();
+    indexServiceTest.runRequestGameListTest ();
+    return 0;
 }
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
-public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
-};
-
-#endif // MAINWINDOW_H

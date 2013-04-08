@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * mythread.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,22 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
-#include <QMainWindow>
 #include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
 
-namespace Ui {
-class MainWindow;
+MyThread::MyThread (QObject *parent)
+    : QThread (parent), _abort (false) {
+    start (LowPriority);
 }
 
-class MainWindow : public QMainWindow {
-    Q_OBJECT
-    
-public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
-};
+MyThread::~MyThread () {
+    _abort = true;
+    wait ();
+}
 
-#endif // MAINWINDOW_H
+void MyThread::run () {
+    forever {
+        sleep (1);
+        if (_abort) return;
+        emit sendData (counter++);
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * game.h
+ * opponentservice.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,19 +25,30 @@
  * THE SOFTWARE.
  */
 
-#ifndef GAME_H
-#define GAME_H
+#ifndef OPPONENTSERVICE_H
+#define OPPONENTSERVICE_H
 
-#include "player.h"
-#include "board.h"
+#include "networkgame.h"
+#include "service.h"
 
-class Game {
+class OpponentService : public Service {
+    Q_OBJECT
 public:
-    Game ();
-private:
-    Player _player1;
-    Player _player2;
-    Board _board;
+    OpponentService (QHostAddress host, quint16 port);
+
+    void joinGameSuccess () const;
+    void joinGameFailed (QString reason) const;
+    void startGame () const;
+    void synchronizeGameBoard (int **fieldNumberAndValue) const;
+    void updatedGameBoard (int fieldNumber, int value) const;
+    void moved_failed (QString reason) const;
+    void endGame (int result) const;
+    void abortGame (QString reason) const;
+
+signals:
+    void joinGame (NetworkGame &game);
+    void move (int fieldIndex);
+    void abortGame (QString reason);
 };
 
-#endif // GAME_H
+#endif // OPPONENTSERVICE_H

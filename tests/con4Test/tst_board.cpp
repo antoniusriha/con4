@@ -28,27 +28,17 @@
 #include <stdexcept>
 #include <QtCore/QString>
 #include <QtTest/QtTest>
-#include "../../src/libcon4/board.h"
 
-#define QVERIFY_THROW(expression, ExpectedExceptionType) \
-do \
-{ \
-bool caught_ = false; \
-try { expression; } \
-catch (ExpectedExceptionType const&) { caught_ = true; } \
-catch (...) {} \
-if (!QTest::qVerify(caught_, #expression ", " #ExpectedExceptionType, "", __FILE__, __LINE__))\
-return; \
-} while(0)
+#include "tst_global.h"
+#include "../../src/con4/board.h"
 
 using namespace std;
 
-class BoardTest : public QObject
-{
+class BoardTest : public QObject {
     Q_OBJECT
     
 public:
-    BoardTest();
+    BoardTest ();
     
 private Q_SLOTS:
     void ctor_except_data();
@@ -107,6 +97,5 @@ void BoardTest::nDims () {
 }
 
 
-QTEST_APPLESS_MAIN(BoardTest)
-
+DECLARE_TEST (BoardTest)
 #include "tst_board.moc"

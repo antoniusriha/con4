@@ -1,5 +1,5 @@
 /*
- * player.h
+ * aiplayer.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,14 +25,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef PLAYER_H
-#define PLAYER_H
+#include "aiplayer.h"
 
-class Player {
-public:
-    Player ();
-private:
+AIPlayer::AIPlayer () : _delay (1000) {
 
-};
-
-#endif // PLAYER_H
+}

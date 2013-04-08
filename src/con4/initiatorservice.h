@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * initiatorservice.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,30 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef INITIATORSERVICE_H
+#define INITIATORSERVICE_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include "networkgame.h"
+#include "service.h"
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow {
+class InitiatorService : public Service {
     Q_OBJECT
-    
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
-private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    InitiatorService (QHostAddress host, quint16 port);
+
+    void joinGame (NetworkGame &game) const;
+    void move (int fieldNumber) const;
+    void abortGame (QString reason) const;
+
+signals:
+    void joinGameSuccess ();
+    void joinGameFailed (QString reason);
+    void startGame ();
+    void synchronizeGameBoard (int **fieldNumberAndValue);
+    void updatedGameBoard (int fieldNumber, FieldValue value);
+    void moved_failed (QString reason);
+    void endGame (int result);
+    void abortGame (QString reason);
 };
 
-#endif // MAINWINDOW_H
+#endif // INITIATORSERVICE_H

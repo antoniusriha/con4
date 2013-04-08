@@ -28,11 +28,13 @@
 #include <QtGui/QApplication>
 #include "mainwindow.h"
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
+int main (int argc, char *argv []) {
+    QApplication a (argc, argv);
+    QCoreApplication::setOrganizationName ("riha");
+    QCoreApplication::setOrganizationDomain ("ariha.info");
+    QCoreApplication::setApplicationName ("con4");
     MainWindow w;
-    w.show();
+    w.show ();
     
-    return a.exec();
+    return a.exec ();
 }

@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * game.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,28 +25,39 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef GAME_H
+#define GAME_H
 
-#include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
-#include "indexservice.h"
+#include <QObject>
+#include "board.h"
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow {
+class Game : public QObject {
     Q_OBJECT
-    
 public:
-    explicit MainWindow (QWidget *parent = 0);
-    ~MainWindow ();
-    
+    Game ();
+    virtual ~Game ();
+
+    QString player1 () const { return _player1; }
+    QString player2 () const { return _player2; }
+    int height () const { return _height; }
+    int width () const { return _width; }
+    int depth () const { return _depth; }
+    bool hasStarted () const { return _hasStarted; }
+
+    void setPlayer1 (QString value) { _player1 = value; }
+    void setPlayer2 (QString value) { _player2 = value; }
+    void setHeight (int value) { _height = value; }
+    void setWidth (int value) { _width = value; }
+    void setDepth (int value) { _depth = value; }
+
+    virtual bool areSettingsValid () const;
+protected:
+    bool _hasStarted;
+
 private:
-    Ui::MainWindow *ui;
-    QList<IndexService *> indexServices;
+    QString _player1, _player2;
+    int _height, _width, _depth;
+    Board *_board;
 };
 
-#endif // MAINWINDOW_H
+#endif // GAME_H
