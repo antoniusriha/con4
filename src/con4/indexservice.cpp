@@ -43,83 +43,87 @@ void IndexService::run () {
     }
 }
 
-Response IndexService::registerGame (NetworkGame *game) {
-    QString msg = QString ("register_game;%1;%2;%3;%4;%5;%6;%7\n").arg (game->player1 ())
-            .arg (game->name ()).arg (game->width ()).arg (game->height ())
-            .arg (game->depth ()).arg (game->host ().toString ()).arg (game->port ());
+GameResponse IndexService::createGame (QString initiator, QString gameName,
+                                       int width, int height, int depth) {
 
-    Response resp;
-    QStringList respTokens;
-    try {
-        respTokens = sendMsg (msg);
-    } catch (runtime_error &ex) {
-        return fail (resp, ex.what ());
-    }
 
-    if (respTokens.size () < 2) return fail (resp, INVALID_RESP_ERR);
+//    NetworkGame *game;// = new NetworkGame (gameName, initiator, )
+//    QString msg = QString ("register_game;%1;%2;%3;%4;%5;%6;%7\n").arg (game->player1 ())
+//            .arg (game->name ()).arg (game->width ()).arg (game->height ())
+//            .arg (game->depth ()).arg (game->host ().toString ()).arg (game->port ());
 
-    QString header = respTokens [0];
-    bool success = header == "register_success";
+//    Response resp;
+//    QStringList respTokens;
+//    try {
+//        respTokens = sendMsg (msg);
+//    } catch (runtime_error &ex) {
+//        return fail (resp, ex.what ());
+//    }
 
-    QUuid guid;
-    if (success) {
-        guid = QUuid (respTokens [1]);
-        if (guid.isNull ()) return fail (resp, INVALID_RESP_ERR);
-        game->setGuid (guid);
-        resp.Success = true;
-        return resp;
-    } else return fail (resp, respTokens [1]);
+//    if (respTokens.size () < 2) return fail (resp, INVALID_RESP_ERR);
+
+//    QString header = respTokens [0];
+//    bool success = header == "register_success";
+
+//    QUuid guid;
+//    if (success) {
+//        guid = QUuid (respTokens [1]);
+//        if (guid.isNull ()) return fail (resp, INVALID_RESP_ERR);
+//        game->setGuid (guid);
+//        resp.Success = true;
+//        return resp;
+//    } else return fail (resp, respTokens [1]);
 }
 
 void IndexService::registerGameAsync (NetworkGame *game) {
-    connect (&_regGameRespWatcher, SIGNAL (finished ()), this, SLOT (_registerGameFinished ()));
-    QFuture<Response> future =
-            QtConcurrent::run (this, &IndexService::registerGame, game);
-    _regGameRespWatcher.setFuture (future);
+//    connect (&_regGameRespWatcher, SIGNAL (finished ()), this, SLOT (_registerGameFinished ()));
+//    QFuture<Response> future =
+//            QtConcurrent::run (this, &IndexService::createGame, game);
+//    _regGameRespWatcher.setFuture (future);
 }
 
 void IndexService::_registerGameFinished () {
-    emit registerGameCompleted (_regGameRespWatcher.result ());
+    emit createGameCompleted (_regGameRespWatcher.result ());
 }
 
 GameListResponse IndexService::requestGameList () {
-    GameListResponse resp;
-    QStringList respTokens;
-    try {
-        respTokens = sendMsg ("request_game_list\n");
-    } catch (runtime_error &ex) {
-        return (GameListResponse &)fail (resp, QString (ex.what ()));
-    }
+//    GameListResponse resp;
+//    QStringList respTokens;
+//    try {
+//        respTokens = sendMsg ("request_game_list\n");
+//    } catch (runtime_error &ex) {
+//        return (GameListResponse &)fail (resp, QString (ex.what ()));
+//    }
 
-    if (respTokens.size () < 2)
-        return (GameListResponse &)fail (resp, INVALID_RESP_ERR);
-    int n = (respTokens.size () - 2) / 8;
-    QList<NetworkGame *> gameList;
-    for (int i = 0; i < n; i++) {
-        int baseIdx = i * 8;
-        bool open = respTokens [baseIdx] == "Open";
-        QString playerName = respTokens [baseIdx + 1];
-        QString gameName = respTokens [baseIdx + 2];
-        int width = respTokens [baseIdx + 3].toInt ();
-        int height = respTokens [baseIdx + 4].toInt ();
-        bool depthOk;
-        int depth = (respTokens [baseIdx + 5]).toInt (&depthOk);
-        QHostAddress host;
-        bool hostOk = host.setAddress (respTokens [baseIdx + 6]);
-        quint16 port = toQuint16 (respTokens [baseIdx + 7]);
+//    if (respTokens.size () < 2)
+//        return (GameListResponse &)fail (resp, INVALID_RESP_ERR);
+//    int n = (respTokens.size () - 2) / 8;
+//    QList<NetworkGame *> gameList;
+//    for (int i = 0; i < n; i++) {
+//        int baseIdx = i * 8;
+//        bool open = respTokens [baseIdx] == "Open";
+//        QString playerName = respTokens [baseIdx + 1];
+//        QString gameName = respTokens [baseIdx + 2];
+//        int width = respTokens [baseIdx + 3].toInt ();
+//        int height = respTokens [baseIdx + 4].toInt ();
+//        bool depthOk;
+//        int depth = (respTokens [baseIdx + 5]).toInt (&depthOk);
+//        QHostAddress host;
+//        bool hostOk = host.setAddress (respTokens [baseIdx + 6]);
+//        quint16 port = toQuint16 (respTokens [baseIdx + 7]);
 
-        if (width == 0 || height == 0 || !depthOk || !hostOk || port == 0)
-            continue;
+//        if (width == 0 || height == 0 || !depthOk || !hostOk || port == 0)
+//            continue;
 
-        NetworkGame *game = new NetworkGame (gameName, playerName, host,
-                                             port, width, height, depth, !open);
-        if (game->areSettingsValid ()) gameList.append (game);
-        else delete game;
-    }
+//        NetworkGame *game = new NetworkGame (gameName, playerName, host,
+//                                             port, width, height, depth, !open);
+//        if (game->areSettingsValid ()) gameList.append (game);
+//        else delete game;
+//    }
 
-    resp.Games = gameList;
-    resp.Success = true;
-    return resp;
+//    resp.Games = gameList;
+//    resp.Success = true;
+//    return resp;
 }
 
 void IndexService::requestGameListAsync () {
@@ -134,25 +138,25 @@ void IndexService::_requestGameListFinished () {
     emit requestGameListCompleted (_reqGameListRespWatcher.result ());
 }
 
-Response IndexService::unregisterGame (NetworkGame *game) {
-    QString msg = QString ("unregister_game;%1\n").arg (game->guid ());
-    Response resp;
-    QStringList respTokens;
-    try {
-        respTokens = sendMsg (msg);
-    } catch (runtime_error &ex) {
-        return fail (resp, ex.what ());
-    }
-    if (respTokens.size () == 0) return fail (resp, INVALID_RESP_ERR);
+//Response IndexService::unregisterGame (NetworkGame *game) {
+//    QString msg = QString ("unregister_game;%1\n").arg (game->guid ());
+//    Response resp;
+//    QStringList respTokens;
+//    try {
+//        respTokens = sendMsg (msg);
+//    } catch (runtime_error &ex) {
+//        return fail (resp, ex.what ());
+//    }
+//    if (respTokens.size () == 0) return fail (resp, INVALID_RESP_ERR);
 
-    if (respTokes [0] == "unregister_game_success") {
-        resp.Success = true;
-        return resp;
-    }
+//    if (respTokes [0] == "unregister_game_success") {
+//        resp.Success = true;
+//        return resp;
+//    }
 
-    return fail (resp, respTokens.size () > 1 ?
-                     respTokens [1] : "Unspecified error.");
-}
+//    return fail (resp, respTokens.size () > 1 ?
+//                     respTokens [1] : "Unspecified error.");
+//}
 
 Response IndexService::sealGame (NetworkGame *game) {
     QString msg = QString ("seal_game;%1\n").arg (game->guid ());
@@ -165,7 +169,7 @@ Response IndexService::sealGame (NetworkGame *game) {
     }
     if (respTokens.size () == 0) return fail (resp, INVALID_RESP_ERR);
 
-    if (respTokes [0] == "seal_game_success") {
+    if (respTokens [0] == "seal_game_success") {
         resp.Success = true;
         return resp;
     }

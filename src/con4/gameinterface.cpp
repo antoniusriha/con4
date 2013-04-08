@@ -1,5 +1,5 @@
 /*
- * main.cpp
+ * gameinterface.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,13 +25,9 @@
  * THE SOFTWARE.
  */
 
-#include <QDebug>
-#include "indexservicetest.h"
+#include "gameinterface.h"
 
-IndexServiceTest indexServiceTest;
-
-int main () {
-    indexServiceTest.runRegisterGameTest ();
-    indexServiceTest.runRequestGameListTest ();
-    return 0;
+GameInterface::GameInterface (bool readOnly) : _readOnly (readOnly) {
 }
+
+GameInterface::~GameInterface () {}

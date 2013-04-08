@@ -30,7 +30,6 @@
 #include <QtNetwork/QTcpSocket>
 #include "joingamesetupview.h"
 #include "ui_joingamesetupview.h"
-#include "indexserver.h"
 
 JoinGameSetupView::JoinGameSetupView (QWidget *parent)
     : QWidget (parent), ui (new Ui::JoinGameSetupView) {

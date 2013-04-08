@@ -32,14 +32,15 @@
 #include <QUuid>
 #include <QtNetwork/QHostAddress>
 #include "game.h"
+#include "initiatorservice.h"
+#include "opponentservice.h"
 
 class NetworkGame : public Game {
     Q_OBJECT
 public:
-    NetworkGame ();
-    NetworkGame (QHostAddress host, quint16 port);
-    NetworkGame (QString name, QString player1, QHostAddress host, quint16 port,
-                 int width, int height, int depth, bool hasStarted);
+//    NetworkGame ();
+//    NetworkGame (QHostAddress host, quint16 port);
+
     ~NetworkGame ();
 
     QString name () const { return _name; }
@@ -51,12 +52,21 @@ public:
     void setGuid (QUuid value) { _guid = value; }
 
     bool areSettingsValid () const;
+
 private:
+    NetworkGame (const NetworkGame &);
+    NetworkGame &operator= (const NetworkGame &);
+
+    NetworkGame (OpponentService *opponent, QString gameName,
+                 int width, int height, int depth, bool hasStarted);
+
     const bool _isInitiator;
     QUuid _guid;
     QString _name;
     QHostAddress _host;
     quint16 _port;
+
+    friend class IndexService;
 };
 
 #endif // NETWORKGAME_H

@@ -1,5 +1,5 @@
 /*
- * networkinterface.h
+ * gameinterface.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,17 +25,34 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKINTERFACE_H
-#define NETWORKINTERFACE_H
+#ifndef GAMEINTERFACE_H
+#define GAMEINTERFACE_H
 
-#include "game.h"
+#include <QObject>
 
-class NetworkInterface {
-public:
-    NetworkInterface ();
-
-private:
-    Game _game;
+enum Permission {
+    Read,
+    ReadWrite
 };
 
-#endif // NETWORKINTERFACE_H
+class GameInterface : public QObject {
+    Q_OBJECT
+public:
+    GameInterface (bool readOnly);
+    ~GameInterface ();
+    
+    bool readOnly () const { return _readOnly; }
+
+signals:
+    
+public slots:
+
+private:
+    GameInterface (const GameInterface &);
+    GameInterface &operator= (const GameInterface &);
+
+    bool _readOnly;
+    QString _playerName;
+};
+
+#endif // GAMEINTERFACE_H

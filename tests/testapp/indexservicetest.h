@@ -41,8 +41,8 @@ class IndexServiceTest : public QObject {
 public:
     explicit IndexServiceTest (QObject *parent = 0);
     ~IndexServiceTest ();
-    void runRegisterGameTest ();
-    void runRequestGameListTest ();
+    bool runRegisterGameTest ();
+    bool runRequestGameListTest ();
     
 private slots:
     void _registerGameCompleted (Response resp);

@@ -28,10 +28,11 @@
 #ifndef OPPONENTSERVICE_H
 #define OPPONENTSERVICE_H
 
-#include "networkgame.h"
+#include "board.h"
 #include "service.h"
+#include "gameinterface.h"
 
-class OpponentService : public Service {
+class OpponentService : public GameInterface {
     Q_OBJECT
 public:
     OpponentService (QHostAddress host, quint16 port);
@@ -46,7 +47,7 @@ public:
     void abortGame (QString reason) const;
 
 signals:
-    void joinGame (NetworkGame &game);
+//    void joinGame (NetworkGame &game);
     void move (int fieldIndex);
     void abortGame (QString reason);
 };

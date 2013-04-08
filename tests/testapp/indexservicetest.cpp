@@ -34,7 +34,7 @@ IndexServiceTest::~IndexServiceTest () {
 
 }
 
-void IndexServiceTest::runRegisterGameTest () {
+bool IndexServiceTest::runRegisterGameTest() {
     QHostAddress gameHost = QHostAddress ("127.0.0.1");
     quint16 gamePort = Service::toQuint16 ("9999");
 
@@ -56,7 +56,7 @@ void IndexServiceTest::_registerGameCompleted (Response resp) {
     delete _game;
 }
 
-void IndexServiceTest::runRequestGameListTest () {
+bool IndexServiceTest::runRequestGameListTest() {
     connect (&_service, SIGNAL (requestGameListCompleted (GameListResponse)),
              this, SLOT (_requestGameListCompleted (GameListResponse)));
     _service.requestGameListAsync ();

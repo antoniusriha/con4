@@ -27,7 +27,7 @@
 
 #include "game.h"
 
-Game::Game () {
+Game::Game (GameInterface *initiator) : _initiator (initiator) {
 }
 
 Game::~Game () {
@@ -35,3 +35,4 @@ Game::~Game () {
 
 bool Game::areSettingsValid () const {
 }
+

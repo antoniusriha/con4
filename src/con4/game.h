@@ -30,22 +30,22 @@
 
 #include <QObject>
 #include "board.h"
+#include "gameinterface.h"
 
 class Game : public QObject {
     Q_OBJECT
 public:
-    Game ();
+    Game (GameInterface *initiator);
     virtual ~Game ();
 
-    QString player1 () const { return _player1; }
-    QString player2 () const { return _player2; }
+    const GameInterface *const initiator () const { return _initiator; }
+    GameInterface *opponent () const { return _opponent; }
     int height () const { return _height; }
     int width () const { return _width; }
     int depth () const { return _depth; }
     bool hasStarted () const { return _hasStarted; }
 
-    void setPlayer1 (QString value) { _player1 = value; }
-    void setPlayer2 (QString value) { _player2 = value; }
+    void setOpponent (GameInterface *value) { _opponent = value; }
     void setHeight (int value) { _height = value; }
     void setWidth (int value) { _width = value; }
     void setDepth (int value) { _depth = value; }
@@ -55,9 +55,15 @@ protected:
     bool _hasStarted;
 
 private:
-    QString _player1, _player2;
+    Game (const Game &);
+    Game &operator= (const Game &);
+
+    const GameInterface *const _initiator;
+    GameInterface *_opponent;
     int _height, _width, _depth;
     Board *_board;
+
+    friend class GameInterface;
 };
 
 #endif // GAME_H

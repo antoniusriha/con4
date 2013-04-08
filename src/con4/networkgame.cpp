@@ -27,21 +27,19 @@
 
 #include "networkgame.h"
 
-NetworkGame::NetworkGame () : _isInitiator (false) {
-}
 
-NetworkGame::NetworkGame (QHostAddress host, quint16 port)
-    : _isInitiator (true), _host (host), _port (port) {}
+//NetworkGame::NetworkGame (QHostAddress host, quint16 port)
+//    : _isInitiator (true), _host (host), _port (port) {}
 
-NetworkGame::NetworkGame (QString name, QString player1, QHostAddress host,
-                          quint16 port, int width, int height, int depth, bool hasStarted)
-    : _isInitiator (false), _name (name), _host (host), _port (port) {
-    setPlayer1 (player1);
-    setWidth (width);
-    setHeight (height);
-    setDepth (depth);
-    _hasStarted = hasStarted;
-}
+//NetworkGame::NetworkGame (QString name, QString player1, QHostAddress host,
+//                          quint16 port, int width, int height, int depth, bool hasStarted)
+//    : _isInitiator (false), _name (name), _host (host), _port (port) {
+//    setPlayer1 (player1);
+//    setWidth (width);
+//    setHeight (height);
+//    setDepth (depth);
+//    _hasStarted = hasStarted;
+//}
 
 NetworkGame::~NetworkGame () {
 }

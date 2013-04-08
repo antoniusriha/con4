@@ -19,13 +19,13 @@ SOURCES += main.cpp\
     game.cpp \
     aiplayer.cpp \
     board.cpp \
-    networkinterface.cpp \
     networkproxy.cpp \
     indexservice.cpp \
     networkgame.cpp \
     service.cpp \
     opponentservice.cpp \
-    initiatorservice.cpp
+    initiatorservice.cpp \
+    gameinterface.cpp
 
 HEADERS  += mainwindow.h \
     mythread.h \
@@ -35,13 +35,13 @@ HEADERS  += mainwindow.h \
     game.h \
     aiplayer.h \
     board.h \
-    networkinterface.h \
     networkproxy.h \
     indexservice.h \
     networkgame.h \
     service.h \
     opponentservice.h \
-    initiatorservice.h
+    initiatorservice.h \
+    gameinterface.h
 
 FORMS    += mainwindow.ui \
     gameconfview.ui \

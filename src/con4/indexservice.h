@@ -30,7 +30,6 @@
 
 #include <QObject>
 #include <QMutex>
-#include <QUuid>
 #include <QHostAddress>
 #include <QtNetwork/QTcpSocket>
 #include <QtNetwork/QUdpSocket>
@@ -44,28 +43,28 @@ struct GameListResponse : Response {
     QList<NetworkGame *> Games;
 };
 
+struct GameResponse : Response {
+    NetworkGame *Game;
+};
+
 class IndexService : public Service {
     Q_OBJECT
 public:
     IndexService (QHostAddress host, quint16 port, QString name);
-    
-    Response registerGame (NetworkGame *game);
+
+    QString name () const { return _name; }
+
     GameListResponse requestGameList ();
+    GameResponse createGame (QString initiator, QString gameName, int width, int height, int depth);
+    GameResponse deleteGame (NetworkGame *game);
+    Response sealGame (NetworkGame *game);
 
     void registerGameAsync (NetworkGame *game);
     void requestGameListAsync ();
 
-    void unregisterGame (QUuid guid) const;
-    void sealGame (QUuid guid) const;
-    void heartBeat () const;
-
 signals:
-    void registerGameCompleted (Response response);
+    void createGameCompleted (GameResponse response);
     void requestGameListCompleted (GameListResponse response);
-    void answerGameList (NetworkGame *list, int size);
-    void unregisterGameFailed (QString msg);
-    void unregisterGameSuccess ();
-    void heartBeat ();
 
 private slots:
     void _registerGameFinished ();
@@ -74,7 +73,7 @@ private slots:
 private:
     void run ();
 
-    QFutureWatcher<Response> _regGameRespWatcher;
+    QFutureWatcher<GameResponse> _regGameRespWatcher;
     QFutureWatcher<GameListResponse> _reqGameListRespWatcher;
     int _regGamesCount;
     QString _name;

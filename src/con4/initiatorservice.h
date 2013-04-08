@@ -28,15 +28,16 @@
 #ifndef INITIATORSERVICE_H
 #define INITIATORSERVICE_H
 
-#include "networkgame.h"
+#include "board.h"
 #include "service.h"
+#include "gameinterface.h"
 
-class InitiatorService : public Service {
+class InitiatorService : public GameInterface {
     Q_OBJECT
 public:
     InitiatorService (QHostAddress host, quint16 port);
 
-    void joinGame (NetworkGame &game) const;
+//    void joinGame (NetworkGame &game) const;
     void move (int fieldNumber) const;
     void abortGame (QString reason) const;
 

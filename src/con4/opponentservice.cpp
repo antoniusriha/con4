@@ -27,6 +27,6 @@
 
 #include "opponentservice.h"
 
-OpponentService::OpponentService (QHostAddress host, quint16 port)
-    : Service (host, port) {
-}
+//OpponentService::OpponentService (QHostAddress host, quint16 port)
+//    : Service (host, port) {
+//}

@@ -25,15 +25,13 @@
  * THE SOFTWARE.
  */
 
-#include <QtCore/QCoreApplication>
 #include <QDebug>
 #include "indexservicetest.h"
 
 IndexServiceTest indexServiceTest;
 
-int main (int argc, char *argv []) {
-    QCoreApplication a (argc, argv);    
+int main () {
     indexServiceTest.runRegisterGameTest ();
     indexServiceTest.runRequestGameListTest ();
-    return a.exec ();
+    return 0;
 }

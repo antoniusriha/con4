@@ -27,6 +27,6 @@
 
 #include "initiatorservice.h"
 
-InitiatorService::InitiatorService (QHostAddress host, quint16 port)
-    : Service (host, port) {
-}
+//InitiatorService::InitiatorService (QHostAddress host, quint16 port)
+//    : Service (host, port) {
+//}
