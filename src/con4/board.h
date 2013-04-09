@@ -45,6 +45,7 @@ public:
     static bool isBoardConfValid (int nConnect, int height, int dim2, int dim3, std::string &errMsg);
 
     Board (int nConnect, int height, int dim2, int dim3, bool canUndo = false);
+    Board (const Board &board, bool canUndo); // custom copy
 	
     // Data access & simple queries
     int nDims () const { return dim3 () == 1 ? 2 : 3; }
@@ -60,6 +61,9 @@ public:
     // Queries
     bool isFull (int dim2, int dim3, int &height);
 //    bool connected (int *idcs[]);
+
+    // Data access
+    FieldValue get (int height, int dim2, int dim3) const;
 
     // Data manipulation
     bool set (int dim2, int dim3);

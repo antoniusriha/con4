@@ -30,10 +30,7 @@
 
 #include <QObject>
 
-enum Permission {
-    Read,
-    ReadWrite
-};
+#include "board.h"
 
 class GameInterface : public QObject {
     Q_OBJECT
@@ -42,6 +39,7 @@ public:
     ~GameInterface ();
     
     bool readOnly () const { return _readOnly; }
+    const Board *const board () const {}
 
 signals:
     

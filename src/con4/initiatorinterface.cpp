@@ -1,5 +1,5 @@
 /*
- * game.h
+ * initiatorinterface.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef GAME_H
-#define GAME_H
-
-#include <QObject>
-
-#include "board.h"
 #include "initiatorinterface.h"
 
-class Game : public QObject {
-    Q_OBJECT
-public:
-    virtual ~Game ();
-
-    int height () const { return _height; }
-    int width () const { return _width; }
-    int depth () const { return _depth; }
-    bool hasStarted () const { return _hasStarted; }
-
-    void setHeight (int value) { _height = value; }
-    void setWidth (int value) { _width = value; }
-    void setDepth (int value) { _depth = value; }
-
-    virtual bool areSettingsValid () const;
-
-protected:
-    bool _hasStarted;
-
-private:
-    Game ();
-    Game (const Game &);
-    Game &operator= (const Game &);
-
-    int _height, _width, _depth;
-    Board *_board;
-
-    friend class InitiatorInterface;
-};
-
-#endif // GAME_H
+InitiatorInterface::InitiatorInterface (QObject *parent) : QObject (parent) {
+}

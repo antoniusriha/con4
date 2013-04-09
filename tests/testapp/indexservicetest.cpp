@@ -35,19 +35,19 @@ IndexServiceTest::~IndexServiceTest () {
 }
 
 bool IndexServiceTest::runRegisterGameTest() {
-    QHostAddress gameHost = QHostAddress ("127.0.0.1");
-    quint16 gamePort = Service::toQuint16 ("9999");
+//    QHostAddress gameHost = QHostAddress ("127.0.0.1");
+//    quint16 gamePort = Service::toQuint16 ("9999");
 
-    _game = new NetworkGame (gameHost, gamePort);
-    _game->setHeight (4);
-    _game->setWidth (5);
-    _game->setDepth (6);
-    _game->setPlayer1 ("Sebastian");
-    _game->setName ("Bastigame");
+//    _game = new NetworkGame (gameHost, gamePort);
+//    _game->setHeight (4);
+//    _game->setWidth (5);
+//    _game->setDepth (6);
+//    _game->setPlayer1 ("Sebastian");
+//    _game->setName ("Bastigame");
 
-    connect (&_service, SIGNAL (registerGameCompleted (Response)),
-             this, SLOT (_registerGameCompleted (Response)));
-    _service.registerGameAsync (_game);
+//    connect (&_service, SIGNAL (registerGameCompleted (Response)),
+//             this, SLOT (_registerGameCompleted (Response)));
+//    _service.registerGameAsync (_game);
 }
 
 void IndexServiceTest::_registerGameCompleted (Response resp) {

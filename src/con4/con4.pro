@@ -25,7 +25,9 @@ SOURCES += main.cpp\
     service.cpp \
     opponentservice.cpp \
     initiatorservice.cpp \
-    gameinterface.cpp
+    gameinterface.cpp \
+    initiatorinterface.cpp \
+    opponentinterface.cpp
 
 HEADERS  += mainwindow.h \
     mythread.h \
@@ -41,7 +43,9 @@ HEADERS  += mainwindow.h \
     service.h \
     opponentservice.h \
     initiatorservice.h \
-    gameinterface.h
+    gameinterface.h \
+    initiatorinterface.h \
+    opponentinterface.h
 
 FORMS    += mainwindow.ui \
     gameconfview.ui \

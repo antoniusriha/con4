@@ -57,6 +57,12 @@ Board::Board (int nConnect, int height, int dim2, int dim3, bool canUndo)
     if (_canUndo) _undoStack = stack<IndexArray> ();
 }
 
+Board::Board (const Board &board, bool canUndo)
+    : _nConnect (board._nConnect), _canUndo (canUndo), _isFinished (board._isFinished),
+    _curPlayer (board._curPlayer), _array (board._array) {
+    if (canUndo) _undoStack = stack<IndexArray> ();
+}
+
 FieldValue Board::winner () const {
     return _isFinished ? (_curPlayer == Player1 ? Player2 : Player1) : None;
 }
@@ -67,6 +73,10 @@ bool Board::isFull (int dim2, int dim3, int &height) {
     for (; (isNotFull = (height < this->height ()))
          && (_array [height][dim2][dim3] != None); height++);
     return !isNotFull;
+}
+
+FieldValue Board::get (int height, int dim2, int dim3) const {
+    return _array [height][dim2][dim3];
 }
 
 //bool Board::connected (int *idcs []if (nDims () == 2) dim3 = 0;) {
@@ -127,7 +137,7 @@ bool Board::_connected (IndexArray index) const {
         for (int j = -1; fail && j <= 1; j++) {
             for (int k = -1; fail && k <= 1; k++) {
                 if (i == 0 && j == 0 && k == 0) continue;
-                copy (index.begin (), index.end (), idx.begin ());
+                std::copy (index.begin (), index.end (), idx.begin ());
                 for (int m = 1; (fail = m < _nConnect); m++) {
                     idx [0] += i; idx [1] += j; idx [2] += k;
                     if (!_isIndexValid (idx)) break;
