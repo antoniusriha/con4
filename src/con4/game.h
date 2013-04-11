@@ -29,38 +29,102 @@
 #define GAME_H
 
 #include <QObject>
-
 #include "board.h"
-#include "initiatorinterface.h"
 
 class Game : public QObject {
     Q_OBJECT
 public:
+    Game ();
+    Game (int nConnect, int width, int height, int depth);
+    Game (const Board &board);
     virtual ~Game ();
 
+    int nConnect () const { return _nConnect; }
     int height () const { return _height; }
     int width () const { return _width; }
     int depth () const { return _depth; }
+
+    bool setNConnect (int value) {
+        if (!_hasStarted) {
+            _nConnect = value;
+            return true;
+        } else return false;
+    }
+
+    bool setHeight (int value) {
+        if (!_hasStarted) {
+            _height = value;
+            return true;
+        } else return false;
+    }
+
+    bool setWidth (int value) {
+        if (!_hasStarted) {
+            _width = value;
+            return true;
+        } else return false;
+    }
+
+    bool setDepth (int value) {
+        if (!_hasStarted) {
+            _depth = value;
+            return true;
+        } else return false;
+    }
+
+    FieldValue curPlayer () const {
+        return _hasStarted ? _board->curPlayer () : None;
+    }
+
+    FieldValue winner () const {
+        return _hasStarted ? _board->winner () : None;
+    }
+
+    Board board () const { return _hasStarted ? *_board : Board (); }
+
+    bool canUndo () const { return _hasStarted; }
+
     bool hasStarted () const { return _hasStarted; }
 
-    void setHeight (int value) { _height = value; }
-    void setWidth (int value) { _width = value; }
-    void setDepth (int value) { _depth = value; }
+    bool finished () const {
+        return _hasStarted ? _board->isFinished () : false;
+    }
 
-    virtual bool areSettingsValid () const;
+    bool aborted () const { return _aborted; }
 
-protected:
-    bool _hasStarted;
+    // Queries
+    bool isConfValid (QString &errMsg);
+    int nDims () const { return depth () == 1 ? 2 : 3; }
+    bool isFull (int width, int depth, int &height) {
+        return _hasStarted ? _board->isFull (width, depth, height) : false;
+    }
+
+    // Data access
+    FieldValue get (int width, int height, int depth) const {
+        return _hasStarted ? _board->get (height, width, depth) : None;
+    }
+
+    // Data manipulation
+    bool set (int width, int depth);
+    bool undo (int &width, int &height, int &depth);
+
+    bool start ();
+    bool abort (FieldValue requester, QString reason);
+
+signals:
+    void started (FieldValue startPlayer);
+    void set (FieldValue player, int width, int depth);
+    void undone (FieldValue player, int width, int height, int depth);
+    void finished (FieldValue winner);
+    void aborted (FieldValue requester, QString reason);
 
 private:
-    Game ();
     Game (const Game &);
     Game &operator= (const Game &);
 
-    int _height, _width, _depth;
+    int _nConnect, _width, _height, _depth;
+    bool _hasStarted, _aborted;
     Board *_board;
-
-    friend class InitiatorInterface;
 };
 
 #endif // GAME_H

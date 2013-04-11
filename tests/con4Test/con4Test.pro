@@ -21,7 +21,9 @@ SOURCES += \
     main.cpp \
     ../../src/con4/service.cpp \
     ../../src/con4/networkgame.cpp \
-    ../../src/con4/game.cpp
+    ../../src/con4/game.cpp \
+    ../../src/con4/opponentservice.cpp \
+    ../../src/con4/initiatorservice.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
@@ -29,4 +31,7 @@ HEADERS += \
     ../../src/con4/service.h \
     ../../src/con4/indexservice.h \
     ../../src/con4/networkgame.h \
-    ../../src/con4/game.h
+    ../../src/con4/game.h \
+    ../../src/con4/opponentservice.h \
+    ../../src/con4/initiatorservice.h \
+    ../../src/con4/board.h

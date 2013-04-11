@@ -34,7 +34,7 @@ class MyThread : public QThread
 {
     Q_OBJECT
 public:
-    MyThread (QObject *parent = 0);
+    MyThread ();
     ~MyThread ();
     
 signals:

@@ -26,44 +26,10 @@
  */
 
 #include <stdexcept>
+#include <QTcpSocket>
 #include "service.h"
 
 using namespace std;
-
-Service::Service (QHostAddress host, quint16 port)
-    : _host (host), _port (port) {}
-
-QStringList Service::sendMsg (QString msg) {
-    QTcpSocket socket;
-    socket.connectToHost (host (), port ());
-    if (!socket.waitForConnected (5000))
-        throw runtime_error ("Error: Could not connect to server.");
-
-    socket.write (msg.toUtf8 ());
-    if (!socket.waitForBytesWritten ()) {
-        socket.disconnect ();
-        throw runtime_error ("Error: Failed to send data to server.");
-    }
-
-    if (!socket.waitForReadyRead ()) {
-        socket.disconnect ();
-        throw runtime_error ("Error: No response from server.");
-    }
-
-    char buffer [MSG_BUF_SIZE];
-    int bytesRead = socket.read (buffer, MSG_BUF_SIZE - 1);
-    socket.disconnect ();
-    buffer [bytesRead] = 0;
-
-    QString qsResp = QString::fromUtf8 (buffer);
-    return qsResp.split (MSG_SPLIT_CHAR);
-}
-
-Response &Service::fail (Response &resp, QString errMsg) {
-    resp.ErrMsg = errMsg;
-    resp.Success = false;
-    return resp;
-}
 
 quint16 Service::toQuint16 (QString qsPort, bool *ok) {
     qsPort.remove (QRegExp ("^[0]*"));

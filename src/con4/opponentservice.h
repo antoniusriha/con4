@@ -28,14 +28,41 @@
 #ifndef OPPONENTSERVICE_H
 #define OPPONENTSERVICE_H
 
-#include "board.h"
-#include "service.h"
-#include "gameinterface.h"
+#include <QUuid>
+#include <QThread>
+#include <QTcpServer>
+#include "networkplayerservice.h"
 
-class OpponentService : public GameInterface {
+class OppServerThread : public QThread {
     Q_OBJECT
 public:
-    OpponentService (QHostAddress host, quint16 port);
+    OppServerThread (int socketDescriptor, QObject *parent = 0);
+
+private:
+    void run ();
+
+    int _socketDescriptor;
+};
+
+class OppServer : public QTcpServer {
+    Q_OBJECT
+protected:
+    void incomingConnection (int socketDescriptor);
+};
+
+class OpponentService : public NetworkPlayerService {
+    Q_OBJECT
+public:
+    OpponentService (QString initiatorName, QString gameName,
+                     int width, int height, int depth);
+
+    quint16 port () const {
+        return _hasStarted ? _oppServer.serverPort () : (quint16)0;
+    }
+
+    QUuid guid () const { return _guid; }
+
+    bool startService ();
 
     void joinGameSuccess () const;
     void joinGameFailed (QString reason) const;
@@ -47,9 +74,14 @@ public:
     void abortGame (QString reason) const;
 
 signals:
-//    void joinGame (NetworkGame &game);
+    void joinGame (Game *game);
     void move (int fieldIndex);
     void abortGame (QString reason);
+
+private:
+    bool _hasStarted;
+    QUuid _guid;
+    OppServer _oppServer;
 };
 
 #endif // OPPONENTSERVICE_H

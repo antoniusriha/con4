@@ -38,7 +38,6 @@ class GameConfView;
 
 class GameConfView : public QWidget {
     Q_OBJECT
-    
 public:
     explicit GameConfView (QWidget *parent = 0);
     ~GameConfView ();

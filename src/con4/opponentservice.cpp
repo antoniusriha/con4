@@ -25,8 +25,44 @@
  * THE SOFTWARE.
  */
 
+#include <QTcpSocket>
 #include "opponentservice.h"
 
-//OpponentService::OpponentService (QHostAddress host, quint16 port)
-//    : Service (host, port) {
-//}
+OppServerThread::OppServerThread (int socketDescriptor, QObject *parent)
+    : QThread (parent), _socketDescriptor (socketDescriptor) {
+
+}
+
+void OppServerThread::run () {
+    QTcpSocket tcpSocket;
+    if (!tcpSocket.setSocketDescriptor (_socketDescriptor)) return;
+
+//    QByteArray block;
+//    QDataStream out(&block, QIODevice::WriteOnly);
+//    out.setVersion(QDataStream::Qt_4_0);
+//    out << (quint16)0;
+//    out << text;
+//    out.device()->seek(0);
+//    out << (quint16)(block.size() - sizeof(quint16));
+
+//    tcpSocket.write(block);
+//    tcpSocket.disconnectFromHost();
+//    tcpSocket.waitForDisconnected();
+}
+
+void OppServer::incomingConnection (int socketDescriptor) {
+    OppServerThread *thread = new OppServerThread (socketDescriptor, this);
+    connect (thread, SIGNAL (finished ()), thread, SLOT (deleteLater ()));
+    thread->start ();
+}
+
+OpponentService::OpponentService (QString initiatorName, QString gameName,
+                                  int width, int height, int depth)
+    : NetworkPlayerService (initiatorName, gameName, width, height, depth) {}
+
+bool OpponentService::startService () {
+    if (!_oppServer.listen ()) return false;
+    assignIpAddress ();
+    _hasStarted = true;
+    return true;
+}

@@ -1,5 +1,5 @@
 /*
- * networkproxy.cpp
+ * player.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,8 +25,19 @@
  * THE SOFTWARE.
  */
 
-#include "networkproxy.h"
+#ifndef PLAYER_H
+#define PLAYER_H
 
-NetworkProxy::NetworkProxy()
-{
-}
+#include <QObject>
+
+class Player : public QObject {
+    Q_OBJECT
+public:
+    
+signals:
+    
+public slots:
+    
+};
+
+#endif // PLAYER_H

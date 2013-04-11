@@ -19,15 +19,16 @@ SOURCES += main.cpp\
     game.cpp \
     aiplayer.cpp \
     board.cpp \
-    networkproxy.cpp \
-    indexservice.cpp \
-    networkgame.cpp \
     service.cpp \
     opponentservice.cpp \
     initiatorservice.cpp \
-    gameinterface.cpp \
-    initiatorinterface.cpp \
-    opponentinterface.cpp
+    player.cpp \
+    indexservice.cpp \
+    addindexserverdialog.cpp \
+    application.cpp \
+    indexserversview.cpp \
+    indexserversviewmodel.cpp \
+    networkplayerservice.cpp
 
 HEADERS  += mainwindow.h \
     mythread.h \
@@ -37,17 +38,21 @@ HEADERS  += mainwindow.h \
     game.h \
     aiplayer.h \
     board.h \
-    networkproxy.h \
-    indexservice.h \
-    networkgame.h \
     service.h \
     opponentservice.h \
     initiatorservice.h \
-    gameinterface.h \
-    initiatorinterface.h \
-    opponentinterface.h
+    player.h \
+    indexservice.h \
+    addindexserverdialog.h \
+    application.h \
+    indexserversview.h \
+    indexserversviewmodel.h \
+    networkplayerservice.h \
+    con4globals.h
 
 FORMS    += mainwindow.ui \
     gameconfview.ui \
     joingamesetupview.ui \
-    newgamesetupview.ui
+    newgamesetupview.ui \
+    addindexserverdialog.ui \
+    indexserversview.ui

@@ -26,14 +26,17 @@
  */
 
 #include <QSettings>
-
-#include <QtNetwork/QTcpSocket>
+#include <QDialog>
 #include "joingamesetupview.h"
 #include "ui_joingamesetupview.h"
+#include "con4globals.h"
+#include "application.h"
+#include "indexserversview.h"
 
 JoinGameSetupView::JoinGameSetupView (QWidget *parent)
     : QWidget (parent), ui (new Ui::JoinGameSetupView) {
     ui->setupUi (this);
+
 }
 
 JoinGameSetupView::~JoinGameSetupView () { delete ui; }
@@ -46,21 +49,19 @@ void JoinGameSetupView::refreshClicked () {
     emit statusChanged ("Refreshing...");
 
     QSettings settings;
-    int size = settings.beginReadArray ("indexServers");
+    int size = settings.beginReadArray (IDX_SRV_ARRAY);
     for (int i = 0; i < size; i++) {
         settings.setArrayIndex (i);
-        QString name = settings.value ("name").toString ();
-        QString ip = settings.value ("ip").toString ();
-        QString qsPort = settings.value ("port").toString ();
+        QString name = settings.value (IDX_SRV_NAME).toString ();
+        QString ip = settings.value (IDX_SRV_ADDR).toString ();
+        QString qsPort = settings.value (IDX_SRV_PORT).toString ();
+
+
 
         QTextStream ts (&qsPort);
         quint16 port = 0;
         ts >> port;
 
-        QTcpSocket socket;
-        socket.connectToHost (ip, port);
-        if (!socket.waitForConnected (5000))
-            continue;
 
 
     }
@@ -139,4 +140,9 @@ Anzahl der Spiele S,
     socket.disconnect();
     */
     emit statusChanged ("List refreshed.");
+}
+
+void JoinGameSetupView::viewIndexServersClicked () {
+    IndexServersView dlg (this);
+    dlg.exec ();
 }

@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * indexserversview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#ifndef INDEXSERVERSVIEW_H
+#define INDEXSERVERSVIEW_H
 
-#include <QWidget>
+#include <QDialog>
+#include "indexserversviewmodel.h"
 
 namespace Ui {
-class JoinGameSetupView;
+class IndexServersView;
 }
 
-class JoinGameSetupView : public QWidget {
+class IndexServersView : public QDialog {
     Q_OBJECT
 public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
+    explicit IndexServersView (QWidget *parent = 0);
+    ~IndexServersView ();
     
-signals:
-    void statusChanged (QString);
+private slots:
+    void deleteClicked ();
+    void addClicked ();
 
 private:
-    Ui::JoinGameSetupView *ui;
-
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
+    Ui::IndexServersView *ui;
+    IndexServersViewModel _model;
 };
 
-#endif // JOINGAMESETUPVIEW_H
+#endif // INDEXSERVERSVIEW_H

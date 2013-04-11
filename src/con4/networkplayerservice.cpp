@@ -1,5 +1,5 @@
 /*
- * networkproxy.h
+ * networkplayerservice.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,21 +25,25 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKPROXY_H
-#define NETWORKPROXY_H
+#include <QNetworkInterface>
+#include "networkplayerservice.h"
 
-#include <QObject>
+NetworkPlayerService::NetworkPlayerService (QString initiatorName,
+    QString gameName, int width, int height, int depth)
+    : _gameName (gameName), _initiatorName (initiatorName),
+      _game (4, width, height, depth) {}
 
-class NetworkProxy : QObject {
-    Q_OBJECT
-
-public:
-    NetworkProxy ();
-
-    void registerGame () const {}
-
-signals:
-
-};
-
-#endif // NETWORKPROXY_H
+void NetworkPlayerService::assignIpAddress () {
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses ();
+    // use the first non-localhost IPv4 address
+    for (int i = 0; i < ipAddressesList.size (); i++) {
+        if (ipAddressesList.at (i) != QHostAddress::LocalHost &&
+            ipAddressesList.at (i).toIPv4Address ()) {
+            _ipAddress = ipAddressesList.at (i);
+            break;
+        }
+    }
+    // if we did not find one, use IPv4 localhost
+    if (_ipAddress.isNull ())
+        _ipAddress = QHostAddress (QHostAddress::LocalHost);
+}

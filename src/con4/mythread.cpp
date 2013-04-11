@@ -27,8 +27,7 @@
 
 #include "mythread.h"
 
-MyThread::MyThread (QObject *parent)
-    : QThread (parent), _abort (false) {
+MyThread::MyThread () : _abort (false) {
     start (LowPriority);
 }
 

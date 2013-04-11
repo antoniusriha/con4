@@ -35,6 +35,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="btnViewIndexServers">
+         <property name="text">
+          <string>View Index Servers</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -100,9 +107,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>btnViewIndexServers</sender>
+   <signal>clicked()</signal>
+   <receiver>JoinGameSetupView</receiver>
+   <slot>viewIndexServersClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>184</x>
+     <y>279</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>136</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>refreshClicked()</slot>
   <slot>joinClicked()</slot>
+  <slot>viewIndexServersClicked()</slot>
  </slots>
 </ui>

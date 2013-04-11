@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * networkplayerservice.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,36 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#ifndef NETWORKPLAYERSERVICE_H
+#define NETWORKPLAYERSERVICE_H
 
-#include <QWidget>
+#include <QHostAddress>
+#include "game.h"
 
-namespace Ui {
-class JoinGameSetupView;
-}
-
-class JoinGameSetupView : public QWidget {
+class NetworkPlayerService : public QObject {
     Q_OBJECT
 public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
-    
-signals:
-    void statusChanged (QString);
+    NetworkPlayerService (QString initiatorName, QString gameName,
+                          int width, int height, int depth);
+
+    virtual quint16 port () const = 0;
+    virtual bool startService () = 0;
+
+    QString gameName () const { return _gameName; }
+    QString initiatorName () const { return _initiatorName; }
+    Game *const game () { return &_game; }
+    QHostAddress ipAddress () const { return _ipAddress; }
+
+protected:
+    void assignIpAddress ();
 
 private:
-    Ui::JoinGameSetupView *ui;
+    NetworkPlayerService (const NetworkPlayerService &);
+    NetworkPlayerService &operator= (const NetworkPlayerService &);
 
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
+    QString _gameName, _initiatorName;
+    Game _game;
+    QHostAddress _ipAddress;
 };
 
-#endif // JOINGAMESETUPVIEW_H
+#endif // NETWORKPLAYERSERVICE_H

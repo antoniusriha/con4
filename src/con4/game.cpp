@@ -25,14 +25,62 @@
  * THE SOFTWARE.
  */
 
+#include <string>
+#include <stdlib.h>
 #include "game.h"
 
-Game::Game (GameInterface *initiator) : _initiator (initiator) {
+using namespace std;
+
+Game::Game () : _nConnect (4), _width (8), _height (8), _depth (4), _hasStarted (false), _aborted (false) {}
+
+Game::Game (int nConnect, int width, int height, int depth)
+    : _nConnect (nConnect), _width (width), _height (height), _depth (depth), _hasStarted (false), _aborted (false) {}
+
+Game::Game (const Board &board) : _nConnect (board.nConnect ()),
+    _width (board.dim2 ()), _height (board.height ()), _depth (board.dim3 ()),
+    _hasStarted (true), _aborted (false), _board (new Board (board, true)) {}
+
+Game::~Game () { if (_hasStarted) delete _board; }
+
+bool Game::isConfValid (QString &errMsg) {
+    string msg;
+    bool result = Board::isBoardConfValid (_nConnect, _height, _width, _depth, msg);
+    errMsg = QString::fromUtf8 (msg.c_str ());
+    return result;
 }
 
-Game::~Game () {
+bool Game::set (int width, int depth) {
+    if (!_hasStarted || finished () || _aborted) return false;
+    if (_board->set (width, depth)) {
+        FieldValue player = curPlayer () == Player1 ? Player2 : Player1;
+        emit set (player, width, depth);
+        if (_board->isFinished ()) emit finished (player);
+        return true;
+    } else return false;
 }
 
-bool Game::areSettingsValid () const {
+bool Game::undo (int &width, int &height, int &depth) {
+    if (!_hasStarted || _aborted) return false;
+    if (_board->undo (height, width, depth)) {
+        emit undone (curPlayer () == Player1 ? Player2 : Player1, width, height, depth);
+        return true;
+    } else return false;
 }
 
+bool Game::start () {
+    if (_hasStarted || finished () || _aborted) return false;
+    QString errMsg;
+    if (!isConfValid (errMsg)) return false;
+    FieldValue startPlayer = (FieldValue)(rand () % 2 + 1);
+    _board = new Board (_nConnect, _height, _width, _depth, startPlayer, true);
+    _hasStarted = true;
+    emit started (startPlayer);
+    return true;
+}
+
+bool Game::abort (FieldValue requester, QString reason) {
+    if (!_hasStarted || finished () || _aborted) return false;
+    _aborted = true;
+    emit aborted (requester, reason);
+    return true;
+}

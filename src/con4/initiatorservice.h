@@ -28,16 +28,40 @@
 #ifndef INITIATORSERVICE_H
 #define INITIATORSERVICE_H
 
-#include "board.h"
-#include "service.h"
-#include "gameinterface.h"
+#include <QThread>
+#include <QTcpServer>
+#include "networkplayerservice.h"
 
-class InitiatorService : public GameInterface {
+class InitServerThread : public QThread {
     Q_OBJECT
 public:
-    InitiatorService (QHostAddress host, quint16 port);
+    InitServerThread (int socketDescriptor, QObject *parent = 0);
 
-//    void joinGame (NetworkGame &game) const;
+private:
+    void run ();
+
+    int _socketDescriptor;
+};
+
+class InitServer : public QTcpServer {
+    Q_OBJECT
+protected:
+    void incomingConnection (int socketDescriptor);
+};
+
+class InitiatorService : public NetworkPlayerService {
+    Q_OBJECT
+public:
+    InitiatorService (QString initiatorName, QString gameName,
+                      int width, int height, int depth);
+
+    quint16 port () const {
+        return _hasStarted ? _initServer.serverPort () : (quint16)0;
+    }
+
+    bool startService ();
+
+    void joinGame (Game *game) const;
     void move (int fieldNumber) const;
     void abortGame (QString reason) const;
 
@@ -50,6 +74,10 @@ signals:
     void moved_failed (QString reason);
     void endGame (int result);
     void abortGame (QString reason);
+
+private:
+    bool _hasStarted;
+    InitServer _initServer;
 };
 
 #endif // INITIATORSERVICE_H

@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * settingskeys.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#ifndef CON4GLOBALS_H
+#define CON4GLOBALS_H
 
-#include <QWidget>
+#define IDX_SRV_ARRAY "indexServers"
+#define IDX_SRV_NAME "name"
+#define IDX_SRV_ADDR "ip"
+#define IDX_SRV_PORT "port"
 
-namespace Ui {
-class JoinGameSetupView;
-}
+#include <QChar>
+#define MSG_BUF_SIZE 1024
+#define MSG_SPLIT_CHAR QChar::fromAscii(';')
+#define INVALID_RESP_ERR "Error: Invalid response from server."
 
-class JoinGameSetupView : public QWidget {
-    Q_OBJECT
-public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
-    
-signals:
-    void statusChanged (QString);
-
-private:
-    Ui::JoinGameSetupView *ui;
-
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
-};
-
-#endif // JOINGAMESETUPVIEW_H
+#endif // CON4GLOBALS_H

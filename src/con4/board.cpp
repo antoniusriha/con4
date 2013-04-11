@@ -47,9 +47,12 @@ bool Board::isBoardConfValid (int nConnect, int height, int dim2, int dim3, stri
     return errMsg == "";
 }
 
-Board::Board (int nConnect, int height, int dim2, int dim3, bool canUndo)
+Board::Board () : _nConnect (4), _canUndo (false), _isFinished (false),
+    _curPlayer (Player1), _array (extents [8][8][4]) {}
+
+Board::Board (int nConnect, int height, int dim2, int dim3, FieldValue curPlayer, bool canUndo)
     : _nConnect (nConnect), _canUndo (canUndo), _isFinished (false),
-      _curPlayer (Player1), _array (extents [height][dim2][dim3]) {
+      _curPlayer (curPlayer), _array (extents [height][dim2][dim3]) {
     string errMsg;
     if (!isBoardConfValid (nConnect, height, dim2, dim3, errMsg))
         throw invalid_argument (errMsg);

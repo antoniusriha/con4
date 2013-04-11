@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * indexserversviewmodel.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,27 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#ifndef INDEXSERVERSVIEWMODEL_H
+#define INDEXSERVERSVIEWMODEL_H
 
-#include <QWidget>
+#include <QList>
+#include <QAbstractTableModel>
+#include "indexservice.h"
 
-namespace Ui {
-class JoinGameSetupView;
-}
-
-class JoinGameSetupView : public QWidget {
+class IndexServersViewModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
+    explicit IndexServersViewModel (QObject *parent = 0);
     
-signals:
-    void statusChanged (QString);
+    int rowCount (const QModelIndex &parent) const;
+    int columnCount (const QModelIndex &parent) const { return 3; }
+    QVariant data (const QModelIndex &index, int role) const;
+    QVariant headerData (int section, Qt::Orientation orientation, int role) const;
+    void updateOnRowAdded ();
+    void updateOnRowsRemoved (int first, int last);
 
 private:
-    Ui::JoinGameSetupView *ui;
-
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
+    QList<IndexService *> *_indexServices;
 };
 
-#endif // JOINGAMESETUPVIEW_H
+#endif // INDEXSERVERSVIEWMODEL_H

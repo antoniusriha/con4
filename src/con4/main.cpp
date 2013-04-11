@@ -25,14 +25,19 @@
  * THE SOFTWARE.
  */
 
+#include <stdlib.h>
+#include <time.h>
 #include <QtGui/QApplication>
 #include "mainwindow.h"
+#include "application.h"
 
 int main (int argc, char *argv []) {
     QApplication a (argc, argv);
     QCoreApplication::setOrganizationName ("riha");
     QCoreApplication::setOrganizationDomain ("ariha.info");
     QCoreApplication::setApplicationName ("con4");
+    Application::instance (); // init singleton app
+    srand (time (NULL));
     MainWindow w;
     w.show ();
     

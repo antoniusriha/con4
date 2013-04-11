@@ -44,7 +44,8 @@ class Board {
 public:
     static bool isBoardConfValid (int nConnect, int height, int dim2, int dim3, std::string &errMsg);
 
-    Board (int nConnect, int height, int dim2, int dim3, bool canUndo = false);
+    Board ();
+    Board (int nConnect, int height, int dim2, int dim3, FieldValue curPlayer = Player1, bool canUndo = false);
     Board (const Board &board, bool canUndo); // custom copy
 	
     // Data access & simple queries

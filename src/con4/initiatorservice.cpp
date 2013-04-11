@@ -25,8 +25,42 @@
  * THE SOFTWARE.
  */
 
+#include <QTcpSocket>
 #include "initiatorservice.h"
 
-//InitiatorService::InitiatorService (QHostAddress host, quint16 port)
-//    : Service (host, port) {
-//}
+InitServerThread::InitServerThread (int socketDescriptor, QObject *parent)
+    : QThread (parent), _socketDescriptor (socketDescriptor) {}
+
+void InitServerThread::run () {
+    QTcpSocket tcpSocket;
+    if (!tcpSocket.setSocketDescriptor (_socketDescriptor)) return;
+
+//    QByteArray block;
+//    QDataStream out(&block, QIODevice::WriteOnly);
+//    out.setVersion(QDataStream::Qt_4_0);
+//    out << (quint16)0;
+//    out << text;
+//    out.device()->seek(0);
+//    out << (quint16)(block.size() - sizeof(quint16));
+
+//    tcpSocket.write(block);
+//    tcpSocket.disconnectFromHost();
+//    tcpSocket.waitForDisconnected();
+}
+
+void InitServer::incomingConnection (int socketDescriptor) {
+    InitServerThread *thread = new InitServerThread (socketDescriptor, this);
+    connect (thread, SIGNAL (finished ()), thread, SLOT (deleteLater ()));
+    thread->start ();
+}
+
+InitiatorService::InitiatorService (QString initiatorName, QString gameName,
+                                    int width, int height, int depth)
+    : NetworkPlayerService (initiatorName, gameName, width, height, depth) {}
+
+bool InitiatorService::startService () {
+    if (!_initServer.listen ()) return false;
+    assignIpAddress ();
+    _hasStarted = true;
+    return true;
+}

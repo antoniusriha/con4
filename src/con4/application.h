@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * application.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
-#include <QWidget>
+#include <QObject>
+#include <QList>
+#include "indexservice.h"
 
-namespace Ui {
-class JoinGameSetupView;
-}
-
-class JoinGameSetupView : public QWidget {
+class Application : public QObject {
     Q_OBJECT
 public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
+    static Application &instance () {
+        static Application instance;
+        return instance;
+    }
     
-signals:
-    void statusChanged (QString);
+    ~Application ();
+
+    QList<IndexService *> *const indexServices () { return &_indexServices; }
 
 private:
-    Ui::JoinGameSetupView *ui;
+    Application ();
 
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
+    QList<IndexService *> _indexServices;
 };
 
-#endif // JOINGAMESETUPVIEW_H
+#endif // APPLICATION_H

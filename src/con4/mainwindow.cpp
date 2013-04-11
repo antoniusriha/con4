@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 
-#include <QSettings>
 #include <QtNetwork/QHostAddress>
 
 #include "mainwindow.h"
@@ -36,23 +35,6 @@ MainWindow::MainWindow (QWidget *parent) :
     ui->setupUi(this);
 //    QObject::connect (&_myThread, SIGNAL (sendData (int)), this,
 //                      SLOT (setText (int)), Qt::QueuedConnection);
-
-    QSettings settings;
-    int size = settings.beginReadArray ("indexServers");
-    indexServices = QList<IndexService *> ();
-    for (int i = 0; i < size; i++) {
-        settings.setArrayIndex (i);
-        QString name = settings.value ("name").toString ();
-        QString host = settings.value ("host").toString ();
-        QString qsPort = settings.value ("port").toString ();
-        QTextStream ts (&qsPort);
-        quint16 port = 0;
-        ts >> port;
-        IndexService *service = new IndexService (
-                    QHostAddress (host), port, name);
-        indexServices.append (service);
-    }
-    settings.endArray ();
 }
 
 MainWindow::~MainWindow () {

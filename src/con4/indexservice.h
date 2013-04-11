@@ -28,24 +28,14 @@
 #ifndef INDEXSERVICE_H
 #define INDEXSERVICE_H
 
-#include <QObject>
+#include <QUuid>
 #include <QMutex>
 #include <QHostAddress>
-#include <QtNetwork/QTcpSocket>
-#include <QtNetwork/QUdpSocket>
-#include <QtConcurrentRun>
-#include <QFutureWatcher>
+#include <QUdpSocket>
 
-#include "networkgame.h"
 #include "service.h"
-
-struct GameListResponse : Response {
-    QList<NetworkGame *> Games;
-};
-
-struct GameResponse : Response {
-    NetworkGame *Game;
-};
+#include "opponentservice.h"
+#include "initiatorservice.h"
 
 class IndexService : public Service {
     Q_OBJECT
@@ -53,30 +43,40 @@ public:
     IndexService (QHostAddress host, quint16 port, QString name);
 
     QString name () const { return _name; }
+    QHostAddress ipAddress () const { return _host; }
+    quint16 port () const { return _port; }
 
-    GameListResponse requestGameList ();
-    GameResponse createGame (QString initiator, QString gameName, int width, int height, int depth);
-    GameResponse deleteGame (NetworkGame *game);
-    Response sealGame (NetworkGame *game);
+    bool requestGameList (QList<Game *> &list, QString &errMsg);
+    bool registerGame (OpponentService *service, QUuid &guid, QString &errMsg);
+    bool unregisterGame (OpponentService *service, QString &errMsg);
+    bool sealGame (OpponentService *service, QString &errMsg);
 
-    void registerGameAsync (NetworkGame *game);
-    void requestGameListAsync ();
+//    void registerGameAsync (NetworkGame *game);
+//    void requestGameListAsync ();
 
 signals:
-    void createGameCompleted (GameResponse response);
-    void requestGameListCompleted (GameListResponse response);
+//    void registerGameCompleted (GameResponse response);
+//    void requestGameListCompleted (GameListResponse response);
 
 private slots:
-    void _registerGameFinished ();
-    void _requestGameListFinished ();
+//    void _registerGameFinished ();
+//    void _requestGameListFinished ();
 
 private:
-    void run ();
+//    void run ();
 
-    QFutureWatcher<GameResponse> _regGameRespWatcher;
-    QFutureWatcher<GameListResponse> _reqGameListRespWatcher;
-    int _regGamesCount;
+//    QFutureWatcher<GameResponse> _regGameRespWatcher;
+//    QFutureWatcher<GameListResponse> _reqGameListRespWatcher;
+
+    QStringList sendMsg (QString msg);
+
+    QHostAddress _host;
+    quint16 _port;
     QString _name;
+
+    QList<OpponentService *> _oppServices;
+    QList<InitiatorService *> _initServices;
+
     QUdpSocket _udpSocket;
     QMutex _mutex;
 };

@@ -29,36 +29,14 @@
 #define SERVICE_H
 
 #include <QStringList>
-#include <QThread>
-#include <QtNetwork/QHostAddress>
-#include <QTcpSocket>
+#include <QHostAddress>
 
-#define MSG_BUF_SIZE 1024
-#define MSG_SPLIT_CHAR QChar::fromAscii(';')
-#define INVALID_RESP_ERR "Error: Invalid response from server."
 
-struct Response {
-    bool Success;
-    QString ErrMsg;
-};
 
-class Service : public QThread {
+class Service : public QObject {
     Q_OBJECT
 public:
     static quint16 toQuint16 (QString qsPort, bool *ok = 0);
-
-    Service (QHostAddress host, quint16 port);
-
-protected:
-    QHostAddress host () const { return _host; }
-    quint16 port () const { return _port; }
-
-    QStringList sendMsg (QString msg);
-    Response &fail (Response &resp, QString errMsg);
-
-private:
-    QHostAddress _host;
-    quint16 _port;
 };
 
 #endif // SERVICE_H

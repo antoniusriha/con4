@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * player.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,4 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
-
-#include <QWidget>
-
-namespace Ui {
-class JoinGameSetupView;
-}
-
-class JoinGameSetupView : public QWidget {
-    Q_OBJECT
-public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
-    
-signals:
-    void statusChanged (QString);
-
-private:
-    Ui::JoinGameSetupView *ui;
-
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
-};
-
-#endif // JOINGAMESETUPVIEW_H
+#include "player.h"

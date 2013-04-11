@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * application.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#include <QSettings>
+#include "con4globals.h"
+#include "application.h"
 
-#include <QWidget>
-
-namespace Ui {
-class JoinGameSetupView;
+Application::Application () {
+    QSettings settings;
+    int size = settings.beginReadArray (IDX_SRV_ARRAY);
+    for (int i = 0; i < size; i++) {
+        settings.setArrayIndex (i);
+        QString name = settings.value (IDX_SRV_NAME).toString ();
+        QString host = settings.value (IDX_SRV_ADDR).toString ();
+        int iPort = settings.value (IDX_SRV_PORT).toInt ();
+//        QTextStream ts (&qsPort);
+        quint16 port = (quint16)iPort;
+//        ts >> port;
+        IndexService *service = new IndexService (
+                    QHostAddress (host), port, name);
+        _indexServices.append (service);
+    }
+    settings.endArray ();
 }
 
-class JoinGameSetupView : public QWidget {
-    Q_OBJECT
-public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
-    
-signals:
-    void statusChanged (QString);
-
-private:
-    Ui::JoinGameSetupView *ui;
-
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
-};
-
-#endif // JOINGAMESETUPVIEW_H
+Application::~Application () {
+    for (int i = 0; i < _indexServices.size (); i++)
+        delete _indexServices [i];
+}
