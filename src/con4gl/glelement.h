@@ -1,5 +1,5 @@
 /*
- * joingamesetupview.h
+ * glelement.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,31 +25,21 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMESETUPVIEW_H
-#define JOINGAMESETUPVIEW_H
+#ifndef GLELEMENT_H
+#define GLELEMENT_H
 
-#include <QWidget>
+#include <QObject>
+#include <QColor>
 
-namespace Ui {
-class JoinGameSetupView;
-}
-
-class JoinGameSetupView : public QWidget {
-    Q_OBJECT
+class GLElement : public QObject
+{
 public:
-    explicit JoinGameSetupView (QWidget *parent = 0);
-    ~JoinGameSetupView ();
-    
-signals:
-    void statusChanged (QString);
+	GLElement(QObject *parent);
+	virtual ~GLElement();
+	virtual void draw() const = 0;
 
-private:
-    Ui::JoinGameSetupView *ui;
-
-private slots:
-    void joinClicked ();
-    void refreshClicked ();
-    void viewIndexServersClicked ();
+protected:
+	void toColorVec(QColor c, float colorVec[]);
 };
 
-#endif // JOINGAMESETUPVIEW_H
+#endif // GLELEMENT_H

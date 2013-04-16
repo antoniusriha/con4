@@ -1,5 +1,5 @@
 /*
- * player.h
+ * boardconf.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,19 +25,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef BOARDCONF_H
+#define BOARDCONF_H
 
-#include <QObject>
+#include <QWidget>
 
-class Player : public QObject {
-    Q_OBJECT
+namespace Ui {
+class BoardConf;
+}
+
+class BoardConf : public QWidget
+{
+	Q_OBJECT
+	
 public:
-    
-signals:
-    
-public slots:
-    
+	explicit BoardConf(QWidget *parent = 0);
+	~BoardConf();
+
+	int boardWidth() const;
+	int boardHeight() const;
+	int boardDepth() const;
+
+private:
+	Ui::BoardConf *ui;
 };
 
-#endif // PLAYER_H
+#endif // BOARDCONF_H

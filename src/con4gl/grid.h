@@ -1,5 +1,5 @@
 /*
- * mythread.cpp
+ * grid.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,21 +25,52 @@
  * THE SOFTWARE.
  */
 
-#include "mythread.h"
+#ifndef GRID_H
+#define GRID_H
 
-MyThread::MyThread () : _abort (false) {
-    start (LowPriority);
-}
+#include <GL/glu.h>
+#include "../con4core/game.h"
+#include "glelement.h"
 
-MyThread::~MyThread () {
-    _abort = true;
-    wait ();
-}
+class Grid : public GLElement
+{
+	Q_OBJECT
+public:
+	Grid(Game *game, QObject *parent = 0);
+	~Grid();
 
-void MyThread::run () {
-    forever {
-        sleep (1);
-        if (_abort) return;
-        emit sendData (counter++);
-    }
-}
+	void draw() const;
+
+	QColor playerColor (FieldValue player) const {
+		if (player == None) return QColor::Invalid;
+		if (player == Player1) return _player1Color;
+		else return _player2Color;
+	}
+
+	float colsDistance () const { return _colsDistance; }
+
+	void setPlayerColor(FieldValue player, QColor color);
+	void setColsDistance (float value) { _colsDistance = value; }
+
+	bool moveCursorUp();
+	bool moveCursorDown();
+	bool moveCursorRight();
+	bool moveCursorLeft();
+	bool setDisk();
+	void endGame();
+
+private:
+	void _drawBoardBottom(float width, float depth) const;
+	void _drawCylinders() const;
+
+	QColor _player1Color, _player2Color;
+	float _bottomColor[4], _player1Colorf[4], _player2Colorf[4],
+		  _player1WinColor[4], _player2WinColor[4];
+	int *_conWidthIdcs, *_conHeightIdcs, *_conDepthIdcs;
+	float _colsDistance, _boardBaseHeight, _sphereRadius;
+	int _wCursor, _dCursor;
+	Game *_game;
+	GLUquadricObj *_quadric;
+};
+
+#endif // GRID_H

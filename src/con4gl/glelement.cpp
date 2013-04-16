@@ -1,5 +1,5 @@
 /*
- * mythread.h
+ * glelement.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,25 +25,23 @@
  * THE SOFTWARE.
  */
 
-#ifndef MYTHREAD_H
-#define MYTHREAD_H
+#include "glelement.h"
 
-#include <QThread>
+GLElement::GLElement(QObject *parent) : QObject(parent) {}
 
-class MyThread : public QThread
+GLElement::~GLElement() {}
+
+void GLElement::draw() const
 {
-    Q_OBJECT
-public:
-    MyThread ();
-    ~MyThread ();
-    
-signals:
-    void sendData (int data);
+	const QObjectList &kids = children();
+	for (int i = 0; i < kids.size(); i++)
+		static_cast<GLElement *> (kids.at(i))->draw();
+}
 
-private:
-    void run ();
-    int counter;
-    bool _abort;
-};
-
-#endif // MYTHREAD_H
+void GLElement::toColorVec(QColor c, float colorVec[])
+{
+	colorVec[0] = c.redF();
+	colorVec[1] = c.greenF();
+	colorVec[2] = c.blueF();
+	colorVec[3] = c.alphaF();
+}

@@ -1,5 +1,5 @@
 /*
- * newgamesetupview.h
+ * boardconf.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,34 +25,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef NEWGAMESETUPVIEW_H
-#define NEWGAMESETUPVIEW_H
+#include "boardconf.h"
+#include "ui_boardconf.h"
 
-#include <QWidget>
-
-namespace Ui {
-class NewGameSetupView;
+BoardConf::BoardConf(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::BoardConf)
+{
+	ui->setupUi(this);
 }
 
-class NewGameSetupView : public QWidget {
-    Q_OBJECT
-    
-public:
-    explicit NewGameSetupView (QWidget *parent = 0);
-    ~NewGameSetupView ();
+BoardConf::~BoardConf()
+{
+	delete ui;
+}
 
-signals:
-    void statusChanged (QString);
-    
-private:
-    Ui::NewGameSetupView *ui;
+int BoardConf::boardWidth() const
+{
+	return ui->sbWidth->value();
+}
 
-private slots:
-    void startClicked ();
-    void player1Clicked ();
-    void player2Clicked ();
-    void player1Selected (int index);
-    void player2Selected (int index);
-};
+int BoardConf::boardHeight() const
+{
+	return ui->sbHeight->value();
+}
 
-#endif // NEWGAMESETUPVIEW_H
+int BoardConf::boardDepth() const
+{
+	return ui->chkBoard3d->isChecked() ? ui->sbDepth->value() : 1;
+}

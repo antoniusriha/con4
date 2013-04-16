@@ -1,5 +1,5 @@
 /*
- * gameconfview.h
+ * settingsdialog.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,30 +25,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef GAMECONFVIEW_H
-#define GAMECONFVIEW_H
+#include "settingsdialog.h"
+#include "ui_settingsdialog.h"
 
-#include <QWidget>
-#include "joingamesetupview.h"
-#include "newgamesetupview.h"
-
-namespace Ui {
-class GameConfView;
+SettingsDialog::SettingsDialog(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::SettingsDialog)
+{
+	ui->setupUi(this);
 }
 
-class GameConfView : public QWidget {
-    Q_OBJECT
-public:
-    explicit GameConfView (QWidget *parent = 0);
-    ~GameConfView ();
-    
-private:
-    Ui::GameConfView *ui;
-    NewGameSetupView *newGameSetupView;
-    JoinGameSetupView *joinGameSetupView;
-
-private slots:
-    void gameTypeSelectionChanged (bool state);
-};
-
-#endif // GAMECONFVIEW_H
+SettingsDialog::~SettingsDialog()
+{
+	delete ui;
+}

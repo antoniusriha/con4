@@ -29,7 +29,7 @@
 #define NETWORKPLAYERSERVICE_H
 
 #include <QHostAddress>
-#include "game.h"
+#include "../con4core/game.h"
 
 class NetworkPlayerService : public QObject {
     Q_OBJECT

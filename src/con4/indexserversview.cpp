@@ -75,7 +75,8 @@ void IndexServersView::deleteClicked () {
 
 void IndexServersView::addClicked () {
     AddIndexServerDialog dlg (this);
-    dlg.exec ();
-    IndexServersViewModel *model = (IndexServersViewModel *)ui->tableView->model ();
-    model->updateOnRowAdded ();
+    if (dlg.exec () == QDialog::Accepted) {
+        IndexServersViewModel *model = (IndexServersViewModel *)ui->tableView->model ();
+        model->updateOnRowAdded ();
+    }
 }

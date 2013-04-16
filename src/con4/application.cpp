@@ -37,9 +37,7 @@ Application::Application () {
         QString name = settings.value (IDX_SRV_NAME).toString ();
         QString host = settings.value (IDX_SRV_ADDR).toString ();
         int iPort = settings.value (IDX_SRV_PORT).toInt ();
-//        QTextStream ts (&qsPort);
         quint16 port = (quint16)iPort;
-//        ts >> port;
         IndexService *service = new IndexService (
                     QHostAddress (host), port, name);
         _indexServices.append (service);

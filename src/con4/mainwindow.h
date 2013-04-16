@@ -29,8 +29,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "mythread.h"
-#include "gameconfview.h"
+#include <QPushButton>
 #include "indexservice.h"
 
 namespace Ui {
@@ -43,7 +42,23 @@ public:
     explicit MainWindow (QWidget *parent = 0);
     ~MainWindow ();
     
+private slots:
+	void gameTypeSelectionChanged (bool state);
+	void viewIndexServersClicked ();
+	void startClicked ();
+	void createNetworkGameClicked ();
+	void joinClicked ();
+	void refreshClicked ();
+	void player1Clicked();
+	void player2Clicked();
+	void closeGame();
+
 private:
+	void _setPlayerColor(QColor color, QPushButton *button);
+	QColor _getIdealTextColor(const QColor &rBackgroundColor) const;
+
+	QColor _player1Color, _player2Color;
+	Game *_localGame;
     Ui::MainWindow *ui;
 };
 

@@ -1,5 +1,5 @@
 /*
- * newgamesetupview.cpp
+ * main.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,37 +25,13 @@
  * THE SOFTWARE.
  */
 
-#include "newgamesetupview.h"
-#include "ui_newgamesetupview.h"
+#include <QtGui/QApplication>
+#include "glwidget.h"
 
-NewGameSetupView::NewGameSetupView(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::NewGameSetupView)
+int main(int argc, char *argv[])
 {
-    ui->setupUi(this);
-}
-
-NewGameSetupView::~NewGameSetupView()
-{
-    delete ui;
-}
-
-void NewGameSetupView::startClicked()
-{
-}
-
-void NewGameSetupView::player1Clicked()
-{
-}
-
-void NewGameSetupView::player2Clicked()
-{
-}
-
-void NewGameSetupView::player1Selected(int index)
-{
-}
-
-void NewGameSetupView::player2Selected(int index)
-{
+	QApplication a(argc, argv);
+	GLWidget w;
+	w.show();
+	return a.exec();
 }

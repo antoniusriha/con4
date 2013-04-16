@@ -1,5 +1,5 @@
 /*
- * player.cpp
+ * main.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,4 +25,11 @@
  * THE SOFTWARE.
  */
 
-#include "player.h"
+#include <QtCore/QCoreApplication>
+
+int main(int argc, char *argv[])
+{
+	QCoreApplication a(argc, argv);
+	
+	return a.exec();
+}
