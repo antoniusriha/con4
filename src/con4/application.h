@@ -30,7 +30,7 @@
 
 #include <QObject>
 #include <QList>
-#include "indexservice.h"
+#include "../con4net/indexservice.h"
 
 class Application : public QObject {
     Q_OBJECT

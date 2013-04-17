@@ -29,25 +29,40 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "indexserversview.h"
+#include "application.h"
 
-MainWindow::MainWindow (QWidget *parent) :
-    QMainWindow (parent), ui (new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent)
+	: QMainWindow(parent), ui(new Ui::MainWindow)
+{
     ui->setupUi(this);
 	_player1Color = QColor(Qt::red);
 	_player2Color = QColor(Qt::yellow);
 	_setPlayerColor(_player1Color, ui->btnPlayer1);
 	_setPlayerColor(_player2Color, ui->btnPlayer2);
 
-	_localGame = new Game (4, ui->boardConf->boardWidth(),
-						   ui->boardConf->boardHeight(),
-						   ui->boardConf->boardDepth());
+	if (Application::instance().indexServices()->empty()) {
+		ui->gbNetworkPlayer->setEnabled(false);
+		ui->networkBoardConf->setEnabled(false);
+		ui->tvJoinGames->setEnabled(false);
+		ui->btnRefresh->setEnabled(false);
+		ui->btnJoin->setEnabled(false);
+	}
+
+	_localGame = new Game(4, ui->boardConf->boardWidth(),
+						  ui->boardConf->boardHeight(),
+						  ui->boardConf->boardDepth());
+
+	_networkGame = new Game(4, ui->networkBoardConf->boardWidth(),
+							ui->networkBoardConf->boardHeight(),
+							ui->networkBoardConf->boardDepth());
 
 	connect(ui->pageGame, SIGNAL(close()), this, SLOT(closeGame()));
 }
 
-MainWindow::~MainWindow () {
+MainWindow::~MainWindow() {
     delete ui;
 	delete _localGame;
+	delete _networkGame;
 }
 
 void MainWindow::gameTypeSelectionChanged (bool state) {
@@ -83,14 +98,17 @@ void MainWindow::startClicked () {
 	gameWidget->setGameTitle("Local game");
 }
 
-void MainWindow::createNetworkGameClicked () {
+void MainWindow::createNetworkGameClicked()
+{
 
 }
 
-void MainWindow::joinClicked () {
+void MainWindow::joinClicked()
+{
 }
 
-void MainWindow::refreshClicked () {
+void MainWindow::refreshClicked()
+{
 }
 
 void MainWindow::player1Clicked()
@@ -114,9 +132,9 @@ void MainWindow::player2Clicked()
 void MainWindow::closeGame()
 {
 	delete _localGame;
-	_localGame = new Game (4, ui->boardConf->boardWidth(),
-						   ui->boardConf->boardHeight(),
-						   ui->boardConf->boardDepth());
+	_localGame = new Game(4, ui->boardConf->boardWidth(),
+						  ui->boardConf->boardHeight(),
+						  ui->boardConf->boardDepth());
 	ui->stackAppView->setCurrentWidget(ui->pageGameConf);
 }
 

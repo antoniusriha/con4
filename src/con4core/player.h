@@ -1,5 +1,5 @@
 /*
- * networkplayerservice.h
+ * player.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,36 +25,24 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKPLAYERSERVICE_H
-#define NETWORKPLAYERSERVICE_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
-#include <QHostAddress>
-#include "../con4core/game.h"
+#include <QObject>
+#include "game.h"
 
-class NetworkPlayerService : public QObject {
-    Q_OBJECT
+class Player : public QObject
+{
+	Q_OBJECT
+
 public:
-    NetworkPlayerService (QString initiatorName, QString gameName,
-                          int width, int height, int depth);
-
-    virtual quint16 port () const = 0;
-    virtual bool startService () = 0;
-
-    QString gameName () const { return _gameName; }
-    QString initiatorName () const { return _initiatorName; }
-    Game *const game () { return &_game; }
-    QHostAddress ipAddress () const { return _ipAddress; }
-
-protected:
-    void assignIpAddress ();
-
+	Player(Game *game, QObject *parent = 0);
+	
+//protected:
+	Game *game() const { return _game; }
+	
 private:
-    NetworkPlayerService (const NetworkPlayerService &);
-    NetworkPlayerService &operator= (const NetworkPlayerService &);
-
-    QString _gameName, _initiatorName;
-    Game _game;
-    QHostAddress _ipAddress;
+	Game *_game;
 };
 
-#endif // NETWORKPLAYERSERVICE_H
+#endif // PLAYER_H

@@ -30,7 +30,7 @@
 
 #include <QList>
 #include <QAbstractTableModel>
-#include "indexservice.h"
+#include "../con4net/indexservice.h"
 
 class IndexServersViewModel : public QAbstractTableModel {
     Q_OBJECT

@@ -1,5 +1,5 @@
 /*
- * initiatorservice.h
+ * opponentservice.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,17 +25,20 @@
  * THE SOFTWARE.
  */
 
-#ifndef INITIATORSERVICE_H
-#define INITIATORSERVICE_H
+#ifndef OPPONENTSERVICE_H
+#define OPPONENTSERVICE_H
 
+#include <QUuid>
 #include <QThread>
 #include <QTcpServer>
 #include "networkplayerservice.h"
 
-class InitServerThread : public QThread {
+class OppServerThread : public QThread
+{
     Q_OBJECT
+
 public:
-    InitServerThread (int socketDescriptor, QObject *parent = 0);
+    OppServerThread (int socketDescriptor, QObject *parent = 0);
 
 private:
     void run ();
@@ -43,41 +46,48 @@ private:
     int _socketDescriptor;
 };
 
-class InitServer : public QTcpServer {
+class OppServer : public QTcpServer
+{
     Q_OBJECT
+
 protected:
     void incomingConnection (int socketDescriptor);
 };
 
-class InitiatorService : public NetworkPlayerService {
+class OpponentService : public NetworkPlayerService
+{
     Q_OBJECT
+
 public:
-    InitiatorService (QString initiatorName, QString gameName,
-                      int width, int height, int depth);
+	OpponentService (Game *game, QString initiatorName,
+					 QString gameName, QObject *parent);
 
     quint16 port () const {
-        return _hasStarted ? _initServer.serverPort () : (quint16)0;
+        return _hasStarted ? _oppServer.serverPort () : (quint16)0;
     }
+
+    QUuid guid () const { return _guid; }
 
     bool startService ();
 
-    void joinGame (Game *game) const;
-    void move (int fieldNumber) const;
+    void joinGameSuccess () const;
+    void joinGameFailed (QString reason) const;
+    void startGame () const;
+    void synchronizeGameBoard (int **fieldNumberAndValue) const;
+    void updatedGameBoard (int fieldNumber, int value) const;
+    void moved_failed (QString reason) const;
+    void endGame (int result) const;
     void abortGame (QString reason) const;
 
 signals:
-    void joinGameSuccess ();
-    void joinGameFailed (QString reason);
-    void startGame ();
-    void synchronizeGameBoard (int **fieldNumberAndValue);
-    void updatedGameBoard (int fieldNumber, FieldValue value);
-    void moved_failed (QString reason);
-    void endGame (int result);
+    void joinGame (Game *game);
+    void move (int fieldIndex);
     void abortGame (QString reason);
 
 private:
     bool _hasStarted;
-    InitServer _initServer;
+    QUuid _guid;
+    OppServer _oppServer;
 };
 
-#endif // INITIATORSERVICE_H
+#endif // OPPONENTSERVICE_H

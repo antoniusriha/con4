@@ -1,5 +1,5 @@
 /*
- * aiplayer.cpp
+ * player.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,10 +25,10 @@
  * THE SOFTWARE.
  */
 
-#include "aiplayer.h"
+#include "player.h"
 
-AIPlayer::AIPlayer(Game *game, QObject *parent)
-	: Player(game, parent), _delay (1000)
+Player::Player(Game *game, QObject *parent)
+	: QObject(parent), _game(game)
 {
 
 }

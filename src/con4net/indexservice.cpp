@@ -28,7 +28,7 @@
 #include <stdexcept>
 #include <QStringList>
 #include <QTcpSocket>
-#include "con4globals.h"
+#include "con4netglobals.h"
 #include "indexservice.h"
 
 using namespace std;
@@ -136,8 +136,8 @@ bool IndexService::requestGameList (QList<Game *> &list, QString &errMsg) {
         if (cont) continue;
 
         // else create new game and init service
-        InitiatorService *initService =
-                new InitiatorService (playerName, gameName, width, height, depth);
+		InitiatorService *initService;// =
+//                new InitiatorService (playerName, gameName, width, height, depth);
         Game *game = initService->game ();
         QString msg;
         if (game->isConfValid (msg)) {

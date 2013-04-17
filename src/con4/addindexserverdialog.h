@@ -29,7 +29,7 @@
 #define ADDINDEXSERVERDIALOG_H
 
 #include <QDialog>
-#include "indexservice.h"
+#include "../con4net/indexservice.h"
 
 namespace Ui {
 class AddIndexServerDialog;

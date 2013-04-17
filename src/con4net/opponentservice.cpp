@@ -1,5 +1,5 @@
 /*
- * initiatorservice.cpp
+ * opponentservice.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -26,12 +26,14 @@
  */
 
 #include <QTcpSocket>
-#include "initiatorservice.h"
+#include "opponentservice.h"
 
-InitServerThread::InitServerThread (int socketDescriptor, QObject *parent)
-    : QThread (parent), _socketDescriptor (socketDescriptor) {}
+OppServerThread::OppServerThread (int socketDescriptor, QObject *parent)
+    : QThread (parent), _socketDescriptor (socketDescriptor) {
 
-void InitServerThread::run () {
+}
+
+void OppServerThread::run () {
     QTcpSocket tcpSocket;
     if (!tcpSocket.setSocketDescriptor (_socketDescriptor)) return;
 
@@ -48,18 +50,18 @@ void InitServerThread::run () {
 //    tcpSocket.waitForDisconnected();
 }
 
-void InitServer::incomingConnection (int socketDescriptor) {
-    InitServerThread *thread = new InitServerThread (socketDescriptor, this);
+void OppServer::incomingConnection (int socketDescriptor) {
+    OppServerThread *thread = new OppServerThread (socketDescriptor, this);
     connect (thread, SIGNAL (finished ()), thread, SLOT (deleteLater ()));
     thread->start ();
 }
 
-InitiatorService::InitiatorService (QString initiatorName, QString gameName,
-                                    int width, int height, int depth)
-    : NetworkPlayerService (initiatorName, gameName, width, height, depth) {}
+OpponentService::OpponentService (Game *game, QString initiatorName, QString gameName,
+								  QObject *parent)
+	: NetworkPlayerService (game, initiatorName, gameName, parent) {}
 
-bool InitiatorService::startService () {
-    if (!_initServer.listen ()) return false;
+bool OpponentService::startService () {
+    if (!_oppServer.listen ()) return false;
     assignIpAddress ();
     _hasStarted = true;
     return true;

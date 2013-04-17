@@ -1,5 +1,5 @@
 /*
- * aiplayer.cpp
+ * indexservicelist.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,10 +25,41 @@
  * THE SOFTWARE.
  */
 
-#include "aiplayer.h"
+#ifndef INDEXSERVICELIST_H
+#define INDEXSERVICELIST_H
 
-AIPlayer::AIPlayer(Game *game, QObject *parent)
-	: Player(game, parent), _delay (1000)
+#include <QAbstractTableModel>
+#include "../con4core/settings.h"
+#include "../con4net/indexservice.h"
+
+class IndexServiceList : public QAbstractTableModel
 {
+	Q_OBJECT
 
-}
+public:
+	static const QString IdxSrvArrayKey, IdxSrvNameKey,
+		IdxSrvAddrKey, IdxSrvPortKey;
+
+	explicit IndexServiceList(Settings *settings, QObject *parent = 0);
+	~IndexServiceList();
+
+	int rowCount(const QModelIndex &) const { return _list.size(); }
+	int columnCount(const QModelIndex &parent) const { return 3; }
+	QVariant data(const QModelIndex &index, int role) const;
+	QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
+	IndexService *at(int index) { return _list.at(index); }
+	void create(QHostAddress host, quint16 port, QString name);
+	bool deleteAt(int index);
+	
+signals:
+	void created(IndexService *item);
+	void deletedAt(int index);
+
+private:
+	QList<IndexService *> _list;
+	Settings *_settings;
+	QList<QString> _keys;
+};
+
+#endif // INDEXSERVICELIST_H

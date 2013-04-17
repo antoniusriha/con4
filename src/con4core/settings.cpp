@@ -1,5 +1,5 @@
 /*
- * networkgame.h
+ * settings.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,48 +25,47 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKGAME_H
-#define NETWORKGAME_H
+#include <QSettings>
+#include "settings.h"
 
-#include <QString>
-#include <QUuid>
-#include <QtNetwork/QHostAddress>
-#include "game.h"
-#include "initiatorservice.h"
-#include "opponentservice.h"
+Settings::Settings() : _keys(QList<QString>()) {}
 
-class NetworkGame : public Game {
-    Q_OBJECT
-public:
-//    NetworkGame ();
-//    NetworkGame (QHostAddress host, quint16 port);
+bool Settings::registerKey(QString key)
+{
+	if (_keys.contains(key)) return false;
+	_keys.append(key);
+	return true;
+}
 
-    ~NetworkGame ();
+Settings::ValuesArray Settings::getArray(QString arrayName,
+										 QList<QString> attrNames)
+{
+	QSettings settings;
+	ValuesArray result;
+	int size = settings.beginReadArray (arrayName);
+	for (int i = 0; i < size; i++) {
+		settings.setArrayIndex (i);
+		QList<QVariant> values;
+		for (int j = 0; j < keys.size(); j++)
+			values.append(settings.value(keys[j]));
+		result.append(values);
+	}
+	settings.endArray ();
+}
 
-    QString name () const { return _name; }
-    QHostAddress host () const { return _host; }
-    quint16 port () const { return _port; }
-    QUuid guid () const { return _guid; }
+void Settings::addToArray(QString arrayName, QList<QString> attrNames,
+						  QList<QString> values)
+{
+	QSettings settings;
+	int size = settings.beginReadArray(arrayName);
+	settings.endArray();
+	settings.beginWriteArray(arrayName);
+	settings.setArrayIndex(size);
+	for (int i = 0; i < attrNames.size(); i++)
+		settings.setValue(attrNames.at(i), values.at(i));
+	settings.endArray();
+}
 
-    void setName (QString value) { _name = value; }
-    void setGuid (QUuid value) { _guid = value; }
-
-    bool areSettingsValid () const;
-
-private:
-    NetworkGame (const NetworkGame &);
-    NetworkGame &operator= (const NetworkGame &);
-
-    NetworkGame (OpponentService *opponent, QString gameName,
-                 int width, int height, int depth, bool hasStarted);
-
-    const bool _isInitiator;
-    QUuid _guid;
-    QString _name;
-    QHostAddress _host;
-    quint16 _port;
-
-    friend class IndexService;
-};
-
-#endif // NETWORKGAME_H
+void Settings::removeFromArray(QString arrayName, QString key)
+{
+}

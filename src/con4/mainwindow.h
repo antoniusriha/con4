@@ -30,7 +30,7 @@
 
 #include <QMainWindow>
 #include <QPushButton>
-#include "indexservice.h"
+#include "../con4core/game.h"
 
 namespace Ui {
 class MainWindow;
@@ -58,7 +58,7 @@ private:
 	QColor _getIdealTextColor(const QColor &rBackgroundColor) const;
 
 	QColor _player1Color, _player2Color;
-	Game *_localGame;
+	Game *_localGame, *_networkGame;
     Ui::MainWindow *ui;
 };
 

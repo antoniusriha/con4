@@ -1,5 +1,5 @@
 /*
- * networkgame.cpp
+ * networkplayerservice.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,24 +25,26 @@
  * THE SOFTWARE.
  */
 
-#include "networkgame.h"
+#include <QNetworkInterface>
+#include "networkplayerservice.h"
 
+NetworkPlayerService::NetworkPlayerService(Game *game, QString initiatorName,
+										   QString gameName, QObject *parent)
+	: Player(game, parent), _gameName(gameName),
+	  _initiatorName(initiatorName) {}
 
-//NetworkGame::NetworkGame (QHostAddress host, quint16 port)
-//    : _isInitiator (true), _host (host), _port (port) {}
-
-//NetworkGame::NetworkGame (QString name, QString player1, QHostAddress host,
-//                          quint16 port, int width, int height, int depth, bool hasStarted)
-//    : _isInitiator (false), _name (name), _host (host), _port (port) {
-//    setPlayer1 (player1);
-//    setWidth (width);
-//    setHeight (height);
-//    setDepth (depth);
-//    _hasStarted = hasStarted;
-//}
-
-NetworkGame::~NetworkGame () {
-}
-
-bool NetworkGame::areSettingsValid () const {
+void NetworkPlayerService::assignIpAddress()
+{
+	QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+    // use the first non-localhost IPv4 address
+	for (int i = 0; i < ipAddressesList.size(); i++) {
+		if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
+			ipAddressesList.at(i).toIPv4Address()) {
+			_ipAddress = ipAddressesList.at(i);
+            break;
+        }
+    }
+    // if we did not find one, use IPv4 localhost
+	if (_ipAddress.isNull())
+		_ipAddress = QHostAddress(QHostAddress::LocalHost);
 }

@@ -1,5 +1,5 @@
 /*
- * aiplayer.cpp
+ * con4netglobals.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,10 +25,12 @@
  * THE SOFTWARE.
  */
 
-#include "aiplayer.h"
+#ifndef CON4NETGLOBALS_H
+#define CON4NETGLOBALS_H
 
-AIPlayer::AIPlayer(Game *game, QObject *parent)
-	: Player(game, parent), _delay (1000)
-{
+#include <QChar>
+#define MSG_BUF_SIZE 1024
+#define MSG_SPLIT_CHAR QChar::fromAscii(';')
+#define INVALID_RESP_ERR "Error: Invalid response from server."
 
-}
+#endif // CON4NETGLOBALS_H

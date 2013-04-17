@@ -1,5 +1,5 @@
 /*
- * aiplayer.cpp
+ * networkplayerservice.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,10 +25,33 @@
  * THE SOFTWARE.
  */
 
-#include "aiplayer.h"
+#ifndef NETWORKPLAYERSERVICE_H
+#define NETWORKPLAYERSERVICE_H
 
-AIPlayer::AIPlayer(Game *game, QObject *parent)
-	: Player(game, parent), _delay (1000)
+#include <QHostAddress>
+#include "../con4core/player.h"
+
+class NetworkPlayerService : public Player
 {
+    Q_OBJECT
 
-}
+public:
+	NetworkPlayerService(Game *game, QString initiatorName,
+						 QString gameName, QObject *parent = 0);
+
+	virtual quint16 port() const = 0;
+	virtual bool startService() = 0;
+
+	QString gameName() const { return _gameName; }
+	QString initiatorName() const { return _initiatorName; }
+	QHostAddress ipAddress() const { return _ipAddress; }
+
+protected:
+	void assignIpAddress();
+
+private:
+    QString _gameName, _initiatorName;
+    QHostAddress _ipAddress;
+};
+
+#endif // NETWORKPLAYERSERVICE_H

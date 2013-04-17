@@ -1,5 +1,5 @@
 /*
- * networkplayerservice.cpp
+ * settings.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,25 +25,33 @@
  * THE SOFTWARE.
  */
 
-#include <QNetworkInterface>
-#include "networkplayerservice.h"
+#ifndef SETTINGS_H
+#define SETTINGS_H
 
-NetworkPlayerService::NetworkPlayerService (QString initiatorName,
-    QString gameName, int width, int height, int depth)
-    : _gameName (gameName), _initiatorName (initiatorName),
-      _game (4, width, height, depth) {}
+#include <QList>
+#include <QString>
+#include <QVariant>
 
-void NetworkPlayerService::assignIpAddress () {
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses ();
-    // use the first non-localhost IPv4 address
-    for (int i = 0; i < ipAddressesList.size (); i++) {
-        if (ipAddressesList.at (i) != QHostAddress::LocalHost &&
-            ipAddressesList.at (i).toIPv4Address ()) {
-            _ipAddress = ipAddressesList.at (i);
-            break;
-        }
-    }
-    // if we did not find one, use IPv4 localhost
-    if (_ipAddress.isNull ())
-        _ipAddress = QHostAddress (QHostAddress::LocalHost);
-}
+class Settings
+{
+public:
+	typedef QList<QList<QVariant> > ValuesArray;
+
+	Settings();
+
+	bool registerKey(QString key);
+
+	QVariant get(QString key);
+	void set(QString key, QString value);
+	void unset(QString key);
+
+	ValuesArray getArray(QString arrayName, QList<QString> attrNames);
+	void addToArray(QString arrayName, QList<QString> attrNames,
+					QList<QString> values);
+	void removeFromArray(QString arrayName, QString key);
+
+private:
+	QList<QString> _keys;
+};
+
+#endif // SETTINGS_H

@@ -33,9 +33,4 @@
 #define IDX_SRV_ADDR "ip"
 #define IDX_SRV_PORT "port"
 
-#include <QChar>
-#define MSG_BUF_SIZE 1024
-#define MSG_SPLIT_CHAR QChar::fromAscii(';')
-#define INVALID_RESP_ERR "Error: Invalid response from server."
-
 #endif // CON4GLOBALS_H
