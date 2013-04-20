@@ -1,8 +1,0 @@
-build:
-	g++ -std=c++0x -g Test.cpp
-
-run: build
-	./a.out
-
-valgrind: build
-	valgrind --tool=memcheck ./a.out
