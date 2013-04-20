@@ -25,58 +25,37 @@
  * THE SOFTWARE.
  */
 
-#include <QSettings>
-#include "con4globals.h"
-#include "application.h"
 #include "indexserversview.h"
 #include "ui_indexserversview.h"
 #include "addindexserverdialog.h"
 
-IndexServersView::IndexServersView (QWidget *parent)
-    : QDialog (parent), ui (new Ui::IndexServersView) {
-    ui->setupUi (this);
-    ui->tableView->setModel (&_model);
+IndexServersView::IndexServersView(IndexServiceList *model, QWidget *parent)
+    : QDialog(parent), ui(new Ui::IndexServersView), _model(model)
+{
+    ui->setupUi(this);
+    ui->tableView->setModel(_model);
 }
 
-IndexServersView::~IndexServersView () {
-    delete ui;
+IndexServersView::~IndexServersView() { delete ui; }
+
+void IndexServersView::deleteClicked()
+{
+    QItemSelectionModel *selModel = ui->tableView->selectionModel();
+    if (!selModel->hasSelection()) return;
+
+    QList<IndexService *> services;
+    QModelIndexList idcs = selModel->selectedRows();
+    for (int i = 0; i < idcs.size(); i++) {
+        int idx = idcs.at(i).row();
+        services.append(_model->at(idx));
+    }
+
+    for (int i = 0; i < idcs.size(); i++)
+        _model->deleteItem(services.at(i));
 }
 
-void IndexServersView::deleteClicked () {
-    QItemSelectionModel *selModel = ui->tableView->selectionModel ();
-    if (!selModel->hasSelection ()) return;
-
-    QModelIndexList idcs = selModel->selectedRows ();
-    QSettings settings;
-    QList<IndexService *> *indexServices = Application::instance ().indexServices ();
-
-    for (int i = 0; i < idcs.size (); i++) {
-        int idx = idcs.at (i).row ();
-        IndexService *service = (*indexServices).at (idx);
-        indexServices->removeAt (idx);
-        delete service;
-    }
-
-    IndexServersViewModel *model = (IndexServersViewModel *)ui->tableView->model ();
-    model->updateOnRowsRemoved (idcs.first ().row (), idcs.last ().row ());
-
-    settings.beginGroup (IDX_SRV_ARRAY);
-    settings.remove ("");
-    settings.endGroup ();
-    settings.beginWriteArray (IDX_SRV_ARRAY);
-    for (int i = 0; i < indexServices->size (); i++) {
-        settings.setArrayIndex (i);
-        settings.setValue (IDX_SRV_NAME, indexServices->at (i)->name ());
-        settings.setValue (IDX_SRV_ADDR, indexServices->at (i)->ipAddress ().toString ());
-        settings.setValue (IDX_SRV_PORT, indexServices->at (i)->port ());
-    }
-    settings.endArray ();
-}
-
-void IndexServersView::addClicked () {
-    AddIndexServerDialog dlg (this);
-    if (dlg.exec () == QDialog::Accepted) {
-        IndexServersViewModel *model = (IndexServersViewModel *)ui->tableView->model ();
-        model->updateOnRowAdded ();
-    }
+void IndexServersView::addClicked()
+{
+    AddIndexServerDialog dlg(_model, this);
+    dlg.exec();
 }

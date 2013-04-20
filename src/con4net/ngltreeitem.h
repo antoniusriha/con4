@@ -1,5 +1,5 @@
 /*
- * service.cpp
+ * ngltreeitem.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,23 +25,33 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
-#include <QTcpSocket>
-#include "service.h"
+#ifndef NGLTREEITEM_H
+#define NGLTREEITEM_H
 
-using namespace std;
+#include <QVector>
+#include <QVariant>
 
-quint16 Service::toQuint16 (QString qsPort, bool *ok) {
-    qsPort.remove (QRegExp ("^[0]*"));
-    QTextStream ts (&qsPort);
-    quint16 port = 0;
-    ts >> port;
+class NglTreeItem {
+public:
+	NglTreeItem(const QVector<QVariant> &data, NglTreeItem *parent = 0);
+	~NglTreeItem();
 
-    if (qsPort.size () == QString (port).size ()) {
-        if (ok != 0) *ok = true;
-    } else {
-        port = 0;
-        if (ok != 0) *ok = false;
-    }
-    return port;
-}
+	NglTreeItem *child(int number);
+	int childCount() const;
+	int columnCount() const;
+	QVariant data(int column) const;
+	bool insertChildren(int position, int count, int columns);
+	bool insertColumns(int position, int columns);
+	NglTreeItem *parent();
+	bool removeChildren(int position, int count);
+	bool removeColumns(int position, int columns);
+	int childNumber() const;
+	bool setData(int column, const QVariant &value);
+
+private:
+	QList<NglTreeItem *> _childItems;
+	QVector<QVariant> _itemData;
+	NglTreeItem *_parentItem;
+};
+
+#endif // NGLTREEITEM_H

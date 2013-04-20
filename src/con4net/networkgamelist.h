@@ -1,5 +1,5 @@
 /*
- * opponentservice.h
+ * networkgamelist.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,54 +25,53 @@
  * THE SOFTWARE.
  */
 
-#ifndef OPPONENTSERVICE_H
-#define OPPONENTSERVICE_H
+#ifndef NETWORKGAMELIST_H
+#define NETWORKGAMELIST_H
 
-#include <QUuid>
-#include <QThread>
-#include <QTcpServer>
-#include <QTimer>
-#include <QStringList>
-#include "networkplayerservice.h"
+#include <QAbstractItemModel>
 #include "indexservicelist.h"
+#include "ngltreeitem.h"
 
-class OpponentService : public NetworkPlayerService
+class NetworkGameList : public QAbstractItemModel
 {
 	Q_OBJECT
 
 public:
-	OpponentService(int width, int height, int depth, QString initiatorName,
-					QString gameName, QHostAddress ipAddress, quint16 port,
-					IndexServiceList *indexServices, QObject *parent = 0);
-	~OpponentService();
+	explicit NetworkGameList(IndexServiceList *indexServices,
+							 QObject *parent = 0);
+	~NetworkGameList();
 
-	bool joinGameSuccess();
-	bool joinGameFailed(QString reason);
-	void startGame() const;
-	void synchronizeGameBoard(int **fieldNumberAndValue) const;
-	void updatedGameBoard(int fieldNumber, int value) const;
-	void moved_failed(QString reason) const;
-	void endGame(int result) const;
-	void abortGame(QString reason) const;
+	QModelIndex index(int row, int column, const QModelIndex &parent) const;
+	QModelIndex parent(const QModelIndex &child) const;
+	int rowCount(const QModelIndex &parent) const;
+	int columnCount(const QModelIndex &parent) const;
+	QVariant data(const QModelIndex &index, int role) const;
+	QVariant headerData(int section,
+						Qt::Orientation orientation, int role) const;
 
-signals:
-	void joinGame(QString playerName);
-	void move(int fieldIndex);
-	void abortGame(QString reason);
+	IndexService *at(int index);
+	void create(QHostAddress host, quint16 port, QString name);
+	bool deleteItem(IndexService *item);
+	bool deleteAt(int index);
+	void refresh();
+	QString refreshLog() const { return _refreshLog; }
 
-private slots:
-	void newConnection();
-	void update();
-	void set(FieldValue player, int width, int depth);
+	int size() const;
+	bool empty() const;
+
+//private slots:
+//	void created();
+//	void deletedAt(int index);
 
 private:
-	void _handleMsg(QStringList msgTokens);
-	bool _sendMsg(QString msg);
+	NglTreeItem *_getItem(const QModelIndex &index) const;
+
+	const static int _colCountIdxSrv = 1;
+	const static int _colCountGame = 4;
 
 	IndexServiceList *_indexServices;
-	QTcpServer _server;
-	QTcpSocket *_socket;
-	QTimer _timer;
+	QString _refreshLog;
+	NglTreeItem *_rootItem;
 };
 
-#endif // OPPONENTSERVICE_H
+#endif // NETWORKGAMELIST_H

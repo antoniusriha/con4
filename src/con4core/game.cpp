@@ -32,73 +32,73 @@
 using namespace std;
 
 Game::Game() : _nConnect(4), _width(8), _height(8), _depth(4),
-    _disksSet(0), _totalDisks(0), _hasStarted(false),
-    _aborted(false), _finished(false) {}
+	_disksSet(0), _totalDisks(0), _hasStarted(false),
+	_aborted(false), _finished(false) {}
 
 Game::Game(int nConnect, int width, int height, int depth)
-    : _nConnect(nConnect), _width(width), _height(height),
-      _depth(depth), _disksSet(0), _totalDisks(0),
-      _hasStarted(false), _aborted(false), _finished(false) {}
+	: _nConnect(nConnect), _width(width), _height(height),
+	  _depth(depth), _disksSet(0), _totalDisks(0),
+	  _hasStarted(false), _aborted(false), _finished(false) {}
 
 Game::~Game() { if (_hasStarted) delete _board; }
 
 bool Game::isConfValid(QString &errMsg)
 {
-    string msg;
-    bool result = Board::isBoardConfValid(_nConnect, _height,
-                                          _width, _depth, msg);
-    errMsg = QString::fromUtf8(msg.c_str());
-    return result;
+	string msg;
+	bool result = Board::isBoardConfValid(_nConnect, _height,
+										  _width, _depth, msg);
+	errMsg = QString::fromUtf8(msg.c_str());
+	return result;
 }
 
 bool Game::set(int width, int depth)
 {
-    if (!_hasStarted || _finished || _aborted) return false;
-    if (_board->set(width, depth)) {
-        FieldValue player = curPlayer() == Player1 ? Player2 : Player1;
-        _disksSet++;
-        emit set(player, width, depth);
+	if (!_hasStarted || _finished || _aborted) return false;
+	if (_board->set(width, depth)) {
+		FieldValue player = curPlayer() == Player1 ? Player2 : Player1;
+		_disksSet++;
+		emit set(player, width, depth);
 
-        if (_board->isFinished()) {
-            _finished = true;
-            emit finished(player);
-        } else if (_disksSet == _totalDisks) {
-            _finished = true;
-            emit finished(None);
-        }
-        return true;
-    } else return false;
+		if (_board->isFinished()) {
+			_finished = true;
+			emit finished(player);
+		} else if (_disksSet == _totalDisks) {
+			_finished = true;
+			emit finished(None);
+		}
+		return true;
+	} else return false;
 }
 
 bool Game::undo(int &width, int &height, int &depth)
 {
-    if (!_hasStarted || _aborted) return false;
-    if (_board->undo(height, width, depth)) {
-        _finished = false;
-        _disksSet--;
-        emit undone(curPlayer() == Player1 ? Player2 : Player1,
-                    width, height, depth);
-        return true;
-    } else return false;
+	if (!_hasStarted || _aborted) return false;
+	if (_board->undo(height, width, depth)) {
+		_finished = false;
+		_disksSet--;
+		emit undone(curPlayer() == Player1 ? Player2 : Player1,
+					width, height, depth);
+		return true;
+	} else return false;
 }
 
-bool Game::start()
+bool Game::start(FieldValue startPlayer)
 {
-    if (_hasStarted || _finished || _aborted) return false;
-    QString errMsg;
-    if (!isConfValid(errMsg)) return false;
-    FieldValue startPlayer = (FieldValue)(rand() % 2 + 1);
-    _board = new Board(_nConnect, _height, _width, _depth, startPlayer, true);
-    _totalDisks = _height * _width * _depth;
-    _hasStarted = true;
-    emit started(startPlayer);
-    return true;
+	if (_hasStarted || _finished || _aborted) return false;
+	QString errMsg;
+	if (!isConfValid(errMsg)) return false;
+	if (startPlayer == None) startPlayer = (FieldValue)(rand() % 2 + 1);
+	_board = new Board(_nConnect, _height, _width, _depth, startPlayer, true);
+	_totalDisks = _height * _width * _depth;
+	_hasStarted = true;
+	emit started(startPlayer);
+	return true;
 }
 
 bool Game::abort(FieldValue requester, QString reason)
 {
-    if (!_hasStarted || _finished || _aborted) return false;
-    _aborted = true;
-    emit aborted(requester, reason);
-    return true;
+	if (!_hasStarted || _finished || _aborted) return false;
+	_aborted = true;
+	emit aborted(requester, reason);
+	return true;
 }

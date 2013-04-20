@@ -29,23 +29,27 @@
 #define ADDINDEXSERVERDIALOG_H
 
 #include <QDialog>
-#include "../con4net/indexservice.h"
+#include "../con4net/indexservicelist.h"
 
 namespace Ui {
 class AddIndexServerDialog;
 }
 
-class AddIndexServerDialog : public QDialog {
+class AddIndexServerDialog : public QDialog
+{
     Q_OBJECT
+
 public:
-    explicit AddIndexServerDialog (QWidget *parent = 0);
-    ~AddIndexServerDialog ();
+    explicit AddIndexServerDialog(IndexServiceList *indexServices,
+                                  QWidget *parent = 0);
+    ~AddIndexServerDialog();
 
 private:
-    void done (int result);
-    bool _nameExists (QString name);
+    void done(int result);
+    bool _nameExists(QString name);
 
     Ui::AddIndexServerDialog *ui;
+    IndexServiceList *_indexServices;
 };
 
 #endif // ADDINDEXSERVERDIALOG_H

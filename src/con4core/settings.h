@@ -42,13 +42,12 @@ public:
 	bool registerKey(QString key);
 
 	QVariant get(QString key);
-	void set(QString key, QString value);
+    void set(QString key, QVariant value);
 	void unset(QString key);
 
 	ValuesArray getArray(QString arrayName, QList<QString> attrNames);
-	void addToArray(QString arrayName, QList<QString> attrNames,
-					QList<QString> values);
-	void removeFromArray(QString arrayName, QString key);
+    void setArray(QString arrayName, QList<QString> attrNames,
+                  ValuesArray attrVals);
 
 private:
 	QList<QString> _keys;

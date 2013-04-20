@@ -27,67 +27,53 @@
 
 #include <QHostAddress>
 #include <QMessageBox>
-#include <QSettings>
-#include "con4globals.h"
-#include "application.h"
 #include "addindexserverdialog.h"
 #include "ui_addindexserverdialog.h"
 
-AddIndexServerDialog::AddIndexServerDialog (QWidget *parent)
-    : QDialog (parent), ui (new Ui::AddIndexServerDialog) {
+AddIndexServerDialog::AddIndexServerDialog(IndexServiceList *indexServices,
+                                           QWidget *parent)
+    : QDialog(parent), ui(new Ui::AddIndexServerDialog),
+      _indexServices(indexServices)
+{
     ui->setupUi(this);
 }
 
-AddIndexServerDialog::~AddIndexServerDialog () {
-    delete ui;
-}
+AddIndexServerDialog::~AddIndexServerDialog() { delete ui; }
 
-void AddIndexServerDialog::done (int result) {
+void AddIndexServerDialog::done(int result)
+{
     if (QDialog::Accepted == result) {
         int nErr = 0;
         QString errMsg;
 
         QHostAddress ip;
-        if (!ip.setAddress (ui->txtIp->text ().trimmed ())) {
+        if (!ip.setAddress(ui->txtIp->text().trimmed())) {
             nErr++;
-            errMsg.append ("Error: Please specify a valid ip address (e.g.: 10.0.0.1)\n");
+            errMsg.append("Error: Please specify a valid ip address (e.g.: 10.0.0.1)\n");
         }
 
-        QString name = ui->txtName->text ().trimmed ();
-        if (name.isEmpty ()) name = ip.toString ();
-        if (_nameExists (name)) {
+        QString name = ui->txtName->text().trimmed();
+        if (name.isEmpty()) name = ip.toString();
+        if (_nameExists(name)) {
             nErr++;
-            errMsg.append ("Error: The specified name (or ip address, if no name was provided) exists already.\n")
-                  .append ("Please choose another one.\n");
+            errMsg.append("Error: The specified name (or ip address, if no name was provided) exists already.\n")
+                  .append("Please choose another one.\n");
         }
 
         if (nErr > 0) {
-            QString finalErrMsg = QString ("%1 error(s) occured:\n").arg (nErr).append (errMsg);
-            QMessageBox::critical (this, "Error", finalErrMsg);
+            QString finalErrMsg = QString("%1 error(s) occured:\n").arg(nErr).append(errMsg);
+            QMessageBox::critical(this, "Error", finalErrMsg);
         } else {
-            quint16 port = (quint16)ui->sbPort->value ();
-            IndexService *indexService = new IndexService (ip, port, name);
-            Application::instance ().indexServices ()->append (indexService);
-
-            // save to settings
-            QSettings settings;
-            int size = settings.beginReadArray (IDX_SRV_ARRAY);
-            settings.endArray ();
-            settings.beginWriteArray (IDX_SRV_ARRAY);
-            settings.setArrayIndex (size);
-            settings.setValue (IDX_SRV_NAME, name);
-            settings.setValue (IDX_SRV_ADDR, ip.toString ());
-            settings.setValue (IDX_SRV_PORT, port);
-            settings.endArray();
-
-            QDialog::done (result);
+            quint16 port = (quint16)ui->sbPort->value();
+            _indexServices->create(ip, port, name);
+            QDialog::done(result);
         }
-    } else QDialog::done (result);
+    } else QDialog::done(result);
 }
 
-bool AddIndexServerDialog::_nameExists (QString name) {
-    QList<IndexService *> *services = Application::instance ().indexServices ();
-    for (int i = 0; i < services->size (); i++)
-        if ((*services) [i]->name () == name) return true;
+bool AddIndexServerDialog::_nameExists(QString name)
+{
+    for (int i = 0; i < _indexServices->size (); i++)
+        if (_indexServices->at(i)->name() == name) return true;
     return false;
 }

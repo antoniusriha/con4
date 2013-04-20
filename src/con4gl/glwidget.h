@@ -49,14 +49,14 @@ class QtLogo;
 
 class GLWidget : public QGLWidget
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    GLWidget(QWidget *parent = 0);
-    ~GLWidget();
+	GLWidget(QWidget *parent = 0);
+	~GLWidget();
 
-    QSize minimumSizeHint() const;
-    QSize sizeHint() const;
+	QSize minimumSizeHint() const;
+	QSize sizeHint() const;
 
 	void startGame (Game *value, bool player1Enabled = true, bool player2Enabled = true);
 	void setGameTitle (QString value);
@@ -67,26 +67,27 @@ public:
 	void setPlayer2Color (QColor color);
 
 public slots:
-    void setXRotation(int angle);
-    void setYRotation(int angle);
-    void setZRotation(int angle);
+	void setXRotation(int angle);
+	void setYRotation(int angle);
+	void setZRotation(int angle);
 
 signals:
 	void close();
 
 protected:
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+	void initializeGL();
+	void paintGL();
+	void resizeGL(int width, int height);
+	void mousePressEvent(QMouseEvent *event);
+	void mouseMoveEvent(QMouseEvent *event);
 	void wheelEvent(QWheelEvent *event);
 	void keyPressEvent(QKeyEvent * event);
 
 private slots:
 	void finished(FieldValue winner);
 	void btnClicked();
-	void set(FieldValue player, int width, int depth);
+	void set();
+	void started();
 
 private:
 	bool _isCurPlayerEnabled ();

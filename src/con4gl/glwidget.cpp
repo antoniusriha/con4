@@ -45,7 +45,7 @@
 #endif
 
 GLWidget::GLWidget(QWidget *parent)
-    : QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
 {
 	_grid = 0;
 	_distance = -5;
@@ -96,11 +96,13 @@ void GLWidget::startGame(Game *value, bool player1Enabled, bool player2Enabled)
 	if (_grid) delete _grid;
 
 	_game = value;
+	connect(value, SIGNAL(started(FieldValue)), this, SLOT(started()));
 	connect(value, SIGNAL(finished(FieldValue)), this, SLOT(finished(FieldValue)));
-	connect(value, SIGNAL(set(FieldValue,int,int)), this, SLOT(set(FieldValue,int,int)));
+	connect(value, SIGNAL(set(FieldValue,int,int)), this, SLOT(set()));
 	_btn->setText("Abort game");
 	_lblTitle->setText("");
 	_lblDescription->setText("");
+	_lblStatus->setText("Waiting for start signal...");
 	_player1Name = "Player 1";
 	_player2Name = "Player 2";
 	_player1Enabled = player1Enabled;
@@ -143,51 +145,51 @@ void GLWidget::setPlayer2Color(QColor color)
 
 static void qNormalizeAngle(int &angle)
 {
-    while (angle < 0)
-        angle += 360 * 16;
-    while (angle > 360 * 16)
-        angle -= 360 * 16;
+	while (angle < 0)
+		angle += 360 * 16;
+	while (angle > 360 * 16)
+		angle -= 360 * 16;
 }
 
 void GLWidget::setXRotation(int angle)
 {
-    qNormalizeAngle(angle);
+	qNormalizeAngle(angle);
 	if (angle != _xRot) {
 		_xRot = angle;
-        updateGL();
-    }
+		updateGL();
+	}
 }
 
 void GLWidget::setYRotation(int angle)
 {
-    qNormalizeAngle(angle);
+	qNormalizeAngle(angle);
 	if (angle != _yRot) {
 		_yRot = angle;
-        updateGL();
-    }
+		updateGL();
+	}
 }
 
 void GLWidget::setZRotation(int angle)
 {
-    qNormalizeAngle(angle);
+	qNormalizeAngle(angle);
 	if (angle != _zRot) {
 		_zRot = angle;
-        updateGL();
-    }
+		updateGL();
+	}
 }
 
 void GLWidget::initializeGL()
 {
 	qglClearColor(QColor(Qt::black));
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_MULTISAMPLE);
-    static GLfloat lightPosition[4] = { 0.5, 5.0, 7.0, 1.0 };
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_MULTISAMPLE);
+	static GLfloat lightPosition[4] = { 0.5, 5.0, 7.0, 1.0 };
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 }
 
 void GLWidget::paintGL()
@@ -208,11 +210,11 @@ void GLWidget::resizeGL(int width, int height)
 	if (height == 0) height = 1;
 	glViewport(0, 0, width, height);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
 	gluPerspective(45, (float)width/(float)height, 0.1, 1000);//	QSpacerItem *horizontalSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    glMatrixMode(GL_MODELVIEW);
+	glMatrixMode(GL_MODELVIEW);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -226,13 +228,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	int dx = event->x() - _lastPos.x();
 	int dy = event->y() - _lastPos.y();
 
-    if (event->buttons() & Qt::LeftButton) {
+	if (event->buttons() & Qt::LeftButton) {
 		setXRotation(_xRot + 8 * dy);
 		setYRotation(_yRot + 8 * dx);
-    } else if (event->buttons() & Qt::RightButton) {
+	} else if (event->buttons() & Qt::RightButton) {
 		setXRotation(_xRot + 8 * dy);
 		setZRotation(_zRot + 8 * dx);
-    }
+	}
 	_lastPos = event->pos();
 	event->accept();
 }
@@ -292,7 +294,7 @@ void GLWidget::finished(FieldValue winner)
 
 void GLWidget::btnClicked()
 {
-	if (_game->hasStarted() && !_game->finished()) {
+	if (!_game->finished()) {
 		if (QMessageBox::question(this, "Game abort", "Do you really want to abort the game?",
 								  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::No) return;
 		_game->abort(None, "User abort");
@@ -301,15 +303,21 @@ void GLWidget::btnClicked()
 	emit close();
 }
 
-void GLWidget::set(FieldValue player, int width, int depth)
+void GLWidget::set()
 {
 	QString p = _game->curPlayer() == Player1 ? _player1Name : _player2Name;
 	p += p.endsWith('s', Qt::CaseInsensitive) ? "'" : "'s";
 	_lblStatus->setText("It's " + p + " turn.");
 }
 
+void GLWidget::started()
+{
+	_lblStatus->setText("");
+	updateGL();
+}
+
 bool GLWidget::_isCurPlayerEnabled()
 {
-	return _game->curPlayer() == Player1 && _player1Enabled ||
-		   _game->curPlayer() == Player2 && _player2Enabled;
+	return (_game->curPlayer() == Player1 && _player1Enabled) ||
+		   (_game->curPlayer() == Player2 && _player2Enabled);
 }

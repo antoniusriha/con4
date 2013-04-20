@@ -41,8 +41,6 @@ Grid::Grid(Game *game, QObject *parent)
 	_dCursor = 0;
 
 	_quadric = gluNewQuadric();
-
-	game->start();
 }
 
 Grid::~Grid()
@@ -66,6 +64,8 @@ void Grid::draw() const
 	_drawBoardBottom(boardWidth, boardDepth);
 
 	_drawCylinders();
+
+	if (!_game->hasStarted()) return;
 
 	glTranslatef(_colsDistance / 2, _boardBaseHeight + _sphereRadius, -_colsDistance / 2);
 	for (int i = 0; i < _game->height(); i++) {
@@ -151,13 +151,14 @@ bool Grid::moveCursorLeft()
 
 bool Grid::setDisk()
 {
-	_game->set(_wCursor, _dCursor);
+	bool success = _game->set(_wCursor, _dCursor);
 	if (_game->finished()) {
-		_conWidthIdcs = new int [_game->nConnect()];
-		_conHeightIdcs = new int [_game->nConnect()];
-		_conDepthIdcs = new int [_game->nConnect()];
+		_conWidthIdcs = new int[_game->nConnect()];
+		_conHeightIdcs = new int[_game->nConnect()];
+		_conDepthIdcs = new int[_game->nConnect()];
 		_game->connected(_conWidthIdcs, _conHeightIdcs, _conDepthIdcs);
 	}
+	return success;
 }
 
 void Grid::_drawBoardBottom(float width, float depth) const

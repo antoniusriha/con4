@@ -28,30 +28,21 @@
 #ifndef NETWORKPLAYERSERVICE_H
 #define NETWORKPLAYERSERVICE_H
 
-#include <QHostAddress>
 #include "../con4core/player.h"
+#include "networkgame.h"
 
 class NetworkPlayerService : public Player
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-	NetworkPlayerService(Game *game, QString initiatorName,
-						 QString gameName, QObject *parent = 0);
+	NetworkPlayerService(NetworkGame *game, QObject *parent = 0);
+	~NetworkPlayerService();
 
-	virtual quint16 port() const = 0;
-	virtual bool startService() = 0;
-
-	QString gameName() const { return _gameName; }
-	QString initiatorName() const { return _initiatorName; }
-	QHostAddress ipAddress() const { return _ipAddress; }
-
-protected:
-	void assignIpAddress();
-
-private:
-    QString _gameName, _initiatorName;
-    QHostAddress _ipAddress;
+	NetworkGame *networkGame() const
+	{
+		return static_cast<NetworkGame *>(game());
+	}
 };
 
 #endif // NETWORKPLAYERSERVICE_H

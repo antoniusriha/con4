@@ -30,24 +30,28 @@
 
 #include <QObject>
 #include <QList>
-#include "../con4net/indexservice.h"
+#include "../con4core/settings.h"
+#include "../con4net/indexservicelist.h"
 
-class Application : public QObject {
+class Application : public QObject
+{
     Q_OBJECT
+
 public:
-    static Application &instance () {
+    static Application &instance()
+    {
         static Application instance;
         return instance;
     }
-    
-    ~Application ();
 
-    QList<IndexService *> *const indexServices () { return &_indexServices; }
+    Settings *settings() { return &_settings; }
+    IndexServiceList *indexServices() { return &_indexServices; }
 
 private:
-    Application ();
+    Application();
 
-    QList<IndexService *> _indexServices;
+    Settings _settings;
+    IndexServiceList _indexServices;
 };
 
 #endif // APPLICATION_H

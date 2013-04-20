@@ -33,18 +33,18 @@ using namespace std;
 using namespace boost;
 
 bool Board::isBoardConfValid (int nConnect, int height, int dim2, int dim3, string &errMsg) {
-    errMsg = "";
-    if (nConnect < 4 || nConnect > MAX_DIMS / 2)
-        errMsg = "nConnect must be greater than 4 and lower than MAX_DIMS / 2.";
-    if (height < nConnect || height > MAX_DIMS)
-        errMsg = "height must be greater than nConnect and lower than MAX_DIMS.";
-    if (dim2 < nConnect || dim2 > MAX_DIMS)
-        errMsg = "dim2 must be greater than nConnect and lower than MAX_DIMS.";
-    if (dim3 != 1 && (dim3 < nConnect || dim3 > MAX_DIMS))
-        errMsg = "dim3 must be 1 (for 2D) or greater than nConnect and lower than MAX_DIMS (for 3D).";
-    if ((height * dim2 * dim3) % 2 != 0)
-        errMsg = "The total number of fields must be even.";
-    return errMsg == "";
+	errMsg = "";
+	if (nConnect < 4 || nConnect > MAX_DIMS / 2)
+		errMsg = "nConnect must be greater than 4 and lower than MAX_DIMS / 2.";
+	if (height < nConnect || height > MAX_DIMS)
+		errMsg = "height must be greater than nConnect and lower than MAX_DIMS.";
+	if (dim2 < nConnect || dim2 > MAX_DIMS)
+		errMsg = "dim2 must be greater than nConnect and lower than MAX_DIMS.";
+	if (dim3 != 1 && (dim3 < nConnect || dim3 > MAX_DIMS))
+		errMsg = "dim3 must be 1 (for 2D) or greater than nConnect and lower than MAX_DIMS (for 3D).";
+	if ((height * dim2 * dim3) % 2 != 0)
+		errMsg = "The total number of fields must be even.";
+	return errMsg == "";
 }
 
 Board::Board () : _nConnect (4), _canUndo (false), _isFinished (false),
@@ -53,16 +53,16 @@ Board::Board () : _nConnect (4), _canUndo (false), _isFinished (false),
 }
 
 Board::Board (int nConnect, int height, int dim2, int dim3, FieldValue curPlayer, bool canUndo)
-    : _nConnect (nConnect), _canUndo (canUndo), _isFinished (false),
+	: _nConnect (nConnect), _canUndo (canUndo), _isFinished (false),
 	  _curPlayer (curPlayer), _array (extents [height][dim2][dim3]) {
-    string errMsg;
-    if (!isBoardConfValid (nConnect, height, dim2, dim3, errMsg))
-        throw invalid_argument (errMsg);
+	string errMsg;
+	if (!isBoardConfValid (nConnect, height, dim2, dim3, errMsg))
+		throw invalid_argument (errMsg);
 	_lastIndex.assign (-1);
 }
 
 Board::Board (const Board &board, bool canUndo)
-    : _nConnect (board._nConnect), _canUndo (canUndo), _isFinished (board._isFinished),
+	: _nConnect (board._nConnect), _canUndo (canUndo), _isFinished (board._isFinished),
 	  _curPlayer (board._curPlayer), _array (board._array), _lastIndex (board._lastIndex) {}
 
 FieldValue Board::winner () const {
@@ -78,10 +78,10 @@ bool Board::lastIndex (int &height, int &dim2, int &dim3) const {
 }
 
 bool Board::isFull (int dim2, int dim3, int &height) const {
-    if (nDims () == 2) dim3 = 0;
-    height = 0; bool isNotFull = true;
-    for (; (isNotFull = (height < this->height ()))
-         && (_array [height][dim2][dim3] != None); height++);
+	if (nDims () == 2) dim3 = 0;
+	height = 0; bool isNotFull = true;
+	for (; (isNotFull = (height < this->height ()))
+		 && (_array [height][dim2][dim3] != None); height++);
 	return !isNotFull;
 }
 
@@ -98,57 +98,57 @@ bool Board::connected (int heightIdcs [], int dim2Idcs [], int dim3Idcs []) cons
 }
 
 FieldValue Board::get (int height, int dim2, int dim3) const {
-    return _array [height][dim2][dim3];
+	return _array [height][dim2][dim3];
 }
 
 bool Board::set (int dim2, int dim3) {
-    if (_isFinished) throw logic_error ("Game is over.");
-    if (nDims () == 2) dim3 = 0;
-    int height;
-    if (isFull (dim2, dim3, height)) return false;
+	if (_isFinished) throw logic_error ("Game is over.");
+	if (nDims () == 2) dim3 = 0;
+	int height;
+	if (isFull (dim2, dim3, height)) return false;
 
 	_lastIndex [0] = height;
 	_lastIndex [1] = dim2;
 	_lastIndex [2] = dim3;
 	if (!_isIndexValid (_lastIndex))
-        throw invalid_argument ("Invalid index");
+		throw invalid_argument ("Invalid index");
 
 	if (_canUndo) _undoStack.push (_lastIndex);
 	_array (_lastIndex) = _curPlayer;
 	_isFinished = _connected ();
-    _curPlayer = _curPlayer == Player1 ? Player2 : Player1;
-    return true;
+	_curPlayer = _curPlayer == Player1 ? Player2 : Player1;
+	return true;
 }
 
 bool Board::undo (int &height, int &dim2, int &dim3) {
-    if (!_canUndo) throw logic_error ("canUndo is false.");
+	if (!_canUndo) throw logic_error ("canUndo is false.");
 	if (_undoStack.empty ()) return false;
 
-    _isFinished = false;
+	_isFinished = false;
 	IndexArray idx = _undoStack.top ();
-    dim2 = idx [1]; dim3 = idx [2];
-    height = this->height () - 1;
-    for (; (height >= 0) && (_array [height][dim2][dim3] == None); height--);
-    _array [height][dim2][dim3] = None;
+	dim2 = idx [1]; dim3 = idx [2];
+	height = this->height () - 1;
+	for (; (height >= 0) && (_array [height][dim2][dim3] == None); height--);
+	_array [height][dim2][dim3] = None;
 
-    _curPlayer = _curPlayer == Player1 ? Player2 : Player1;
+	_curPlayer = _curPlayer == Player1 ? Player2 : Player1;
 	_undoStack.pop ();
 
 	if (_undoStack.empty ()) _lastIndex.assign (-1);
 	else _lastIndex = _undoStack.top ();
-    return true;
+	return true;
 }
 
 ostream &operator<< (ostream &os, const Board &obj) {
-    for (int i = obj.height () - 1; i >= 0; i--) {
-        for (int j = obj.dim3 () - 1; j >= 0; j--) {
-            if (j >= 0) os << endl << string (4 * (obj.dim3 () - j - 1), ' ');
-            for (int k = 0; k < obj.dim2 (); k++)
-                os << obj._array [i][k][j] << "  ";
-        }
-        os << endl;
-    }
-    return os;
+	for (int i = obj.height () - 1; i >= 0; i--) {
+		for (int j = obj.dim3 () - 1; j >= 0; j--) {
+			if (j >= 0) os << endl << string (4 * (obj.dim3 () - j - 1), ' ');
+			for (int k = 0; k < obj.dim2 (); k++)
+				os << obj._array [i][k][j] << "  ";
+		}
+		os << endl;
+	}
+	return os;
 }
 
 bool Board::_connected () {
@@ -167,7 +167,7 @@ bool Board::_connected () {
 				int m = 1;
 				IndexArray *conIdcs1Ptr = conIdcs1;
 				copy (_lastIndex.begin (), _lastIndex.end (), idx.begin ());
-				for (; fail = (m < _nConnect); m++) {
+				for (; (fail = (m < _nConnect)); m++) {
 					idx [0] += i; idx [1] += j; idx [2] += k;
 					if (!_isIndexValid (idx)) break;
 					FieldValue val = _array (idx);
@@ -177,7 +177,7 @@ bool Board::_connected () {
 
 				IndexArray *conIdcs2Ptr = conIdcs2;
 				copy (_lastIndex.begin (), _lastIndex.end (), idx.begin ());
-				for (; fail = (m < _nConnect); m++) {
+				for (; (fail = (m < _nConnect)); m++) {
 					idx [0] -= i; idx [1] -= j; idx [2] -= k;
 					if (!_isIndexValid (idx)) break;
 					FieldValue val = _array (idx);
@@ -201,6 +201,6 @@ bool Board::_connected () {
 }
 
 bool Board::_isIndexValid (IndexArray idx) const {
-    return idx [0] >= 0 && idx [1] >= 0 && idx [2] >= 0 &&
-           idx [0] < height () && idx [1] < dim2 () && idx [2] < dim3 ();
+	return idx [0] >= 0 && idx [1] >= 0 && idx [2] >= 0 &&
+		   idx [0] < height () && idx [1] < dim2 () && idx [2] < dim3 ();
 }

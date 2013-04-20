@@ -29,25 +29,27 @@
 #define INDEXSERVERSVIEW_H
 
 #include <QDialog>
-#include "indexserversviewmodel.h"
+#include "../con4net/indexservicelist.h"
 
 namespace Ui {
 class IndexServersView;
 }
 
-class IndexServersView : public QDialog {
+class IndexServersView : public QDialog
+{
     Q_OBJECT
+
 public:
-    explicit IndexServersView (QWidget *parent = 0);
-    ~IndexServersView ();
+    explicit IndexServersView(IndexServiceList *model, QWidget *parent = 0);
+    ~IndexServersView();
     
 private slots:
-    void deleteClicked ();
-    void addClicked ();
+    void deleteClicked();
+    void addClicked();
 
 private:
     Ui::IndexServersView *ui;
-    IndexServersViewModel _model;
+    IndexServiceList *_model;
 };
 
 #endif // INDEXSERVERSVIEW_H

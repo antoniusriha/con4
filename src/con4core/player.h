@@ -37,10 +37,10 @@ class Player : public QObject
 
 public:
 	Player(Game *game, QObject *parent = 0);
-	
-//protected:
+	virtual ~Player();
+
 	Game *game() const { return _game; }
-	
+
 private:
 	Game *_game;
 };

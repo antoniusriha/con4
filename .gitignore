@@ -1,3 +1,11 @@
 *~
 a.out
 *.pro.user
+*.o
+moc_*.cpp
+ui_*.h
+Makefile
+/src/con4/con4
+/src/con4core/con4core
+/src/con4gl/con4gl
+/src/con4net/con4net

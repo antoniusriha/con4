@@ -28,7 +28,6 @@
 #include "player.h"
 
 Player::Player(Game *game, QObject *parent)
-	: QObject(parent), _game(game)
-{
+	: QObject(parent), _game(game) {}
 
-}
+Player::~Player() {}

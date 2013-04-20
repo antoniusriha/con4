@@ -42,30 +42,31 @@ Settings::ValuesArray Settings::getArray(QString arrayName,
 {
 	QSettings settings;
 	ValuesArray result;
-	int size = settings.beginReadArray (arrayName);
+    int size = settings.beginReadArray(arrayName);
 	for (int i = 0; i < size; i++) {
-		settings.setArrayIndex (i);
+        settings.setArrayIndex(i);
 		QList<QVariant> values;
-		for (int j = 0; j < keys.size(); j++)
-			values.append(settings.value(keys[j]));
+        for (int j = 0; j < attrNames.size(); j++)
+            values.append(settings.value(attrNames[j]));
 		result.append(values);
 	}
-	settings.endArray ();
+    settings.endArray();
+    return result;
 }
 
-void Settings::addToArray(QString arrayName, QList<QString> attrNames,
-						  QList<QString> values)
+void Settings::setArray(QString arrayName, QList<QString> attrNames,
+                        ValuesArray attrVals)
 {
-	QSettings settings;
-	int size = settings.beginReadArray(arrayName);
-	settings.endArray();
-	settings.beginWriteArray(arrayName);
-	settings.setArrayIndex(size);
-	for (int i = 0; i < attrNames.size(); i++)
-		settings.setValue(attrNames.at(i), values.at(i));
-	settings.endArray();
-}
+    QSettings settings;
+    settings.beginGroup(arrayName);
+    settings.remove("");
+    settings.endGroup();
 
-void Settings::removeFromArray(QString arrayName, QString key)
-{
+    settings.beginWriteArray(arrayName);
+    for (int i = 0; i < attrVals.size(); i++) {
+        settings.setArrayIndex(i);
+        for (int j = 0; j < attrNames.size(); j++)
+            settings.setValue(attrNames.at(j), attrVals.at(i).at(j));
+    }
+    settings.endArray ();
 }

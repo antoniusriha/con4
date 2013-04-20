@@ -1,5 +1,5 @@
 /*
- * indexserversviewmodel.h
+ * networkgame.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,27 +25,34 @@
  * THE SOFTWARE.
  */
 
-#ifndef INDEXSERVERSVIEWMODEL_H
-#define INDEXSERVERSVIEWMODEL_H
+#ifndef NETWORKGAME_H
+#define NETWORKGAME_H
 
-#include <QList>
-#include <QAbstractTableModel>
-#include "../con4net/indexservice.h"
+#include <QUuid>
+#include <QHostAddress>
+#include "../con4core/game.h"
 
-class IndexServersViewModel : public QAbstractTableModel {
-    Q_OBJECT
+class NetworkGame : public Game
+{
+	Q_OBJECT
+
 public:
-    explicit IndexServersViewModel (QObject *parent = 0);
-    
-    int rowCount (const QModelIndex &parent) const;
-    int columnCount (const QModelIndex &parent) const { return 3; }
-    QVariant data (const QModelIndex &index, int role) const;
-    QVariant headerData (int section, Qt::Orientation orientation, int role) const;
-    void updateOnRowAdded ();
-    void updateOnRowsRemoved (int first, int last);
+	NetworkGame(int width, int height, int depth, QString name,
+				QString initiatorName, QHostAddress ipAddress, quint16 port);
+	~NetworkGame();
+
+	QString name() const { return _name; }
+	QString initiatorName() const { return _initiatorName; }
+	QHostAddress ipAddress() const { return _ipAddress; }
+	quint16 port() const { return _port; }
+	QUuid guid() const { return _guid; }
+	void setGuid(QUuid value) { _guid = value; }
 
 private:
-    QList<IndexService *> *_indexServices;
+	QString _name, _initiatorName;
+	QHostAddress _ipAddress;
+	quint16 _port;
+	QUuid _guid;
 };
 
-#endif // INDEXSERVERSVIEWMODEL_H
+#endif // NETWORKGAME_H

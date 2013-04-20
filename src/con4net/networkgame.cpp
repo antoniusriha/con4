@@ -1,5 +1,5 @@
 /*
- * service.h
+ * networkgame.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,18 +25,12 @@
  * THE SOFTWARE.
  */
 
-#ifndef SERVICE_H
-#define SERVICE_H
+#include "networkgame.h"
 
-#include <QStringList>
-#include <QHostAddress>
+NetworkGame::NetworkGame(int width, int height, int depth, QString name,
+						 QString initiatorName, QHostAddress ipAddress,
+						 quint16 port)
+	: Game(4, width, height, depth), _name(name), _initiatorName(initiatorName),
+	  _ipAddress(ipAddress), _port(port), _guid() {}
 
-
-
-class Service : public QObject {
-    Q_OBJECT
-public:
-    static quint16 toQuint16 (QString qsPort, bool *ok = 0);
-};
-
-#endif // SERVICE_H
+NetworkGame::~NetworkGame() {}

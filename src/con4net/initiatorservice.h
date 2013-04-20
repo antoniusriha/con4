@@ -28,56 +28,49 @@
 #ifndef INITIATORSERVICE_H
 #define INITIATORSERVICE_H
 
-#include <QThread>
-#include <QTcpServer>
+#include <QTcpSocket>
+#include <QTimer>
+#include <QStringList>
 #include "networkplayerservice.h"
 
-class InitServerThread : public QThread {
-    Q_OBJECT
+class InitiatorService : public NetworkPlayerService
+{
+	Q_OBJECT
+
 public:
-    InitServerThread (int socketDescriptor, QObject *parent = 0);
+	InitiatorService(NetworkGame *game, QObject *parent = 0);
+	~InitiatorService();
 
-private:
-    void run ();
-
-    int _socketDescriptor;
-};
-
-class InitServer : public QTcpServer {
-    Q_OBJECT
-protected:
-    void incomingConnection (int socketDescriptor);
-};
-
-class InitiatorService : public NetworkPlayerService {
-    Q_OBJECT
-public:
-	InitiatorService (Game *game, QString initiatorName,
-					  QString gameName, QObject *parent);
-
-    quint16 port () const {
-        return _hasStarted ? _initServer.serverPort () : (quint16)0;
-    }
-
-    bool startService ();
-
-    void joinGame (Game *game) const;
-    void move (int fieldNumber) const;
-    void abortGame (QString reason) const;
+	bool join(QString &errMsg);
+	void move(int fieldNumber) const;
+	void abortGame(QString reason) const;
 
 signals:
-    void joinGameSuccess ();
-    void joinGameFailed (QString reason);
-    void startGame ();
-    void synchronizeGameBoard (int **fieldNumberAndValue);
-    void updatedGameBoard (int fieldNumber, FieldValue value);
-    void moved_failed (QString reason);
-    void endGame (int result);
-    void abortGame (QString reason);
+	void joinGameSuccess();
+	void joinGameFailed(QString reason);
+	void startGame();
+	void synchronizeGameBoard(int **fieldNumberAndValue);
+	void updatedGameBoard(int fieldNumber, FieldValue value);
+	void movedFailed(QString reason);
+	void endGame(int result);
+	void abortGame(QString reason);
+
+private slots:
+	void update();
+	void set(FieldValue player, int width, int depth);
 
 private:
-    bool _hasStarted;
-    InitServer _initServer;
+	bool _connect();
+	QStringList _sendMsg (QString msg);
+	void _handleMsg(QStringList msgTokens);
+	void _handleSyncGameBoard(QStringList msgTokens);
+	void _handleUpdateGameBoard(QStringList msgTokens);
+	void _abort(QString reason);
+	bool _getCoords(int fieldNumber, int &width, int &height, int &depth);
+
+	bool _joined;
+	QTcpSocket _socket;
+	QTimer _timer;
 };
 
 #endif // INITIATORSERVICE_H

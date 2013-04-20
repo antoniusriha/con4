@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     addindexserverdialog.cpp \
     application.cpp \
     indexserversview.cpp \
-    indexserversviewmodel.cpp \
     ../con4gl/glwidget.cpp \
     ../con4gl/glelement.cpp \
     ../con4gl/grid.cpp \
@@ -27,21 +26,21 @@ SOURCES += main.cpp\
     settingsdialog.cpp \
     boardconf.cpp \
     ../con4core/player.cpp \
-    ../con4net/service.cpp \
     ../con4net/indexservice.cpp \
     ../con4net/opponentservice.cpp \
     ../con4net/networkplayerservice.cpp \
     ../con4net/initiatorservice.cpp \
     ../con4net/indexservicelist.cpp \
-    ../con4core/settings.cpp
+    ../con4core/settings.cpp \
+    ../con4net/networkgame.cpp \
+    ../con4net/networkgamelist.cpp \
+    ../con4net/ngltreeitem.cpp
 
 HEADERS  += mainwindow.h \
     aiplayer.h \
     addindexserverdialog.h \
     application.h \
     indexserversview.h \
-    indexserversviewmodel.h \
-    con4globals.h \
     ../con4gl/glwidget.h \
     ../con4gl/glelement.h \
     ../con4gl/grid.h \
@@ -50,14 +49,16 @@ HEADERS  += mainwindow.h \
     settingsdialog.h \
     boardconf.h \
     ../con4core/player.h \
-    ../con4net/service.h \
     ../con4net/indexservice.h \
     ../con4net/opponentservice.h \
     ../con4net/networkplayerservice.h \
     ../con4net/initiatorservice.h \
     ../con4net/con4netglobals.h \
     ../con4net/indexservicelist.h \
-    ../con4core/settings.h
+    ../con4core/settings.h \
+    ../con4net/networkgame.h \
+    ../con4net/networkgamelist.h \
+    ../con4net/ngltreeitem.h
 
 FORMS    += mainwindow.ui \
     addindexserverdialog.ui \

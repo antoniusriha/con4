@@ -25,27 +25,7 @@
  * THE SOFTWARE.
  */
 
-#include <QSettings>
-#include "con4globals.h"
 #include "application.h"
 
-Application::Application () {
-    QSettings settings;
-    int size = settings.beginReadArray (IDX_SRV_ARRAY);
-    for (int i = 0; i < size; i++) {
-        settings.setArrayIndex (i);
-        QString name = settings.value (IDX_SRV_NAME).toString ();
-        QString host = settings.value (IDX_SRV_ADDR).toString ();
-        int iPort = settings.value (IDX_SRV_PORT).toInt ();
-        quint16 port = (quint16)iPort;
-        IndexService *service = new IndexService (
-                    QHostAddress (host), port, name);
-        _indexServices.append (service);
-    }
-    settings.endArray ();
-}
-
-Application::~Application () {
-    for (int i = 0; i < _indexServices.size (); i++)
-        delete _indexServices [i];
-}
+Application::Application()
+    : QObject(), _settings(), _indexServices(&_settings) {}

@@ -41,7 +41,6 @@ IndexServiceList::IndexServiceList(Settings *settings, QObject *parent)
 	settings->registerKey(IdxSrvAddrKey);
 	settings->registerKey(IdxSrvPortKey);
 
-	_keys.append(IdxSrvArrayKey);
 	_keys.append(IdxSrvNameKey);
 	_keys.append(IdxSrvAddrKey);
 	_keys.append(IdxSrvPortKey);
@@ -67,10 +66,23 @@ IndexServiceList::~IndexServiceList()
 	}
 }
 
+int IndexServiceList::rowCount(const QModelIndex &parent) const
+{
+	if (parent.isValid()) return 0;
+	return _list.size();
+}
+
+int IndexServiceList::columnCount(const QModelIndex &parent) const
+{
+	if (parent.isValid()) return 0;
+	return 3;
+}
+
 QVariant IndexServiceList::data(const QModelIndex &index, int role) const
 {
 	if (!index.isValid() || role != Qt::DisplayRole || index.row() < 0 ||
-			index.row() >= _list.size()) return QVariant::Invalid;
+			index.row() >= _list.size() || index.column() < 0)
+		return QVariant::Invalid;
 
 	IndexService *item = _list.at(index.row());
 	if (index.column() == 0) return item->name();
@@ -94,12 +106,19 @@ QVariant IndexServiceList::headerData(int section, Qt::Orientation orientation,
 void IndexServiceList::create(QHostAddress host, quint16 port, QString name)
 {
 	IndexService *item = new IndexService(host, port, name);
-	_settings->addToArray(IdxSrvArrayKey, name, "");
 	int index = _list.size();
 	beginInsertRows(QModelIndex(), index, index);
 	_list.append(item);
+	_updateSettings();
 	endInsertRows();
 	emit created(item);
+}
+
+bool IndexServiceList::deleteItem(IndexService *item)
+{
+	if (!_list.contains(item)) return false;
+	int idx = _list.indexOf(item);
+	return deleteAt(idx);
 }
 
 bool IndexServiceList::deleteAt(int index)
@@ -108,7 +127,28 @@ bool IndexServiceList::deleteAt(int index)
 	IndexService *item = _list.at(index);
 	beginRemoveRows(QModelIndex(), index, index);
 	_list.removeAt(index);
+	_updateSettings();
 	endRemoveRows();
 	delete item;
 	emit deletedAt(index);
+	return true;
+}
+
+void IndexServiceList::_updateSettings()
+{
+	QList<QString> attrNames;
+	attrNames.append(IdxSrvNameKey);
+	attrNames.append(IdxSrvAddrKey);
+	attrNames.append(IdxSrvPortKey);
+
+	Settings::ValuesArray attrVals;
+	for (int i = 0; i < _list.size(); i++) {
+		QList<QVariant> vals;
+		vals.append(_list.at(i)->name());
+		vals.append(_list.at(i)->ipAddress().toString());
+		vals.append(_list.at(i)->port());
+		attrVals.append(vals);
+	}
+
+	_settings->setArray(IdxSrvArrayKey, attrNames, attrVals);
 }
