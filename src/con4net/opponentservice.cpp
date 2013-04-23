@@ -29,23 +29,36 @@
 #include <QTcpSocket>
 #include "con4netglobals.h"
 #include "opponentservice.h"
+#include "messages.h"
 
 using namespace std;
 
-OpponentService::OpponentService(int width, int height, int depth,
-								 QString initiatorName, QString gameName,
-								 QHostAddress ipAddress, quint16 port,
-								 IndexServiceList *indexServices,
-								 QObject *parent)
+OpponentService::OpponentService(IndexServiceList *indexServices, QObject *parent)
 	: NetworkPlayerService(new NetworkGame(width, height, depth, gameName,
 										   initiatorName, ipAddress, port),
-						   parent), _indexServices(indexServices), _server(),
-	  _socket(0), _timer(this)
+						   parent), _indexServices(indexServices),
+	  _endpoint(*new ServerEndpoint(10000, this))
 {
-	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-	if (!_server.listen(QHostAddress::Any, port)) {
-		delete networkGame();
-		throw runtime_error("Unable to listen on port " + port);
+	connect(networkGame(), SIGNAL(_set(FieldValue,int,int)), this,
+			SLOT(_set(FieldValue, int, int)));
+}
+
+OpponentService::~OpponentService() { delete networkGame(); }
+
+NetworkGame *OpponentService::createGame(int width, int height, int depth,
+										 QString initiatorName,
+										 QString gameName,
+										 QHostAddress ipAddress, quint16 port)
+{
+
+}
+
+bool OpponentService::startService(QString *errMsg)
+{
+	if (!_endpoint.listen(networkGame()->port())) {
+		if (errMsg) *errMsg = QString("Unable to listen on port ")
+				.arg(networkGame()->port());
+		return false;
 	}
 
 	bool registerSuccess = false;
@@ -60,19 +73,15 @@ OpponentService::OpponentService(int width, int height, int depth,
 	}
 
 	if (!registerSuccess) {
-		delete networkGame();
-		throw runtime_error("Unable to register game.");
+		if (errMsg) *errMsg = QString("Unable to register game.")
+				.append(finalErrMsg);
+		return false;
 	}
 
-	connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
-
-	connect(networkGame(), SIGNAL(set(FieldValue,int,int)), this,
-			SLOT(set(FieldValue, int, int)));
+	return true;
 }
 
-OpponentService::~OpponentService() { delete networkGame(); }
-
-bool OpponentService::joinGameSuccess()
+void OpponentService::acceptJoinRequest()
 {
 	// seal game
 	QString errMsg;
@@ -80,73 +89,32 @@ bool OpponentService::joinGameSuccess()
 		_indexServices->at(i)->sealGame(*networkGame(), errMsg);
 
 	// join success
-	QString msg = QString("join_game_success;%1\n").arg("V2");
-	_sendMsg(msg);
+	_endpoint.sendMessage(Messages::joinGameSuccess(Messages::V2));
 
 	// start game
 	networkGame()->start();
-	if (networkGame()->curPlayer() == Player2) {
-		QString startMsg = QString("start_game\n");
-		_sendMsg(startMsg);
-	}
+	if (networkGame()->curPlayer() == Player2)
+		_endpoint.sendMessage(Messages::startGame());
 }
 
-bool OpponentService::joinGameFailed(QString reason)
+void OpponentService::rejectJoinRequest(QString reason)
 {
-	QString msg = QString("join_game_failed;%1\n").arg(reason);
-	return _sendMsg(msg);
+	_endpoint.sendMessage(Messages::joinGameFailed(reason));
 }
 
-void OpponentService::newConnection()
-{
-	_socket = _server.nextPendingConnection();
-	_timer.start(500);
-}
-
-void OpponentService::update()
-{
-	if (_socket && _socket->state() == QAbstractSocket::ConnectedState) {
-		if (_socket->bytesAvailable() > 0) {
-			char buffer[MSG_BUF_SIZE];
-			int bytesRead = _socket->read(buffer, MSG_BUF_SIZE - 1);
-			buffer[bytesRead] = 0;
-			QString qsResp = QString::fromUtf8(buffer);
-			_handleMsg(qsResp.split(MSG_SPLIT_CHAR));
-		}
-	} else {
-		_timer.stop();
-	}
-}
-
-/*
-
-F ̈r die Feldnummer eines 4-Gewinnt-Spiel mit der Tiefe T , H ̈he H, Breite B gilt folgender
-u
-o
-Zusammenhang:
-Spielbrett3D [k, i, j] = Spielbrett1D [k × B × H + i × B + j] = Spielbrett1D [F eldnummer]
-wobei sich Indizes k, i und j jeweils auf Tiefe, H ̈he und Breite beziehen. Es gilt: 0 ≤ k < T , 0 ≤ i < H,
-o
-0 ≤ j < B, sowie 0 ≤ F eldnummer < T × B × H und T ≥ 03 , B, H > 0.
-Die Gravitation wirkt entlang der H ̈henachse. Koordinate
-
-
-  */
-
-void OpponentService::set(FieldValue player, int width, int depth)
+void OpponentService::_set(FieldValue player, int width, int depth)
 {
 	if (player == Player1) {
 		int height;
-		game()->isFull(width, depth, height);
+		game()->full(width, depth, height);
 
-		int x = depth * game()->width() * game()->height() +
-				height * game()->width() + width;
-		QString msg = QString("update_game_board;%1;%2\n").arg(x).arg(1);
-		_sendMsg(msg);
+		_endpoint.sendMessage(Messages::updateGameBoard(*networkGame(), width,
+														height, depth, player));
 		if (game()->finished()) {
-			if (game()->isDraw()) _sendMsg(QString("end_game;%1\n").arg(0));
-			else _sendMsg(QString("end_game;%1\n").arg(1));
-			_socket->disconnectFromHost();
+			if (game()->isDraw())
+				_endpoint.sendMessage(Messages::endGame(None));
+			else _endpoint.sendMessage(Messages::endGame(Player1));
+			_endpoint.disconnectFromHost();
 			for (int i = 0; i < _indexServices->size(); i++) {
 				QString errMsg;
 				_indexServices->at(i)->unregisterGame(*networkGame(), errMsg);
@@ -175,13 +143,13 @@ void OpponentService::_handleMsg(QStringList msgTokens)
 			int xd = r.quot;
 			r = div(r.rem, game()->width());
 			if (!networkGame()->set(r.rem, xd))
-				_sendMsg(QString("moved_failed;%1\n").arg("Invalid move"));
+				_endpoint.sendMessage(Messages::movedFailed("Invalid move"));
 			else {
 				if (game()->finished()) {
 					if (game()->isDraw())
-						_sendMsg(QString("end_game;%1\n").arg(0));
-					else _sendMsg(QString("end_game;%1\n").arg(2));
-					_socket->disconnectFromHost();
+						_endpoint.sendMessage(Messages::endGame(None));
+					else _endpoint.sendMessage(Messages::endGame(Player2));
+					_endpoint.disconnectFromHost();
 					for (int i = 0; i < _indexServices->size(); i++) {
 						QString errMsg;
 						_indexServices->at(i)->unregisterGame(*networkGame(),
@@ -193,12 +161,14 @@ void OpponentService::_handleMsg(QStringList msgTokens)
 	}
 }
 
-bool OpponentService::_sendMsg(QString msg)
+void OpponentService::_messageReceived(Message msg)
 {
-	if (_socket && _socket->state() == QAbstractSocket::ConnectedState) {
-		_socket->write(msg.toUtf8());
-		if (!_socket->waitForBytesWritten())
-			throw runtime_error("Error: Failed to send data to server.");
-		return true;
-	} else return false;
+	if (!msg.isValid()) return;
+
+	if (!game()->hasStarted()) {
+		// expect join request
+//		if (!msg.header() ==)
+	} else {
+
+	}
 }

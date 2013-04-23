@@ -36,48 +36,39 @@ class Game : public QObject
 	Q_OBJECT
 
 public:
-	Game();
-	Game(int nConnect, int width, int height, int depth);
+	class Dimensions
+	{
+	public:
+		const static int MaxDim = 100;
+
+		Dimensions();
+		Dimensions(int nConnect, int width, int height, int depth);
+
+		int nConnect() const { return _nConnect; }
+		int width() const { return _width; }
+		int height() const { return _height; }
+		int depth() const { return _depth; }
+
+		void setNConnect(int value);
+		void setWidth(int value);
+		void setHeight(int value);
+		void setDepth(int value);
+
+		int nDims() const { return _depth == 1 ? 2 : 3; }
+
+	private:
+		void _init(int nConnect, int width, int height, int depth);
+
+		int _nConnect, _width, _height, _depth;
+	};
+
+	Game(Dimensions dims = Dimensions(), QObject *parent = 0);
 	virtual ~Game();
 
-	int nConnect() const { return _nConnect; }
-	int height() const { return _height; }
-	int width() const { return _width; }
-	int depth() const { return _depth; }
+	Dimensions dims() const { return _dims; }
+	void setDims(Dimensions dims);
 
-	bool setNConnect(int value)
-	{
-		if (_hasStarted) return false;
-		_nConnect = value;
-		return true;
-	}
-
-	bool setHeight(int value)
-	{
-		if (_hasStarted) return false;
-		_height = value;
-		return true;
-	}
-
-	bool setWidth(int value)
-	{
-		if (_hasStarted) return false;
-		_width = value;
-		return true;
-	}
-
-	bool setDepth(int value)
-	{
-		if (_hasStarted) return false;
-		_depth = value;
-		return true;
-	}
-
-	FieldValue curPlayer() const
-	{
-		return _hasStarted ? _board->curPlayer() : None;
-	}
-
+	FieldValue curPlayer() const;
 	FieldValue winner() const { return _finished ? _board->winner() : None; }
 	bool isDraw() const { return _finished && winner() == None; }
 	Board board() const { return _hasStarted ? *_board : Board(); }
@@ -88,45 +79,30 @@ public:
 	int setCount() const { return _disksSet; }
 
 	// Queries
-	bool isConfValid(QString &errMsg);
-	int nDims() const { return depth() == 1 ? 2 : 3; }
-
-	bool isFull(int width, int depth, int &height)
-	{
-		return _hasStarted ? _board->isFull(width, depth, height) : false;
-	}
-
-	bool connected(int widthIdcs[], int heightIdcs[], int depthIdcs[]) const
-	{
-		if (!_hasStarted) return false;
-		return _board->connected(heightIdcs, widthIdcs, depthIdcs);
-	}
+	int nDims() const { return _dims.nDims(); }
+	bool full(int wVal, int dVal, int &hVal);
+	bool connected(int wVals[], int hVals[], int dVals[]) const;
 
 	// Data access
-	FieldValue get(int width, int height, int depth) const
-	{
-		return _hasStarted ? _board->get(height, width, depth) : None;
-	}
+	FieldValue get(int wVal, int hVal, int dVal) const;
 
 	// Data manipulation
-	bool set(int width, int depth);
-	bool undo(int &width, int &height, int &depth);
+	bool set(int wVal, int dVal, int &hVal);
+	bool undo(int &wVal, int &hVal, int &dVal);
 
 	bool start(FieldValue startPlayer = None);
 	bool abort(FieldValue requester, QString reason);
 
 signals:
 	void started(FieldValue startPlayer);
-	void set(FieldValue player, int width, int depth);
-	void undone(FieldValue player, int width, int height, int depth);
+	void set(FieldValue player, int wVal, int hVal, int dVal);
+	void undone(FieldValue player, int wVal, int hVal, int dVal);
 	void finished(FieldValue winner);
 	void aborted(FieldValue requester, QString reason);
 
 private:
-	Game(const Game &);
-	Game &operator=(const Game &);
-
-	int _nConnect, _width, _height, _depth, _disksSet, _totalDisks;
+	Dimensions _dims;
+	int _disksSet, _totalDisks;
 	bool _hasStarted, _aborted, _finished;
 	Board *_board;
 };

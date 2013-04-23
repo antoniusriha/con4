@@ -25,41 +25,104 @@
  * THE SOFTWARE.
  */
 
+#include <stdexcept>
 #include <string>
-#include <stdlib.h>
 #include "game.h"
 
 using namespace std;
 
-Game::Game() : _nConnect(4), _width(8), _height(8), _depth(4),
-	_disksSet(0), _totalDisks(0), _hasStarted(false),
-	_aborted(false), _finished(false) {}
+Game::Dimensions::Dimensions() { _init(4, 8, 8, 4); }
 
-Game::Game(int nConnect, int width, int height, int depth)
-	: _nConnect(nConnect), _width(width), _height(height),
-	  _depth(depth), _disksSet(0), _totalDisks(0),
-	  _hasStarted(false), _aborted(false), _finished(false) {}
+Game::Dimensions::Dimensions(int nConnect, int width, int height, int depth)
+{
+	_init(nConnect, width, height, depth);
+}
+
+void Game::Dimensions::setNConnect(int value)
+{
+	if (value < 4 || value > MaxDim / 2)
+		throw invalid_argument("nConnect must be greater than 4 and "
+							   "lower than MaxDim / 2.");
+	_nConnect = value;
+}
+
+void Game::Dimensions::setWidth(int value)
+{
+	if (value < _nConnect || value > MaxDim)
+		throw invalid_argument("width must be greater than nConnect "
+							   "and lower than MaxDim.");
+	_width = value;
+}
+
+void Game::Dimensions::setHeight(int value)
+{
+	if (value < _nConnect || value > MaxDim)
+		throw invalid_argument("height must be greater than nConnect and "
+							   "lower than MaxDim.");
+	_height = value;
+}
+
+void Game::Dimensions::setDepth(int value)
+{
+	if (value != 1 && (value < _nConnect || value > MaxDim))
+		throw invalid_argument("depth must be 1 (for 2D) or greater than "
+							   "nConnect and lower than MaxDim (for 3D).");
+	_depth = value;
+}
+
+void Game::Dimensions::_init(int nConnect, int width, int height, int depth)
+{
+	setNConnect(nConnect);
+	setWidth(width);
+	setHeight(height);
+	setDepth(depth);
+}
+
+Game::Game(Dimensions dims, QObject *parent) : QObject(parent), _disksSet(0),
+	_totalDisks(0), _hasStarted(false), _aborted(false), _finished(false)
+{
+	setDims(dims);
+}
 
 Game::~Game() { if (_hasStarted) delete _board; }
 
-bool Game::isConfValid(QString &errMsg)
+void Game::setDims(Dimensions dims)
 {
-	string msg;
-	bool result = Board::isBoardConfValid(_nConnect, _height,
-										  _width, _depth, msg);
-	errMsg = QString::fromUtf8(msg.c_str());
-	return result;
+	if (_hasStarted) throw logic_error("Cannot set dimensions when "
+									   "game has already started.");
+	_dims = dims;
 }
 
-bool Game::set(int width, int depth)
+FieldValue Game::curPlayer() const
+{
+	return _hasStarted ? _board->curPlayer() : None;
+}
+
+bool Game::full(int wVal, int dVal, int &hVal)
+{
+	return _hasStarted ? _board->full(wVal, dVal, hVal) : false;
+}
+
+bool Game::connected(int wVals[], int hVals[], int dVals[]) const
+{
+	if (!_hasStarted) return false;
+	return _board->connected(hVals, wVals, dVals);
+}
+
+FieldValue Game::get(int wVal, int hVal, int dVal) const
+{
+	return _hasStarted ? _board->get(hVal, wVal, dVal) : None;
+}
+
+bool Game::set(int wVal, int dVal, int &hVal)
 {
 	if (!_hasStarted || _finished || _aborted) return false;
-	if (_board->set(width, depth)) {
+	if (_board->set(wVal, dVal, hVal)) {
 		FieldValue player = curPlayer() == Player1 ? Player2 : Player1;
 		_disksSet++;
-		emit set(player, width, depth);
+		emit set(player, wVal, hVal, dVal);
 
-		if (_board->isFinished()) {
+		if (_board->finished()) {
 			_finished = true;
 			emit finished(player);
 		} else if (_disksSet == _totalDisks) {
@@ -70,14 +133,14 @@ bool Game::set(int width, int depth)
 	} else return false;
 }
 
-bool Game::undo(int &width, int &height, int &depth)
+bool Game::undo(int &wVal, int &hVal, int &dVal)
 {
 	if (!_hasStarted || _aborted) return false;
-	if (_board->undo(height, width, depth)) {
+	if (_board->undo(hVal, wVal, dVal)) {
 		_finished = false;
 		_disksSet--;
 		emit undone(curPlayer() == Player1 ? Player2 : Player1,
-					width, height, depth);
+					wVal, hVal, dVal);
 		return true;
 	} else return false;
 }
@@ -85,11 +148,10 @@ bool Game::undo(int &width, int &height, int &depth)
 bool Game::start(FieldValue startPlayer)
 {
 	if (_hasStarted || _finished || _aborted) return false;
-	QString errMsg;
-	if (!isConfValid(errMsg)) return false;
 	if (startPlayer == None) startPlayer = (FieldValue)(rand() % 2 + 1);
-	_board = new Board(_nConnect, _height, _width, _depth, startPlayer, true);
-	_totalDisks = _height * _width * _depth;
+	_board = new Board(_dims.nConnect(), _dims.height(), _dims.width(),
+					   _dims.depth(), startPlayer, true);
+	_totalDisks = _dims.height() * _dims.width() * _dims.depth();
 	_hasStarted = true;
 	emit started(startPlayer);
 	return true;

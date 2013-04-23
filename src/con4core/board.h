@@ -28,61 +28,61 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <stack>
 #include <list>
+#include <stack>
 #include <string>
 #include <boost/multi_array.hpp>
 
-const static int MAX_DIMS = 100;
-
-enum FieldValue {
+enum FieldValue
+{
 	None,
 	Player1,
 	Player2
 };
 
-class Board {
+class Board
+{
 public:
-	static bool isBoardConfValid (int nConnect, int height, int dim2, int dim3, std::string &errMsg);
-
-	Board ();
-	Board (int nConnect, int height, int dim2, int dim3, FieldValue curPlayer = Player1, bool canUndo = false);
-	Board (const Board &board, bool canUndo); // custom copy
+	Board();
+	Board(int nConnect, int height, int dim2, int dim3,
+		  FieldValue curPlayer = Player1, bool canUndo = false);
+	Board(const Board &board, bool canUndo); // custom copy
 
 	// Data access & simple queries
-	int nDims () const { return dim3 () == 1 ? 2 : 3; }
-	int height () const { return *_array.shape (); }
-	int dim2 () const { return *(_array.shape () + 1); }
-	int dim3 () const { return *(_array.shape () + 2); }
-	bool isFinished () const { return _isFinished; }
-	FieldValue curPlayer () const { return _curPlayer; }
-	FieldValue winner () const;
-	int nConnect () const { return _nConnect; }
-	bool canUndo () const { return _canUndo; }
-	bool lastIndex (int &height, int &dim2, int &dim3) const;
+	int nDims() const { return dim3 () == 1 ? 2 : 3; }
+	int height() const { return *_array.shape (); }
+	int dim2() const { return *(_array.shape () + 1); }
+	int dim3() const { return *(_array.shape () + 2); }
+	bool finished() const { return _finished; }
+	FieldValue curPlayer() const { return _curPlayer; }
+	FieldValue winner() const;
+	int nConnect() const { return _nConnect; }
+	bool canUndo() const { return _canUndo; }
+	bool lastIndex(int &hVal, int &d2Val, int &d3Val) const;
 
 	// Queries
-	bool isFull (int dim2, int dim3, int &height) const;
-	bool connected (int heightIdcs [], int dim2Idcs [], int dim3Idcs []) const;
+	bool isValid() const { return _nConnect <= 0; }
+	bool full(int d2Val, int d3Val, int &hVal) const;
+	bool connected(int hVals[], int d2Vals[], int d3Vals[]) const;
 
 	// Data access
-	FieldValue get (int height, int dim2, int dim3) const;
+	FieldValue get(int hVal, int d2Val, int d3Val) const;
 
 	// Data manipulation
-	bool set (int dim2, int dim3);
-	bool undo (int &height, int &dim2, int &dim3);
+	bool set(int d2Val, int d3Val, int &hVal);
+	bool undo(int &hVal, int &d2Val, int &d3Val);
 
-	friend std::ostream &operator<< (std::ostream &os, const Board &obj);
+	friend std::ostream &operator<<(std::ostream &os, const Board &obj);
 
 private:
 	typedef boost::array<int, 3> IndexArray;
 
-	bool _connected ();
-	bool _isIndexValid (IndexArray idx) const;
+	bool _connected();
+	bool _isIndexValid(IndexArray idx) const;
 
 	const int _nConnect;
 	const bool _canUndo;
-	bool _isFinished;
+	bool _finished;
 
 	FieldValue _curPlayer;
 	boost::multi_array<FieldValue, 3> _array;
@@ -91,4 +91,4 @@ private:
 	std::list<IndexArray> _conIdcs;
 };
 
-#endif
+#endif // BOARD_H

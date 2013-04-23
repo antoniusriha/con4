@@ -1,5 +1,5 @@
 /*
- * opponentservice.h
+ * serverendpoint.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,53 +25,26 @@
  * THE SOFTWARE.
  */
 
-#ifndef OPPONENTSERVICE_H
-#define OPPONENTSERVICE_H
+#ifndef SERVERENDPOINT_H
+#define SERVERENDPOINT_H
 
-#include <QUuid>
-#include <QStringList>
-#include "serverendpoint.h"
-#include "networkplayerservice.h"
-#include "indexservicelist.h"
+#include <QTcpServer>
+#include "endpoint.h"
 
-class OpponentService : public NetworkPlayerService
+class ServerEndpoint : public Endpoint
 {
 	Q_OBJECT
 
 public:
-	OpponentService(IndexServiceList *indexServices, QObject *parent = 0);
-	~OpponentService();
+	explicit ServerEndpoint(int timeout, QObject *parent = 0);
 
-	NetworkGame *createGame(int width, int height, int depth,
-							QString initiatorName, QString gameName,
-							QHostAddress ipAddress, quint16 port);
-
-	bool startService(QString *errMsg = 0);
-
-	void acceptJoinRequest();
-	void rejectJoinRequest(QString reason);
-	void startGame() const;
-	void synchronizeGameBoard(int **fieldNumberAndValue) const;
-	void updatedGameBoard(int fieldNumber, int value) const;
-	void moved_failed(QString reason) const;
-	void endGame(int result) const;
-	void abortGame(QString reason) const;
-
-signals:
-	void joinGame(QString playerName);
-	void move(int fieldIndex);
-	void abortGame(QString reason);
+	bool listen(quint16 port);
 
 private slots:
-	void _messageReceived(Message msg);
-	void _set(FieldValue player, int width, int depth);
-
+	void newConnection();
+	
 private:
-	void _handleMsg(QStringList msgTokens);
-	bool _sendMsg(QString msg);
-
-	IndexServiceList *_indexServices;
-	ServerEndpoint &_endpoint;
+	QTcpServer *_server;
 };
 
-#endif // OPPONENTSERVICE_H
+#endif // SERVERENDPOINT_H

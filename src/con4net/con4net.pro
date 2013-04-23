@@ -27,7 +27,12 @@ SOURCES += main.cpp \
 	../con4core/settings.cpp \
 	networkgame.cpp \
     networkgamelist.cpp \
-    ngltreeitem.cpp
+    ngltreeitem.cpp \
+    message.cpp \
+    endpoint.cpp \
+    serverendpoint.cpp \
+    clientendpoint.cpp \
+    messages.cpp
 
 HEADERS += \
 	initiatorservice.h \
@@ -42,4 +47,9 @@ HEADERS += \
 	../con4core/settings.h \
 	networkgame.h \
     networkgamelist.h \
-    ngltreeitem.h
+    ngltreeitem.h \
+    message.h \
+    endpoint.h \
+    messages.h \
+    serverendpoint.h \
+    clientendpoint.h

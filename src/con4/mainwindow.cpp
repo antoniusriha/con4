@@ -121,17 +121,18 @@ void MainWindow::startClicked () {
 
 void MainWindow::createNetworkGameClicked()
 {
-	try {
-		QHostAddress ipAddress (ui->txtIpAddress->text());
-		_oppService = new OpponentService(ui->networkBoardConf->boardWidth(),
-										  ui->networkBoardConf->boardHeight(),
-										  ui->networkBoardConf->boardDepth(),
-										  ui->txtPlayerName->text(),
-										  ui->txtGameName->text(), ipAddress,
-										  (quint16)ui->sbPort->value(),
-										  _application.indexServices());
-	} catch (runtime_error &ex) {
-		QMessageBox::critical(this, "Network game creation error", ex.what());
+	QHostAddress ipAddress (ui->txtIpAddress->text());
+	_oppService = new OpponentService(ui->networkBoardConf->boardWidth(),
+									  ui->networkBoardConf->boardHeight(),
+									  ui->networkBoardConf->boardDepth(),
+									  ui->txtPlayerName->text(),
+									  ui->txtGameName->text(), ipAddress,
+									  (quint16)ui->sbPort->value(),
+									  _application.indexServices());
+	QString startErrMsg;
+	if (!_oppService->startService(&startErrMsg)) {
+		QMessageBox::critical(this, "Network game creation error", startErrMsg);
+		delete _oppService;
 		return;
 	}
 
@@ -139,6 +140,7 @@ void MainWindow::createNetworkGameClicked()
 	QString errMsg;
 	if (!_currentGame->isConfValid(errMsg)) {
 		QMessageBox::critical(this, "Network game creation error", errMsg);
+		delete _oppService;
 		return;
 	}
 
@@ -248,9 +250,9 @@ void MainWindow::joinGame(QString playerName)
 	if (QMessageBox::question(this, "Player joining", text,
 							  QMessageBox::Yes | QMessageBox::No,
 							  QMessageBox::Yes) == QMessageBox::Yes) {
-		_oppService->joinGameSuccess();
+		_oppService->acceptJoinRequest();
 		ui->pageGame->setPlayer2Name(playerName);
-	} else _oppService->joinGameFailed(
+	} else _oppService->rejectJoinRequest(
 				"The server user doesn't want to play with you.");
 }
 

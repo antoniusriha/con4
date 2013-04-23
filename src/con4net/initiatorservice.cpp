@@ -101,7 +101,7 @@ void InitiatorService::set(FieldValue player, int width, int depth)
 {
 	if (player == Player2) {
 		int height;
-		game()->isFull(width, depth, height);
+		game()->full(width, depth, height);
 		int x = depth * game()->width() * game()->height() +
 				height * game()->width() + width;
 		_sendMsg(QString("move;%1\n").arg(x));

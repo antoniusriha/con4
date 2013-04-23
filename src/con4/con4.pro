@@ -34,7 +34,12 @@ SOURCES += main.cpp\
     ../con4core/settings.cpp \
     ../con4net/networkgame.cpp \
     ../con4net/networkgamelist.cpp \
-    ../con4net/ngltreeitem.cpp
+    ../con4net/ngltreeitem.cpp \
+    ../con4net/serverendpoint.cpp \
+    ../con4net/messages.cpp \
+    ../con4net/message.cpp \
+    ../con4net/endpoint.cpp \
+    ../con4net/clientendpoint.cpp
 
 HEADERS  += mainwindow.h \
     aiplayer.h \
@@ -58,7 +63,12 @@ HEADERS  += mainwindow.h \
     ../con4core/settings.h \
     ../con4net/networkgame.h \
     ../con4net/networkgamelist.h \
-    ../con4net/ngltreeitem.h
+    ../con4net/ngltreeitem.h \
+    ../con4net/serverendpoint.h \
+    ../con4net/messages.h \
+    ../con4net/message.h \
+    ../con4net/endpoint.h \
+    ../con4net/clientendpoint.h
 
 FORMS    += mainwindow.ui \
     addindexserverdialog.ui \

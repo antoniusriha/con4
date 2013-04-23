@@ -1,5 +1,5 @@
 /*
- * opponentservice.h
+ * endpoint.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,53 +25,62 @@
  * THE SOFTWARE.
  */
 
-#ifndef OPPONENTSERVICE_H
-#define OPPONENTSERVICE_H
+#ifndef ENDPOINT_H
+#define ENDPOINT_H
 
-#include <QUuid>
-#include <QStringList>
-#include "serverendpoint.h"
-#include "networkplayerservice.h"
-#include "indexservicelist.h"
+#include <QQueue>
+#include <QTcpSocket>
+#include <QTimer>
+#include "message.h"
 
-class OpponentService : public NetworkPlayerService
+class Endpoint : public QObject
 {
 	Q_OBJECT
 
 public:
-	OpponentService(IndexServiceList *indexServices, QObject *parent = 0);
-	~OpponentService();
+	enum EndpointError {
+		Timeout,
+		Fatal
+	};
 
-	NetworkGame *createGame(int width, int height, int depth,
-							QString initiatorName, QString gameName,
-							QHostAddress ipAddress, quint16 port);
+	const static int maxTimeout = 30000;
+	const static int minTimeout = 0;
 
-	bool startService(QString *errMsg = 0);
+	int timeout() const { return _timeout; }
+	void setTimeout(int value);
 
-	void acceptJoinRequest();
-	void rejectJoinRequest(QString reason);
-	void startGame() const;
-	void synchronizeGameBoard(int **fieldNumberAndValue) const;
-	void updatedGameBoard(int fieldNumber, int value) const;
-	void moved_failed(QString reason) const;
-	void endGame(int result) const;
-	void abortGame(QString reason) const;
-
+	void sendMessage(Message msg);
+	void disconnectFromHost();
+	
 signals:
-	void joinGame(QString playerName);
-	void move(int fieldIndex);
-	void abortGame(QString reason);
+	void messageReceived(Message msg);
+	void error(EndpointError err, QString msg,
+			   Message msgProcessed = Message());
+
+protected:
+	explicit Endpoint(int timeout, QObject *parent = 0);
+
+	QTcpSocket *socket() const { return _socket; }
+	void setSocket(QTcpSocket &value);
 
 private slots:
-	void _messageReceived(Message msg);
-	void _set(FieldValue player, int width, int depth);
+	void _bytesWritten(quint64 bytes);
+	void _readyRead();
+	void _writeTimeout();
+	void _readTimeout();
+	void _error(QAbstractSocket::SocketError err);
 
 private:
-	void _handleMsg(QStringList msgTokens);
-	bool _sendMsg(QString msg);
+	void _init(int timeout);
+	void _processMsg();
 
-	IndexServiceList *_indexServices;
-	ServerEndpoint &_endpoint;
+	QQueue<Message> _msgQueue;
+	Message _curMsg;
+	bool _processing;
+	QTcpSocket *_socket;
+	int _timeout, _nBytes;
+	QTimer *_writeTimer, *_readTimer;
+	QByteArray _residuum;
 };
 
-#endif // OPPONENTSERVICE_H
+#endif // ENDPOINT_H
