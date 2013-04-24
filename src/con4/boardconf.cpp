@@ -25,32 +25,59 @@
  * THE SOFTWARE.
  */
 
+#include <stdexcept>
 #include "boardconf.h"
 #include "ui_boardconf.h"
 
-BoardConf::BoardConf(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::BoardConf)
+using namespace std;
+
+BoardConf::BoardConf(QWidget *parent) : QWidget(parent), _dims(),
+	_prevWidth(_dims.width()), _prevHeight(_dims.height()),
+	_prevDepth(_dims.depth()), ui(new Ui::BoardConf)
 {
 	ui->setupUi(this);
+	ui->sbWidth->setValue(_dims.width());
+	ui->sbHeight->setValue(_dims.height());
+	ui->sbDepth->setValue(_dims.depth());
 }
 
-BoardConf::~BoardConf()
+BoardConf::~BoardConf() { delete ui; }
+
+void BoardConf::chkBoard3dToggled(bool checked)
 {
-	delete ui;
+	if (checked) _dims.setDepth(ui->sbDepth->value());
+	else _dims.setDepth(1);
 }
 
-int BoardConf::boardWidth() const
+void BoardConf::widthChanged(int value)
 {
-	return ui->sbWidth->value();
+	try {
+		_dims.setWidth(value);
+		_prevWidth = value;
+	} catch (logic_error &ex) {
+		emit error(ex.what());
+		ui->sbWidth->setValue(_prevWidth);
+	}
 }
 
-int BoardConf::boardHeight() const
+void BoardConf::heightChanged(int value)
 {
-	return ui->sbHeight->value();
+	try {
+		_dims.setHeight(value);
+		_prevHeight = value;
+	} catch (logic_error &ex) {
+		emit error(ex.what());
+		ui->sbHeight->setValue(_prevHeight);
+	}
 }
 
-int BoardConf::boardDepth() const
+void BoardConf::depthChanged(int value)
 {
-	return ui->chkBoard3d->isChecked() ? ui->sbDepth->value() : 1;
+	try {
+		_dims.setDepth(value);
+		_prevDepth = value;
+	} catch (logic_error &ex) {
+		emit error(ex.what());
+		ui->sbDepth->setValue(_prevDepth);
+	}
 }

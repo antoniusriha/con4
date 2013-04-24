@@ -59,9 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	ui->tvJoinGames->setModel(_networkGames);
 
-	_localGame = new Game(4, ui->boardConf->boardWidth(),
-						  ui->boardConf->boardHeight(),
-						  ui->boardConf->boardDepth());
+	_localGame = new Game(ui->boardConf->dims());
 
 	connect(ui->pageGame, SIGNAL(close()), this, SLOT(closeGame()));
 

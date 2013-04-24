@@ -29,6 +29,7 @@
 #define GAME_H
 
 #include <QObject>
+#include <QVector>
 #include "board.h"
 
 class Game : public QObject
@@ -62,16 +63,43 @@ public:
 		int _nConnect, _width, _height, _depth;
 	};
 
+	class BoardIndex
+	{
+	public:
+		BoardIndex();
+		BoardIndex(const Game &game, int wVal, int hVal, int dVal);
+
+		const Game *game() const { return _game; }
+		bool isValid() const { return _game != 0; }
+
+		int wVal() const { return _wVal; }
+		int hVal() const { return _hVal; }
+		int dVal() const { return _dVal; }
+
+		void setWVal(int value);
+		void setHVal(int value);
+		void setDVal(int value);
+
+	private:
+		const Game *_game;
+		int _wVal, _hVal, _dVal;
+	};
+
+	const static char *invalidIdxErrMsg;
+
 	Game(Dimensions dims = Dimensions(), QObject *parent = 0);
 	virtual ~Game();
 
-	Dimensions dims() const { return _dims; }
+	Dimensions dims() const;
 	void setDims(Dimensions dims);
 
-	FieldValue curPlayer() const;
-	FieldValue winner() const { return _finished ? _board->winner() : None; }
+	BoardIndex index() const;
+	BoardIndex index(int wVal, int dVal, int hVal = 0) const;
+
+	FieldValue curPlayer() const { return _board.curPlayer(); }
+	FieldValue winner() const { return _finished ? _board.winner() : None; }
 	bool isDraw() const { return _finished && winner() == None; }
-	Board board() const { return _hasStarted ? *_board : Board(); }
+	Board board() const { return _board; }
 	bool canUndo() const { return _hasStarted; }
 	bool hasStarted() const { return _hasStarted; }
 	bool finished() const { return _finished; }
@@ -79,32 +107,30 @@ public:
 	int setCount() const { return _disksSet; }
 
 	// Queries
-	int nDims() const { return _dims.nDims(); }
-	bool full(int wVal, int dVal, int &hVal);
-	bool connected(int wVals[], int hVals[], int dVals[]) const;
+	bool full(BoardIndex &idx) const;
+	bool connected(QVector<BoardIndex> &wVals) const;
 
 	// Data access
-	FieldValue get(int wVal, int hVal, int dVal) const;
+	FieldValue get(BoardIndex idx) const;
 
 	// Data manipulation
-	bool set(int wVal, int dVal, int &hVal);
-	bool undo(int &wVal, int &hVal, int &dVal);
+	bool set(BoardIndex &idx);
+	bool undo(BoardIndex &idx);
 
-	bool start(FieldValue startPlayer = None);
-	bool abort(FieldValue requester, QString reason);
+	void start(FieldValue startPlayer = None);
+	void abort(FieldValue requester, QString reason);
 
 signals:
 	void started(FieldValue startPlayer);
-	void set(FieldValue player, int wVal, int hVal, int dVal);
-	void undone(FieldValue player, int wVal, int hVal, int dVal);
+	void set(FieldValue player, BoardIndex index);
+	void undone(FieldValue player, BoardIndex index);
 	void finished(FieldValue winner);
 	void aborted(FieldValue requester, QString reason);
 
 private:
-	Dimensions _dims;
 	int _disksSet, _totalDisks;
 	bool _hasStarted, _aborted, _finished;
-	Board *_board;
+	Board _board;
 };
 
 #endif // GAME_H

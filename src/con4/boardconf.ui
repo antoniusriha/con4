@@ -107,8 +107,75 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>sbWidth</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>BoardConf</receiver>
+   <slot>widthChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>103</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>121</x>
+     <y>1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sbHeight</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>BoardConf</receiver>
+   <slot>heightChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>93</x>
+     <y>131</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>90</x>
+     <y>6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sbDepth</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>BoardConf</receiver>
+   <slot>depthChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>148</x>
+     <y>171</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>130</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkBoard3d</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BoardConf</receiver>
+   <slot>chkBoard3dToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>172</x>
+     <y>74</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2</x>
+     <y>63</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
-  <slot>board3dToggled(bool)</slot>
+  <slot>chkBoard3dToggled(bool)</slot>
+  <slot>widthChanged(int)</slot>
+  <slot>heightChanged(int)</slot>
+  <slot>depthChanged(int)</slot>
  </slots>
 </ui>

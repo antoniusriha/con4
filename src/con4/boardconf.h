@@ -29,6 +29,7 @@
 #define BOARDCONF_H
 
 #include <QWidget>
+#include "../con4core/game.h"
 
 namespace Ui {
 class BoardConf;
@@ -42,11 +43,20 @@ public:
 	explicit BoardConf(QWidget *parent = 0);
 	~BoardConf();
 
-	int boardWidth() const;
-	int boardHeight() const;
-	int boardDepth() const;
+	Game::Dimensions dims() const { return _dims; }
+
+signals:
+	void error(QString msg);
+
+private slots:
+	void chkBoard3dToggled(bool checked);
+	void widthChanged(int value);
+	void heightChanged(int value);
+	void depthChanged(int value);
 
 private:
+	Game::Dimensions _dims;
+	int _prevWidth, _prevHeight, _prevDepth;
 	Ui::BoardConf *ui;
 };
 

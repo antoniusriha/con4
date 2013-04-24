@@ -78,51 +78,118 @@ void Game::Dimensions::_init(int nConnect, int width, int height, int depth)
 	setDepth(depth);
 }
 
+Game::BoardIndex::BoardIndex() : _game(0), _wVal(0), _hVal(0), _dVal(0) {}
+
+Game::BoardIndex::BoardIndex(const Game &game, int wVal, int hVal, int dVal)
+	: _game(&game)
+{
+	setWVal(wVal);
+	setHVal(hVal);
+	setDVal(dVal);
+}
+
+void Game::BoardIndex::setWVal(int value)
+{
+	if (value < 0 && value >= _game->_board.dim2())
+		throw out_of_range("value is not within the valid range.");
+	_wVal = value;
+}
+
+void Game::BoardIndex::setHVal(int value)
+{
+	if (value < 0 && value >= _game->_board.height())
+		throw out_of_range("value is not within the valid range.");
+	_hVal = value;
+}
+
+void Game::BoardIndex::setDVal(int value)
+{
+	if (value < 0 && value >= _game->_board.dim3())
+		throw out_of_range("value is not within the valid range.");
+	_dVal = value;
+}
+
 Game::Game(Dimensions dims, QObject *parent) : QObject(parent), _disksSet(0),
 	_totalDisks(0), _hasStarted(false), _aborted(false), _finished(false)
 {
 	setDims(dims);
 }
 
-Game::~Game() { if (_hasStarted) delete _board; }
+const char *Game::invalidIdxErrMsg =
+		"Invalid index. Create a valid index with Game::index()";
+
+Game::~Game() {}
+
+Game::Dimensions Game::dims() const
+{
+	return Dimensions(_board.nConnect(), _board.dim2(),
+					  _board.height(), _board.dim3());
+}
 
 void Game::setDims(Dimensions dims)
 {
 	if (_hasStarted) throw logic_error("Cannot set dimensions when "
 									   "game has already started.");
-	_dims = dims;
+	_board = Board(dims.nConnect(), dims.height(),
+				   dims.width(), dims.depth(), None);
 }
 
-FieldValue Game::curPlayer() const
+Game::BoardIndex Game::index() const
 {
-	return _hasStarted ? _board->curPlayer() : None;
+	return index(0, 0);
 }
 
-bool Game::full(int wVal, int dVal, int &hVal)
+Game::BoardIndex Game::index(int wVal, int dVal, int hVal) const
 {
-	return _hasStarted ? _board->full(wVal, dVal, hVal) : false;
+	return BoardIndex(*this, wVal, hVal, dVal);
 }
 
-bool Game::connected(int wVals[], int hVals[], int dVals[]) const
+bool Game::full(BoardIndex &idx) const
 {
-	if (!_hasStarted) return false;
-	return _board->connected(hVals, wVals, dVals);
+	if (idx.game() != this) throw logic_error(invalidIdxErrMsg);
+
+	int hVal;
+	bool full = _board.full(idx.wVal(), idx.dVal(), hVal);
+	idx.setHVal(hVal);
+	return full;
 }
 
-FieldValue Game::get(int wVal, int hVal, int dVal) const
+bool Game::connected(QVector<BoardIndex> &vals) const
 {
-	return _hasStarted ? _board->get(hVal, wVal, dVal) : None;
+	int nCon = _board.nConnect();
+	int wVals[nCon], hVals[nCon], dVals[nCon];
+	if (!_board.connected(hVals, wVals, dVals)) return false;
+
+	vals = QVector<BoardIndex>(nCon);
+	for (int i = 0; i < nCon; i++)
+		vals[i] = index(wVals[i], hVals[i], dVals[i]);
+	return true;
 }
 
-bool Game::set(int wVal, int dVal, int &hVal)
+FieldValue Game::get(BoardIndex idx) const
 {
-	if (!_hasStarted || _finished || _aborted) return false;
-	if (_board->set(wVal, dVal, hVal)) {
+	if (idx.game() != this) throw logic_error(invalidIdxErrMsg);
+	return _board.get(idx.hVal(), idx.wVal(), idx.dVal());
+}
+
+bool Game::set(BoardIndex &idx)
+{
+	if (idx.game() != this) throw logic_error(invalidIdxErrMsg);
+	if (!_hasStarted)
+		throw logic_error("Cannot set, since game has not yet started.");
+	if (_finished)
+		throw logic_error("Cannot set, since game is already finished.");
+	if (_aborted)
+		throw logic_error("Cannot set, since game has been aborted.");
+
+	int hVal;
+	if (_board.set(idx.wVal(), idx.dVal(), hVal)) {
+		idx.setHVal(hVal);
 		FieldValue player = curPlayer() == Player1 ? Player2 : Player1;
 		_disksSet++;
-		emit set(player, wVal, hVal, dVal);
+		emit set(player, idx);
 
-		if (_board->finished()) {
+		if (_board.finished()) {
 			_finished = true;
 			emit finished(player);
 		} else if (_disksSet == _totalDisks) {
@@ -133,34 +200,49 @@ bool Game::set(int wVal, int dVal, int &hVal)
 	} else return false;
 }
 
-bool Game::undo(int &wVal, int &hVal, int &dVal)
+bool Game::undo(BoardIndex &idx)
 {
-	if (!_hasStarted || _aborted) return false;
-	if (_board->undo(hVal, wVal, dVal)) {
+	if (!_hasStarted)
+		throw logic_error("Cannot undo, since game has not yet started.");
+	if (_aborted)
+		throw logic_error("Cannot undo, since game has been aborted.");
+
+	int wVal, hVal, dVal;
+	if (_board.undo(hVal, wVal, dVal)) {
+		idx = index(wVal, dVal, hVal);
 		_finished = false;
 		_disksSet--;
-		emit undone(curPlayer() == Player1 ? Player2 : Player1,
-					wVal, hVal, dVal);
+		emit undone(curPlayer() == Player1 ? Player2 : Player1, idx);
 		return true;
 	} else return false;
 }
 
-bool Game::start(FieldValue startPlayer)
+void Game::start(FieldValue startPlayer)
 {
-	if (_hasStarted || _finished || _aborted) return false;
+	if (_hasStarted)
+		throw logic_error("Cannot start, since game has already started.");
+	if (_finished)
+		throw logic_error("Cannot start, since game is already finished.");
+	if (_aborted)
+		throw logic_error("Cannot start, since game has been aborted.");
+
 	if (startPlayer == None) startPlayer = (FieldValue)(rand() % 2 + 1);
-	_board = new Board(_dims.nConnect(), _dims.height(), _dims.width(),
-					   _dims.depth(), startPlayer, true);
-	_totalDisks = _dims.height() * _dims.width() * _dims.depth();
+	_board = Board(_board.nConnect(), _board.height(), _board.dim2(),
+				   _board.dim3(), startPlayer, true);
+	_totalDisks = _board.height() * _board.dim2() * _board.dim3();
 	_hasStarted = true;
 	emit started(startPlayer);
-	return true;
 }
 
-bool Game::abort(FieldValue requester, QString reason)
+void Game::abort(FieldValue requester, QString reason)
 {
-	if (!_hasStarted || _finished || _aborted) return false;
+	if (!_hasStarted)
+		throw logic_error("Cannot start, since game has not yet started.");
+	if (_finished)
+		throw logic_error("Cannot start, since game is already finished.");
+	if (_aborted)
+		throw logic_error("Cannot start, since game has been aborted.");
+
 	_aborted = true;
 	emit aborted(requester, reason);
-	return true;
 }

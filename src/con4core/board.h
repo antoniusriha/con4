@@ -80,9 +80,8 @@ private:
 	bool _connected();
 	bool _isIndexValid(IndexArray idx) const;
 
-	const int _nConnect;
-	const bool _canUndo;
-	bool _finished;
+	int _nConnect;
+	bool _canUndo, _finished;
 
 	FieldValue _curPlayer;
 	boost::multi_array<FieldValue, 3> _array;
