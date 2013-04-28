@@ -25,7 +25,32 @@
  * THE SOFTWARE.
  */
 
+#include <stdexcept>
 #include "message.h"
+
+using namespace std;
+
+NetworkString::NetworkString(QString string)
+{
+	setString(string);
+}
+
+NetworkString::NetworkString(const char *string)
+{
+	setString(string);
+}
+
+void NetworkString::setString(QString value)
+{
+	if (value.contains(Message::MsgEndChar) ||
+		value.contains(Message::MsgSplitChar)) {
+		QString errMsg = QString("value must not contain the "
+								 "characters '%1' or '%2'.")
+				.arg(Message::MsgEndChar).arg(Message::MsgSplitChar);
+		throw invalid_argument(errMsg.toStdString());
+	}
+	_string = value;
+}
 
 QVector<Message> Message::fromBytes(QByteArray bytes, QByteArray &residuum)
 {
@@ -37,11 +62,7 @@ QVector<Message> Message::fromBytes(QByteArray bytes, QByteArray &residuum)
 	return msgs;
 }
 
-Message::Message() : _header(), _params() {}
-
-Message::Message(const QString &header) : _header(header), _params() {}
-
-Message::Message(const char *header) : _header(header), _params() {}
+Message::Message(const NetworkString &header) : _header(header), _params() {}
 
 Message::Message(const QByteArray &bytes) : _header(), _params()
 {
@@ -51,11 +72,11 @@ Message::Message(const QByteArray &bytes) : _header(), _params()
 		_params.append(QString::fromUtf8(tokens.at(i)));
 }
 
-QByteArray Message::text() const
+QByteArray Message::raw() const
 {
-	QString msg = _header;
+	QString msg = _header.string();
 	for (int i = 0; i < _params.size(); i++)
-		msg.append(MsgSplitChar + _params.at(i));
+		msg.append(MsgSplitChar + _params.at(i).string());
 	msg.append(MsgEndChar);
 	return msg.toUtf8();
 }

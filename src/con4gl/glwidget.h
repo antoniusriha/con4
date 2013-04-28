@@ -66,11 +66,6 @@ public:
 	void setPlayer1Color (QColor color);
 	void setPlayer2Color (QColor color);
 
-public slots:
-	void setXRotation(int angle);
-	void setYRotation(int angle);
-	void setZRotation(int angle);
-
 signals:
 	void close();
 
@@ -90,6 +85,9 @@ private slots:
 	void started();
 
 private:
+	void _setXRotation(int angle);
+	void _setYRotation(int angle);
+	void _setZRotation(int angle);
 	bool _isCurPlayerEnabled ();
 
 	Game *_game;

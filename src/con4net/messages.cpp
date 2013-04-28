@@ -27,196 +27,174 @@
 
 #include "messages.h"
 
-Message Messages::registerGame(NetworkGame &game)
+Message Messages::registerGame(GameData game)
 {
-	Message msg("register_game");
-	msg.params()->append(game.initiatorName());
-	msg.params()->append(game.name());
-	msg.params()->append(QString::number(game.width()));
-	msg.params()->append(QString::number(game.height()));
-	msg.params()->append(QString::number(game.depth()));
-	msg.params()->append(game.ipAddress().toString());
-	msg.params()->append(QString::number(game.port()));
+	Message msg(NetworkString("register_game"));
+	msg.params()->append(game.initiatorName);
+	msg.params()->append(game.gameName);
+	msg.params()->append(QString::number(game.dims.w));
+	msg.params()->append(QString::number(game.dims.h));
+	msg.params()->append(QString::number(game.dims.d));
+	msg.params()->append(game.ipAddress.toString());
+	msg.params()->append(QString::number(game.port));
 	return msg;
 }
 
-Message Messages::registerSuccess(NetworkGame &game)
+Message Messages::registerSuccess(QUuid guid)
 {
-	Message msg("register_success");
-	msg.params()->append(game.guid().toString());
+	Message msg(NetworkString("register_success"));
+	msg.params()->append(guid.toString());
 	return msg;
 }
 
-Message Messages::registerFailed(QString &reason)
+Message Messages::registerFailed(NetworkString reason)
 {
-	Message msg("register_failed");
-	msg.params()->append(reason);
-	return msg;
+	return failed("register_failed", reason);
 }
 
-Message Messages::requestGameList()
+Message Messages::unregisterGame(QUuid guid)
 {
-	return Message("request_game_list");
-}
-
-Message Messages::answerGameList(QList<NetworkGame *> &games)
-{
-	Message msg("answer_game_list");
-	msg.params()->append(QString::number(games.size()));
-	for (int i = 0; i < games.size(); i++) {
-		NetworkGame *game = games.at(i);
-		if (game->hasStarted()) msg.params()->append("Sealed");
-		else msg.params()->append("Open");
-		msg.params()->append(game->initiatorName());
-		msg.params()->append(game->name());
-		msg.params()->append(QString::number(game->width()));
-		msg.params()->append(QString::number(game->height()));
-		msg.params()->append(QString::number(game->depth()));
-		msg.params()->append(game->ipAddress().toString());
-		msg.params()->append(QString::number(game->port()));
-	}
-	return msg;
-}
-
-Message Messages::unregisterGame(NetworkGame &game)
-{
-	Message msg("unregister_game");
-	msg.params()->append(game.guid().toString());
+	Message msg(NetworkString("unregister_game"));
+	msg.params()->append(guid.toString());
 	return msg;
 }
 
 Message Messages::unregisterSuccess()
 {
-	return Message("unregister_success");
+	return Message(NetworkString("unregister_success"));
 }
 
-Message Messages::unregisterFailed(QString &reason)
+Message Messages::unregisterFailed(NetworkString reason)
 {
-	Message msg("unregister_failed");
-	msg.params()->append(reason);
+	return failed("unregister_failed", reason);
+}
+
+Message Messages::requestGameList()
+{
+	return Message(NetworkString("request_game_list"));
+}
+
+Message Messages::answerGameList(QList<GameData> gameData)
+{
+	Message msg(NetworkString("answer_game_list"));
+	msg.params()->append(QString::number(gameData.size()));
+	for (int i = 0; i < gameData.size(); i++) {
+		GameData game = gameData.at(i);
+		if (game.state == Sealed) msg.params()->append("Sealed");
+		else msg.params()->append("Open");
+		msg.params()->append(game.initiatorName);
+		msg.params()->append(game.gameName);
+		msg.params()->append(QString::number(game.dims.w));
+		msg.params()->append(QString::number(game.dims.h));
+		msg.params()->append(QString::number(game.dims.d));
+		msg.params()->append(game.ipAddress.toString());
+		msg.params()->append(QString::number(game.port));
+	}
 	return msg;
 }
 
-Message Messages::joinGame(QString &playerName, NetworkGame &game)
+Message Messages::sealGame(QUuid guid)
 {
-	Message msg("join_game");
+	Message msg(NetworkString("seal_game"));
+	msg.params()->append(guid.toString());
+	return msg;
+}
+
+Message Messages::sealGameSuccess()
+{
+	return Message(NetworkString("seal_game_success"));
+}
+
+Message Messages::sealGameFailed(NetworkString reason)
+{
+	return failed("seal_game_failed", reason);
+}
+
+Message Messages::joinGame(NetworkString playerName, NetworkString gameName)
+{
+	Message msg(NetworkString("join_game"));
 	msg.params()->append(playerName);
-	msg.params()->append(game.name());
+	msg.params()->append(gameName);
 	msg.params()->append("V2");
 	return msg;
 }
 
 Message Messages::joinGameSuccess(ProtocolVersion protocolVersion)
 {
-	Message msg("join_game_success");
+	Message msg(NetworkString("join_game_success"));
 	msg.params()->append(protocolVersion == V1 ? "V1" : "V2");
 	return msg;
 }
 
-Message Messages::joinGameFailed(QString &reason)
+Message Messages::joinGameFailed(NetworkString reason)
 {
-	Message msg("join_game_failed");
-	msg.params()->append(reason);
-	return msg;
-}
-
-Message Messages::sealGame(NetworkGame &game)
-{
-	Message msg("seal_game");
-	msg.params()->append(game.guid().toString());
-	return msg;
-}
-
-Message Messages::sealGameSuccess()
-{
-	return Message("seal_game_success");
-}
-
-Message Messages::sealGameFailed(QString &reason)
-{
-	Message msg("seal_game_failed");
-	msg.params()->append(reason);
-	return msg;
+	return failed("join_game_failed", reason);
 }
 
 Message Messages::startGame()
 {
-	return Message("start_game");
+	return Message(NetworkString("start_game"));
 }
 
-Message Messages::move(NetworkGame &game, int wVal, int hVal, int dVal)
+Message Messages::move(Vector3 dims, Vector3 vals)
 {
-	Message msg("move");
-	msg.params()->append(QString::number(fieldNumber(game, wVal, hVal, dVal)));
+	Message msg(NetworkString("move"));
+	msg.params()->append(QString::number(fieldNumber(dims, vals)));
 	return msg;
 }
 
-Message Messages::synchronizeGameBoard(NetworkGame &game)
+Message Messages::synchronizeGameBoard(Vector3 dims, QList<Field> fields)
 {
-	Message msg("synchronize_game_board");
-	msg.params()->append(QString::number(
-							 game.width() * game.height() * game.depth()));
-	for (int i = 0; i < game.height(); i++) {
-		for (int j = 0; j < game.width(); j++) {
-			for (int k = 0; k < game.depth(); k++) {
-				msg.params()->append(
-							QString::number(fieldNumber(game, j, i, k)));
-				msg.params()->append(QString::number(game.get(j, i, k)));
-			}
-		}
+	Message msg(NetworkString("synchronize_game_board"));
+	msg.params()->append(QString::number(dims.w * dims.h * dims.d));
+	for (int i = 0; i < fields.size(); i++) {
+		Field f = fields.at(i);
+		int fn = fieldNumber(dims, f.index);
+		msg.params()->append(QString::number(fn));
+		msg.params()->append(QString::number((int)f.state));
 	}
 	return msg;
 }
 
-Message Messages::updateGameBoard(NetworkGame &game, int wVal, int hVal,
-								  int dVal, FieldValue fieldValue)
+Message Messages::updateGameBoard(Vector3 dims, Vector3 vals,
+								  FieldState fieldState)
 {
-	Message msg("update_game_board");
-	msg.params()->append(QString::number(fieldNumber(game, wVal, hVal, dVal)));
-	msg.params()->append(QString::number(fieldValue));
+	Message msg(NetworkString("update_game_board"));
+	msg.params()->append(QString::number(fieldNumber(dims, vals)));
+	msg.params()->append(QString::number((int)fieldState));
 	return msg;
 }
 
-Message Messages::movedFailed(const QString &reason)
+Message Messages::movedFailed(NetworkString reason)
 {
-	Message msg("moved_failed");
-	msg.params()->append(reason);
+	return failed("moved_failed", reason);
+}
+
+Message Messages::endGame(FieldState winner)
+{
+	Message msg(NetworkString("end_game"));
+	msg.params()->append(QString::number((int)winner));
 	return msg;
 }
 
-Message Messages::endGame(FieldValue winner)
+Message Messages::abortGame(NetworkString reason)
 {
-	Message msg("end_game");
-	msg.params()->append(QString::number(winner));
-	return msg;
-}
-
-Message Messages::abortGame(QString &reason)
-{
-	Message msg("abort_game");
-	msg.params()->append(reason);
-	return msg;
+	return failed("abort_game", reason);
 }
 
 Message Messages::heartBeat()
 {
-	return Message("heartbeat");
+	return Message(NetworkString("heartbeat"));
 }
 
-QString &Messages::sanitize(QString &parameter)
-{
-	parameter.remove('\n');
-	parameter.remove(';');
-}
-
-Message Messages::failed(const char *header, QString &reason)
+Message Messages::failed(NetworkString header, NetworkString reason)
 {
 	Message msg(header);
-	msg.params()->append(sanitize(reason));
+	msg.params()->append(reason);
 	return msg;
 }
 
-int Messages::fieldNumber(NetworkGame &game, int wVal, int hVal, int dVal)
+int Messages::fieldNumber(Vector3 dims, Vector3 vals)
 {
-	return dVal * game.width() * game.height() + hVal * game.width() + wVal;
+	return vals.d * dims.w * dims.h + vals.h * dims.w + vals.w;
 }

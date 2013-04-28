@@ -36,10 +36,17 @@ class ClientEndpoint : public Endpoint
 	Q_OBJECT
 
 public:
-	explicit ClientEndpoint(int timeout, QObject *parent = 0);
+	explicit ClientEndpoint(int defaultTimeout, QObject *parent = 0);
 
 	void connectToServer(QHostAddress ip, quint16 port);
+
+signals:
+	void connectToServerFinished(bool success, QString failMessage);
 	
+private slots:
+	void _error();
+	void _connected();
+
 private:
 	QTcpSocket &_socket;
 };

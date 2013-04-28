@@ -31,41 +31,46 @@
 #include "opponentservice.h"
 #include "messages.h"
 
+/*
 using namespace std;
 
-OpponentService::OpponentService(IndexServiceList *indexServices, QObject *parent)
-	: NetworkPlayerService(new NetworkGame(width, height, depth, gameName,
-										   initiatorName, ipAddress, port),
-						   parent), _indexServices(indexServices),
+OpponentServiceConf::OpponentServiceConf(QList<IndexService *> indexServices)
+	: _networkGameConf()
+{
+	setIndexServices(indexServices);
+}
+
+void OpponentServiceConf::setIndexServices(QList<IndexService *> value)
+{
+	if (value.empty()) throw invalid_argument(
+				"value must be a non-empty list of index services.");
+	_indexServices = value;
+}
+
+OpponentService::OpponentService(OpponentServiceConf conf, QObject *parent)
+	: NetworkPlayerService(new NetworkGame(conf.networkGameConf()), parent),
+	  _indexServices(conf.indexServices()),
 	  _endpoint(*new ServerEndpoint(10000, this))
 {
-	connect(networkGame(), SIGNAL(_set(FieldValue,int,int)), this,
-			SLOT(_set(FieldValue, int, int)));
+	connect(game(), SIGNAL(_set(FieldValue,int,int)),
+			this, SLOT(_set(FieldValue, int, int)));
 }
 
-OpponentService::~OpponentService() { delete networkGame(); }
-
-NetworkGame *OpponentService::createGame(int width, int height, int depth,
-										 QString initiatorName,
-										 QString gameName,
-										 QHostAddress ipAddress, quint16 port)
-{
-
-}
+OpponentService::~OpponentService() { delete game(); }
 
 bool OpponentService::startService(QString *errMsg)
 {
-	if (!_endpoint.listen(networkGame()->port())) {
+	if (!_endpoint.listen(game()->port())) {
 		if (errMsg) *errMsg = QString("Unable to listen on port ")
-				.arg(networkGame()->port());
+				.arg(game()->port());
 		return false;
 	}
 
 	bool registerSuccess = false;
 	QString finalErrMsg;
-	for (int i = 0; i < _indexServices->size(); i++) {
+	for (int i = 0; i < _indexServices.size(); i++) {
 		QString errMsg;
-		if (!_indexServices->at(i)->registerGame(*networkGame(), errMsg)) {
+		if (!_indexServices.at(i)->registerGame(*game())) {
 			finalErrMsg.append(errMsg + "\n");
 			break;
 		}
@@ -84,40 +89,39 @@ bool OpponentService::startService(QString *errMsg)
 void OpponentService::acceptJoinRequest()
 {
 	// seal game
-	QString errMsg;
-	for (int i = 0; i < _indexServices->size(); i++)
-		_indexServices->at(i)->sealGame(*networkGame(), errMsg);
+	for (int i = 0; i < _indexServices.size(); i++)
+		_indexServices.at(i)->sealGame(*game());
 
 	// join success
-	_endpoint.sendMessage(Messages::joinGameSuccess(Messages::V2));
+	_endpoint.send(Messages::joinGameSuccess(Messages::V2));
 
 	// start game
-	networkGame()->start();
-	if (networkGame()->curPlayer() == Player2)
-		_endpoint.sendMessage(Messages::startGame());
+	game()->start();
+	if (game()->curPlayer() == Player2)
+		_endpoint.send(Messages::startGame());
 }
 
 void OpponentService::rejectJoinRequest(QString reason)
 {
-	_endpoint.sendMessage(Messages::joinGameFailed(reason));
+	_endpoint.send(Messages::joinGameFailed(reason));
 }
 
 void OpponentService::_set(FieldValue player, int width, int depth)
 {
 	if (player == Player1) {
-		int height;
-		game()->full(width, depth, height);
+		Game::BoardIndex idx = game()->index(width, depth);
+		game()->full(idx);
 
-		_endpoint.sendMessage(Messages::updateGameBoard(*networkGame(), width,
-														height, depth, player));
+		_endpoint.send(Messages::updateGameBoard(*game(), width,
+												 height, depth, player));
 		if (game()->finished()) {
 			if (game()->isDraw())
-				_endpoint.sendMessage(Messages::endGame(None));
-			else _endpoint.sendMessage(Messages::endGame(Player1));
+				_endpoint.send(Messages::endGame(None));
+			else _endpoint.send(Messages::endGame(Player1));
 			_endpoint.disconnectFromHost();
-			for (int i = 0; i < _indexServices->size(); i++) {
+			for (int i = 0; i < _indexServices.size(); i++) {
 				QString errMsg;
-				_indexServices->at(i)->unregisterGame(*networkGame(), errMsg);
+				_indexServices.at(i)->unregisterGame(*game(), errMsg);
 			}
 		}
 	}
@@ -132,7 +136,7 @@ void OpponentService::_handleMsg(QStringList msgTokens)
 		// expect join request
 		if (header != "join_game") return;
 		if (msgTokens.size() < 4) return;
-		if (msgTokens.at(2) != networkGame()->name()) return;
+		if (msgTokens.at(2) != game()->name()) return;
 		emit joinGame(msgTokens.at(1));
 	} else {
 		// expect: move, abort
@@ -142,18 +146,17 @@ void OpponentService::_handleMsg(QStringList msgTokens)
 			div_t r = div(x, game()->width() * game()->height());
 			int xd = r.quot;
 			r = div(r.rem, game()->width());
-			if (!networkGame()->set(r.rem, xd))
-				_endpoint.sendMessage(Messages::movedFailed("Invalid move"));
+			if (!game()->set(r.rem, xd))
+				_endpoint.send(Messages::movedFailed("Invalid move"));
 			else {
 				if (game()->finished()) {
 					if (game()->isDraw())
-						_endpoint.sendMessage(Messages::endGame(None));
-					else _endpoint.sendMessage(Messages::endGame(Player2));
+						_endpoint.send(Messages::endGame(None));
+					else _endpoint.send(Messages::endGame(Player2));
 					_endpoint.disconnectFromHost();
-					for (int i = 0; i < _indexServices->size(); i++) {
+					for (int i = 0; i < _indexServices.size(); i++) {
 						QString errMsg;
-						_indexServices->at(i)->unregisterGame(*networkGame(),
-															  errMsg);
+						_indexServices.at(i)->unregisterGame(*game(), errMsg);
 					}
 				}
 			}
@@ -172,3 +175,4 @@ void OpponentService::_messageReceived(Message msg)
 
 	}
 }
+*/

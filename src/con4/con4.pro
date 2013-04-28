@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     ../con4net/messages.cpp \
     ../con4net/message.cpp \
     ../con4net/endpoint.cpp \
-    ../con4net/clientendpoint.cpp
+    ../con4net/clientendpoint.cpp \
+    gamehost.cpp
 
 HEADERS  += mainwindow.h \
     aiplayer.h \
@@ -68,7 +69,8 @@ HEADERS  += mainwindow.h \
     ../con4net/messages.h \
     ../con4net/message.h \
     ../con4net/endpoint.h \
-    ../con4net/clientendpoint.h
+    ../con4net/clientendpoint.h \
+    gamehost.h
 
 FORMS    += mainwindow.ui \
     addindexserverdialog.ui \

@@ -29,11 +29,11 @@
 #define INDEXSERVICE_H
 
 #include <QUuid>
-#include <QMutex>
 #include <QHostAddress>
 #include <QUdpSocket>
-
+#include "clientendpoint.h"
 #include "networkgame.h"
+#include "messages.h"
 
 class IndexService : public QObject
 {
@@ -48,36 +48,40 @@ public:
 	quint16 port () const { return _port; }
 	QList<NetworkGame *> *games() { return &_games; }
 
-	bool refreshGameList (QString &errMsg);
-	bool registerGame (NetworkGame &networkGame, QString &errMsg);
-	bool unregisterGame (NetworkGame &networkGame, QString &errMsg);
-	bool sealGame (NetworkGame &networkGame, QString &errMsg);
-
-//    void registerGameAsync (NetworkGame *game);
-//    void requestGameListAsync ();
+	void registerGame(NetworkGame &game);
+	void unregisterGame (NetworkGame &game);
+	void refreshGameList ();
+	void sealGame (NetworkGame &game);
 
 signals:
-//    void registerGameCompleted (GameResponse response);
-//    void requestGameListCompleted (GameListResponse response);
+	void registerFinished(bool success, QUuid guid, QString failReason);
+	void unregisterFinished(bool success, QString failReason);
+	void refreshGameListFinished(bool success, QString failReason);
+	void sealGameFinished(bool success, QString failReason);
 
 private slots:
-//    void _registerGameFinished ();
-//    void _requestGameListFinished ();
+	void _sendAndReceiveFinished(bool success, Message msg, QString failReason);
 
 private:
-//    void run ();
+	struct ProcessingUnit
+	{
+		enum MsgType { Register, Unregister, Refresh, Seal };
+		Message msg;
+		MsgType type;
+	};
 
-//    QFutureWatcher<GameResponse> _regGameRespWatcher;
-//    QFutureWatcher<GameListResponse> _reqGameListRespWatcher;
+	void _processMsg();
+	void _readGameListAnswer(QList<Messages::GameData> &gameData);
 
-	QStringList sendMsg (QString msg);
-
+	bool _processing;
+	QQueue<ProcessingUnit> _msgQueue;
+	ProcessingUnit _curUnit;
+	ClientEndpoint _endpoint;
 	QHostAddress _host;
 	quint16 _port;
 	QString _name;
-	QUdpSocket _udpSocket;
-	QMutex _mutex;
 	QList<NetworkGame *> _games;
+	QUdpSocket _udpSocket;
 };
 
 #endif // INDEXSERVICE_H

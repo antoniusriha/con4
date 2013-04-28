@@ -28,24 +28,59 @@
 #ifndef INITIATORSERVICE_H
 #define INITIATORSERVICE_H
 
+#include <stdexcept>
 #include <QTcpSocket>
-#include <QTimer>
 #include <QStringList>
 #include "networkplayerservice.h"
+#include "clientendpoint.h"
+#include "messages.h"
 
 class InitiatorService : public NetworkPlayerService
 {
 	Q_OBJECT
 
 public:
-	InitiatorService(NetworkGame *game, QObject *parent = 0);
+	class InitiatorServiceConf
+	{
+	public:
+		class Exception : public std::invalid_argument
+		{
+		public:
+			explicit Exception(QString what)
+				: invalid_argument(what.toStdString()) {}
+		};
+
+		InitiatorServiceConf(NetworkGame &game);
+
+		NetworkGame *game() const { return &_game; }
+
+		NetworkString playerName() const { return _playerName; }
+		void setPlayerName(NetworkString value);
+
+	private:
+		NetworkGame &_game;
+		NetworkString _playerName;
+	};
+
+	class InvalidOperationException : public std::logic_error
+	{
+	public:
+		explicit InvalidOperationException(QString what)
+			: logic_error(what.toStdString()) {}
+	};
+
+	InitiatorService(InitiatorServiceConf conf, QObject *parent = 0);
 	~InitiatorService();
 
-	bool join(QString &errMsg);
+	NetworkString playerName() const { return _playerName; }
+
+	void connectToServer();
+	void join();
 	void move(int fieldNumber) const;
 	void abortGame(QString reason) const;
 
 signals:
+	void connectToServerFinished(bool success, QString failReason);
 	void joinGameSuccess();
 	void joinGameFailed(QString reason);
 	void startGame();
@@ -56,21 +91,23 @@ signals:
 	void abortGame(QString reason);
 
 private slots:
-	void update();
-	void set(FieldValue player, int width, int depth);
+	void aborted(FieldValue requester, QString reason);
+	void finished(FieldValue winner);
+	void set(FieldValue player, Game::BoardIndex index);
+	void started(FieldValue startPlayer);
+	void undone(FieldValue player, Game::BoardIndex index);
+	void _msgReceived(Message msg);
 
 private:
-	bool _connect();
-	QStringList _sendMsg (QString msg);
 	void _handleMsg(QStringList msgTokens);
 	void _handleSyncGameBoard(QStringList msgTokens);
 	void _handleUpdateGameBoard(QStringList msgTokens);
 	void _abort(QString reason);
-	bool _getCoords(int fieldNumber, int &width, int &height, int &depth);
 
 	bool _joined;
-	QTcpSocket _socket;
-	QTimer _timer;
+	NetworkString _playerName;
+	ClientEndpoint _endpoint;
+	Messages::ProtocolVersion _protocolVersion;
 };
 
 #endif // INITIATORSERVICE_H

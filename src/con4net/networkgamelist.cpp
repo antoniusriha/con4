@@ -101,7 +101,7 @@ void NetworkGameList::refresh()
 
 	for (int i = 0; i < _indexServices->size(); i++) {
 		QString errMsg;
-		if (!_indexServices->at(i)->refreshGameList(errMsg))
+		if (!_indexServices->at(i)->refreshGameList())
 			_refreshLog.append(errMsg + "\n");
 		else {
 			IndexService *service = _indexServices->at(i);
@@ -118,16 +118,17 @@ void NetworkGameList::refresh()
 			for (int j = 0; j < service->games()->size(); j++) {
 				NetworkGame *game = service->games()->at(j);
 				NglTreeItem *gameItem = item->child(j);
-				gameItem->setData(0, game->name());
-				gameItem->setData(1, game->initiatorName());
+				gameItem->setData(0, game->name().string());
+				gameItem->setData(1, game->initiatorName().string());
 
 				QString dims;
-				if (game->depth() == 1) {
-					dims = QString("%1x%2").arg(game->width())
-							.arg(game->height());
+				if (game->dims().depth() == 1) {
+					dims = QString("%1x%2").arg(game->dims().width())
+							.arg(game->dims().height());
 				} else {
-					dims = QString("%1x%2x%3").arg(game->width())
-							.arg(game->height()).arg(game->depth());
+					dims = QString("%1x%2x%3").arg(game->dims().width())
+							.arg(game->dims().height())
+							.arg(game->dims().depth());
 				}
 				gameItem->setData(2, dims);
 

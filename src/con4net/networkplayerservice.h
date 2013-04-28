@@ -36,13 +36,13 @@ class NetworkPlayerService : public Player
 	Q_OBJECT
 
 public:
-	NetworkPlayerService(NetworkGame *game, QObject *parent = 0);
+	NetworkPlayerService(NetworkGame &game, QObject *parent = 0);
 	~NetworkPlayerService();
 
-	NetworkGame *networkGame() const
-	{
-		return static_cast<NetworkGame *>(game());
-	}
+	NetworkGame *game() const { return &_game; }
+
+private:
+	NetworkGame &_game;
 };
 
 #endif // NETWORKPLAYERSERVICE_H

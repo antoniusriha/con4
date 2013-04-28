@@ -26,15 +26,18 @@
  */
 
 #include <stdexcept>
-#include <QStringList>
-#include <QTcpSocket>
 #include "con4netglobals.h"
 #include "indexservice.h"
 
 using namespace std;
 
 IndexService::IndexService (QHostAddress host, quint16 port, QString name)
-	: _host (host), _port (port), _name (name), _games() {}
+	: _processing(false), _msgQueue(), _curUnit(), _endpoint(10000, this),
+	  _host (host), _port (port), _name (name), _games()
+{
+	connect(&_endpoint, SIGNAL(sendAndReceiveFinished(bool,Message,QString)),
+			this, SLOT(_sendAndReceiveFinished(bool,Message,QString)));
+}
 
 IndexService::~IndexService()
 {
@@ -42,58 +45,148 @@ IndexService::~IndexService()
 		delete _games.takeFirst();
 }
 
-bool IndexService::registerGame(NetworkGame &networkGame, QString &errMsg)
+void IndexService::registerGame(NetworkGame &game)
 {
-	// register game
-	QString msg = QString("register_game;%1;%2;%3;%4;%5;%6;%7\n")
-			.arg(networkGame.initiatorName()).arg(networkGame.name())
-			.arg(networkGame.width()).arg(networkGame.height())
-			.arg(networkGame.depth()).arg(networkGame.ipAddress().toString())
-			.arg(networkGame.port());
+	if (game.hasStarted())
+		throw logic_error("Cannot register games that have already started.");
 
+	// register game
+	Messages::Vector3 dims;
+	dims.w = game.dims().width();
+	dims.h = game.dims().height();
+	dims.d = game.dims().depth();
+
+	Messages::GameData gameData;
+	gameData.dims = dims;
+	gameData.gameName = game.name();
+	gameData.initiatorName = game.initiatorName();
+	gameData.ipAddress = game.ipAddress();
+	gameData.port = game.port();
+	gameData.state = Messages::Open;
+
+	ProcessingUnit unit;
+	unit.msg = Messages::registerGame(gameData);
+	unit.type = ProcessingUnit::Register;
+	_msgQueue.enqueue(unit);
+	_processMsg();
+}
+
+void IndexService::unregisterGame (NetworkGame &game)
+{
+	ProcessingUnit unit;
+	unit.msg = Messages::unregisterGame(game.guid());
+	unit.type = ProcessingUnit::Unregister;
+	_msgQueue.enqueue(unit);
+	_processMsg();
+}
+
+void IndexService::refreshGameList()
+{
+	ProcessingUnit unit;
+	unit.msg = Messages::requestGameList();
+	unit.type = ProcessingUnit::Refresh;
+	_msgQueue.enqueue(unit);
+	_processMsg();
+}
+
+void IndexService::sealGame(NetworkGame &game)
+{
+	ProcessingUnit unit;
+	unit.msg = Messages::sealGame(game.guid());
+	unit.type = ProcessingUnit::Seal;
+	_msgQueue.enqueue(unit);
+	_processMsg();
+
+	/*
+	QString msg = QString("seal_game;%1\n").arg(game.guid());
 	QStringList respTokens;
 	try {
-		respTokens = sendMsg(msg);
+		respTokens = _sendMsg(msg);
 	} catch (runtime_error &ex) {
 		errMsg = ex.what();
 		return false;
 	}
 
-	if (respTokens.size() < 2) {
+	if (respTokens.size() == 0) {
 		errMsg = INVALID_RESP_ERR;
 		return false;
 	}
 
-	QString header = respTokens[0];
-	bool success = header == "register_success";
-
-	if (success) {
-		QUuid guid(respTokens[1]);
-		if (guid.isNull()) {
-			errMsg = INVALID_RESP_ERR;
-			return false;
-		}
-		networkGame.setGuid(guid);
-		return true;
-	} else {
-		errMsg = respTokens[1];
-		return false;
-	}
+	if (respTokens[0] == "seal_game_success") return true;
+	errMsg = respTokens.size() > 1 ? respTokens[1] : "Unspecified error.";
+	return false;
+	*/
 }
 
-//void IndexService::registerGameAsync (NetworkGame *game) {
-//    connect (&_regGameRespWatcher, SIGNAL (finished ()), this, SLOT (_registerGameFinished ()));
-//    QFuture<Response> future =
-//            QtConcurrent::run (this, &IndexService::createGame, game);
-//    _regGameRespWatcher.setFuture (future);
-//}
-
-//void IndexService::_registerGameFinished () {
-//    emit createGameCompleted (_regGameRespWatcher.result ());
-//}
-
-bool IndexService::refreshGameList(QString &errMsg)
+/*
+void IndexService::_msgReceived(Message msg)
 {
+	NetworkString failReason;
+	QUuid guid;
+	QList<Messages::GameData> gameData;
+	if (Messages::parseRegisterSuccess(msg, guid)) {
+		emit registerSuccess(guid);
+	} else if (Messages::parseRegisterFailed(msg, failReason)) {
+		emit registerFailed(failReason);
+	} else if (Messages::parseUnregisterSuccess(msg)) {
+	} else if (Messages::parseUnregisterFailed(msg, failReason)) {
+	} else if (Messages::parseAnswerGameList(msg, gameData)) {
+	} else if (Messages::parseSealGameSuccess(msg)) {
+	} else if (Messages::parseSealGameFailed(msg, failReason)) {
+	}
+
+	_endpoint.disconnectFromHost();
+}
+*/
+
+void IndexService::_processMsg()
+{
+	if (_processing || _msgQueue.isEmpty()) return;
+
+	_processing = true;
+	_endpoint.connectToServer(_host, _port);
+	_curUnit = _msgQueue.dequeue();
+	_endpoint.send(_curUnit.msg);
+}
+
+void IndexService::_sendAndReceiveFinished(bool success, Message msg,
+										   QString failReason)
+{
+	QString parseErrMsg = "Invalid response msg from server.";
+
+	if (_curUnit.type == ProcessingUnit::Refresh) {
+		if (!success) emit refreshGameListFinished(false, failReason);
+		else {
+			QList<Messages::GameData> gameData;
+			if (Messages::parseAnswerGameList(msg, gameData))
+				_readGameListAnswer(gameData);
+			else emit refreshGameListFinished(false, parseErrMsg);
+		}
+
+		QUuid guid;
+		NetworkString failMsg;
+		if (Messages::parseRegisterSuccess(msg, guid)) {
+			emit registerFinished(true, guid, QString());
+		} else if (Messages::parseRegisterFailed(msg, failMsg)) {
+			emit registerFinished(false, QUuid(), failMsg.string());
+		}
+	} else if (_curUnit.type == ProcessingUnit::Register) {
+
+	} else if (_curUnit.type == ProcessingUnit::Seal) {
+
+	} else if (_curUnit.type == ProcessingUnit::Unregister) {
+
+	}
+
+	_endpoint.disconnectFromHost();
+	_processing = false;
+}
+
+void IndexService::_readGameListAnswer(QList<Messages::GameData> &gameData)
+{
+	NetworkGameConf conf;
+
+	/*
 	for (int i = _games.size() - 1; i >=0; i--) {
 		NetworkGame *game = _games.at(i);
 		if (!game->hasStarted()) {
@@ -104,7 +197,7 @@ bool IndexService::refreshGameList(QString &errMsg)
 
 	QStringList respTokens;
 	try {
-		respTokens = sendMsg("request_game_list\n");
+		respTokens = _sendMsg("request_game_list\n");
 	} catch (runtime_error &ex) {
 		errMsg = ex.what();
 		return false;
@@ -117,11 +210,9 @@ bool IndexService::refreshGameList(QString &errMsg)
 
 	int n = (respTokens.size() - 2) / 8;
 	for (int i = 0; i < n; i++) {
-		int baseIdx = i * 8 + 2;
-		if (respTokens[baseIdx] != "Open")
-			continue;
+		if (gameData.at(i).state == Messages::Sealed) continue;
 
-		QString playerName = respTokens[baseIdx + 1];
+		QString playerName
 		QString gameName = respTokens[baseIdx + 2];
 		int width = respTokens[baseIdx + 3].toInt();
 		int height = respTokens[baseIdx + 4].toInt();
@@ -140,94 +231,19 @@ bool IndexService::refreshGameList(QString &errMsg)
 			if ((cont = (_games.at(i)->name() == gameName))) break;
 		if (cont) continue;
 
-		// else create new game
-		NetworkGame *game = new NetworkGame(width, height, depth, gameName,
-											playerName, host, port);
-		QString msg;
-		if (game->isConfValid(msg)) _games.append(game);
-		else delete game;
+		Messages::GameData data = gameData.at(i);
+
+		try {
+			Game::Dimensions dims(4, data.dims.w, data.dims.h, data.dims.d);
+			conf.setDims(dims);
+			conf.setInitiatorName(data.initiatorName);
+			conf.setIpAddress(data.ipAddress);
+			conf.setName(data.gameName);
+			conf.setPort(data.port);
+			_games.append(new NetworkGame(conf));
+		} catch (Game::Dimensions::Exception) {
+		} catch (Game::Bo)
 	}
 
-	return true;
-}
-
-//void IndexService::requestGameListAsync () {
-//    connect (&_reqGameListRespWatcher, SIGNAL (finished ()),
-//             this, SLOT (_requestGameListFinished ()));
-//    QFuture<GameListResponse> future =
-//            QtConcurrent::run (this, &IndexService::requestGameList);
-//    _reqGameListRespWatcher.setFuture (future);
-//}
-
-//void IndexService::_requestGameListFinished () {
-//    emit requestGameListCompleted (_reqGameListRespWatcher.result ());
-//}
-
-bool IndexService::unregisterGame (NetworkGame &networkGame, QString &errMsg)
-{
-	QString msg = QString("unregister_game;%1\n").arg(networkGame.guid());
-	QStringList respTokens;
-	try {
-		respTokens = sendMsg(msg);
-	} catch (runtime_error &ex) {
-		errMsg = ex.what();
-		return false;
-	}
-
-	if (respTokens.size() == 0) {
-		errMsg = INVALID_RESP_ERR;
-		return false;
-	}
-
-	if (respTokens[0] == "unregister_game_success") return true;
-	errMsg = respTokens.size() > 1 ? respTokens[1] : "Unspecified error.";
-	return false;
-}
-
-bool IndexService::sealGame(NetworkGame &networkGame, QString &errMsg)
-{
-	QString msg = QString("seal_game;%1\n").arg(networkGame.guid());
-	QStringList respTokens;
-	try {
-		respTokens = sendMsg(msg);
-	} catch (runtime_error &ex) {
-		errMsg = ex.what();
-		return false;
-	}
-
-	if (respTokens.size() == 0) {
-		errMsg = INVALID_RESP_ERR;
-		return false;
-	}
-
-	if (respTokens[0] == "seal_game_success") return true;
-	errMsg = respTokens.size() > 1 ? respTokens[1] : "Unspecified error.";
-	return false;
-}
-
-QStringList IndexService::sendMsg(QString msg)
-{
-	QTcpSocket socket;
-	socket.connectToHost(_host, _port);
-	if (!socket.waitForConnected(5000))
-		throw runtime_error("Error: Could not connect to server.");
-
-	socket.write(msg.toUtf8());
-	if (!socket.waitForBytesWritten()) {
-		socket.disconnect();
-		throw runtime_error("Error: Failed to send data to server.");
-	}
-
-	if (!socket.waitForReadyRead()) {
-		socket.disconnect();
-		throw runtime_error("Error: No response from server.");
-	}
-
-	char buffer[MSG_BUF_SIZE];
-	int bytesRead = socket.read(buffer, MSG_BUF_SIZE - 1);
-	socket.disconnect();
-	buffer[bytesRead] = 0;
-
-	QString qsResp = QString::fromUtf8(buffer);
-	return qsResp.split(MSG_SPLIT_CHAR);
+	*/
 }

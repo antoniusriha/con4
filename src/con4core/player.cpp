@@ -27,7 +27,19 @@
 
 #include "player.h"
 
-Player::Player(Game *game, QObject *parent)
-	: QObject(parent), _game(game) {}
+Player::Player(Game &game, QObject *parent)
+	: QObject(parent)
+{
+	connect(&game, SIGNAL(aborted(FieldValue,QString)),
+			this, SLOT(aborted(FieldValue,QString)));
+	connect(&game, SIGNAL(finished(FieldValue)),
+			this, SLOT(finished(FieldValue)));
+	connect(&game, SIGNAL(set(FieldValue,Game::BoardIndex)),
+			this, SLOT(set(FieldValue,Game::BoardIndex)));
+	connect(&game, SIGNAL(started(FieldValue)),
+			this, SLOT(started(FieldValue)));
+	connect(&game, SIGNAL(undone(FieldValue,Game::BoardIndex)),
+			this, SLOT(undone(FieldValue,Game::BoardIndex)));
+}
 
 Player::~Player() {}

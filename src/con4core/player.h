@@ -36,13 +36,19 @@ class Player : public QObject
 	Q_OBJECT
 
 public:
-	Player(Game *game, QObject *parent = 0);
 	virtual ~Player();
 
-	Game *game() const { return _game; }
+	virtual Game *game() const = 0;
 
-private:
-	Game *_game;
+protected:
+	Player(Game &game, QObject *parent = 0);
+
+protected slots:
+	virtual void aborted(FieldValue requester, QString reason) = 0;
+	virtual void finished(FieldValue winner) = 0;
+	virtual void set(FieldValue player,Game::BoardIndex index) = 0;
+	virtual void started(FieldValue startPlayer) = 0;
+	virtual void undone(FieldValue player, Game::BoardIndex index) = 0;
 };
 
 #endif // PLAYER_H

@@ -75,6 +75,11 @@ MainWindow::MainWindow(QWidget *parent)
 	//	// if we did not find one, use IPv4 localhost
 	//	if (_ipAddress.isNull())
 	//		_ipAddress = QHostAddress(QHostAddress::LocalHost);
+
+	connect(ui->boardConf, SIGNAL(error(QString)),
+			ui->lblStatus, SLOT(setText(QString)));
+	connect(ui->networkBoardConf, SIGNAL(error(QString)),
+			ui->lblStatus, SLOT(setText(QString)));
 }
 
 MainWindow::~MainWindow() {
@@ -97,6 +102,8 @@ void MainWindow::viewIndexServersClicked () {
 }
 
 void MainWindow::startClicked () {
+
+
 	_currentGame = _localGame;
 	_localGame->setWidth(ui->boardConf->boardWidth());
 	_localGame->setHeight(ui->boardConf->boardHeight());

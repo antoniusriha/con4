@@ -36,7 +36,7 @@ class ServerEndpoint : public Endpoint
 	Q_OBJECT
 
 public:
-	explicit ServerEndpoint(int timeout, QObject *parent = 0);
+	explicit ServerEndpoint(int defaultTimeout, QObject *parent = 0);
 
 	bool listen(quint16 port);
 

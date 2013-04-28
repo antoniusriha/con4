@@ -27,7 +27,7 @@
 
 #include "networkplayerservice.h"
 
-NetworkPlayerService::NetworkPlayerService(NetworkGame *game, QObject *parent)
-	: Player(game, parent) {}
+NetworkPlayerService::NetworkPlayerService(NetworkGame &game, QObject *parent)
+	: Player(game, parent), _game(game) {}
 
 NetworkPlayerService::~NetworkPlayerService() {}

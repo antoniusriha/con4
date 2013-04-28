@@ -35,5 +35,24 @@ ClientEndpoint::ClientEndpoint(int timeout, QObject *parent) :
 
 void ClientEndpoint::connectToServer(QHostAddress ip, quint16 port)
 {
+	connect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+			this, SLOT(_error()));
+	connect(&_socket, SIGNAL(connected()), this, SLOT(_connected()));
 	_socket.connectToHost(ip, port);
+}
+
+void ClientEndpoint::_error()
+{
+	disconnect(&_socket, SIGNAL(connected()), this, SLOT(_connected()));
+	disconnect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+			   this, SLOT(_error()));
+	emit connectToServerFinished(false, _socket.errorString());
+}
+
+void ClientEndpoint::_connected()
+{
+	disconnect(&_socket, SIGNAL(connected()), this, SLOT(_connected()));
+	disconnect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+			   this, SLOT(_error()));
+	emit connectToServerFinished(true, QString());
 }

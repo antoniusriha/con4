@@ -27,10 +27,43 @@
 
 #include "networkgame.h"
 
-NetworkGame::NetworkGame(int width, int height, int depth, QString name,
-						 QString initiatorName, QHostAddress ipAddress,
-						 quint16 port)
-	: Game(4, width, height, depth), _name(name), _initiatorName(initiatorName),
-	  _ipAddress(ipAddress), _port(port), _guid() {}
+NetworkGameConf::NetworkGameConf() : _dims()
+{
+	setInitiatorName("Initiator");
+	setName("Initiator's network game");
+	setIpAddress(QHostAddress::LocalHost);
+	setPort(9999);
+}
+
+void NetworkGameConf::setInitiatorName(NetworkString value)
+{
+	if (value.string().isEmpty())
+		throw Exception("InitiatorName must be a non-empty string.");
+	_initiatorName = value;
+}
+
+void NetworkGameConf::setName(NetworkString value)
+{
+	if (value.string().isEmpty())
+		throw Exception("Name must be a non-empty string.");
+	_name = value;
+}
+
+void NetworkGameConf::setIpAddress(QHostAddress value)
+{
+	if (value.isNull())
+		throw Exception("IpAddress must be a non-null host address.");
+	_ipAddress = value;
+}
+
+void NetworkGameConf::setPort(quint16 value)
+{
+	if (value < 1025)
+		throw Exception("Port must be a port number above 1024.");
+	_port = value;
+}
+
+NetworkGame::NetworkGame(NetworkGameConf conf)
+	: Game(conf.dims()), _conf(conf), _guid() {}
 
 NetworkGame::~NetworkGame() {}

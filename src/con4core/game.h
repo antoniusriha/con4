@@ -28,6 +28,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <stdexcept>
 #include <QObject>
 #include <QVector>
 #include "board.h"
@@ -40,6 +41,13 @@ public:
 	class Dimensions
 	{
 	public:
+		class Exception : public std::invalid_argument
+		{
+		public:
+			explicit Exception(QString what)
+				: invalid_argument(what.toStdString()) {}
+		};
+
 		const static int MaxDim = 100;
 
 		Dimensions();
@@ -66,6 +74,14 @@ public:
 	class BoardIndex
 	{
 	public:
+		class Exception : public std::out_of_range
+		{
+		public:
+			explicit Exception() : out_of_range(_what) {}
+		private:
+			const static char *_what;
+		};
+
 		BoardIndex();
 		BoardIndex(const Game &game, int wVal, int hVal, int dVal);
 
@@ -83,6 +99,21 @@ public:
 	private:
 		const Game *_game;
 		int _wVal, _hVal, _dVal;
+	};
+
+	class InvalidIndexException : public std::invalid_argument
+	{
+	public:
+		explicit InvalidIndexException() : invalid_argument(_what) {}
+	private:
+		const static char *_what;
+	};
+
+	class InvalidOperationException : public std::logic_error
+	{
+	public:
+		explicit InvalidOperationException(QString what)
+			: logic_error(what.toStdString()) {}
 	};
 
 	const static char *invalidIdxErrMsg;

@@ -34,17 +34,29 @@
 #include "networkplayerservice.h"
 #include "indexservicelist.h"
 
+class OpponentServiceConf
+{
+public:
+	OpponentServiceConf(QList<IndexService *> indexServices);
+
+	NetworkGameConf networkGameConf() const { return _networkGameConf; }
+	void setNetworkGameConf(NetworkGameConf value) { _networkGameConf = value; }
+
+	QList<IndexService *> indexServices() const { return _indexServices; }
+	void setIndexServices(QList<IndexService *> value);
+
+private:
+	NetworkGameConf _networkGameConf;
+	QList<IndexService *> _indexServices;
+};
+
 class OpponentService : public NetworkPlayerService
 {
 	Q_OBJECT
 
 public:
-	OpponentService(IndexServiceList *indexServices, QObject *parent = 0);
+	OpponentService(OpponentServiceConf conf, QObject *parent = 0);
 	~OpponentService();
-
-	NetworkGame *createGame(int width, int height, int depth,
-							QString initiatorName, QString gameName,
-							QHostAddress ipAddress, quint16 port);
 
 	bool startService(QString *errMsg = 0);
 
@@ -64,13 +76,17 @@ signals:
 
 private slots:
 	void _messageReceived(Message msg);
-	void _set(FieldValue player, int width, int depth);
+	void aborted(FieldValue requester, QString reason);
+	void finished(FieldValue winner);
+	void set(FieldValue player, Game::BoardIndex index);
+	void started(FieldValue startPlayer);
+	void undone(FieldValue player, Game::BoardIndex index);
 
 private:
 	void _handleMsg(QStringList msgTokens);
 	bool _sendMsg(QString msg);
 
-	IndexServiceList *_indexServices;
+	QList<IndexService *> _indexServices;
 	ServerEndpoint &_endpoint;
 };
 

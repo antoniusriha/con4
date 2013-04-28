@@ -30,7 +30,19 @@
 
 #include <QVector>
 #include <QString>
-#include <QStringList>
+
+class NetworkString
+{
+public:
+	NetworkString(QString string = QString());
+	NetworkString(const char* string);
+
+	QString string() const { return _string; }
+	void setString(QString value);
+
+private:
+	QString _string;
+};
 
 class Message
 {
@@ -39,21 +51,19 @@ public:
 	const static char MsgSplitChar = ';';
 	static QVector<Message> fromBytes(QByteArray bytes, QByteArray &residuum);
 
-	Message();
-	Message(const QString &header);
-	Message(const char *header);
-	Message(const QByteArray &bytes);
+	Message(const NetworkString &header = NetworkString());
+	explicit Message(const QByteArray &bytes);
 
-	QString header() const { return _header; }
-	QStringList *params() { return &_params; }
+	NetworkString header() const { return _header; }
+	QList<NetworkString> *params() { return &_params; }
 
-	QByteArray text() const;
+	QByteArray raw() const;
 
-	bool isValid() const { return !_header.isEmpty(); }
+	bool isValid() const { return !_header.string().isEmpty(); }
 
 private:
-	QString _header;
-	QStringList _params;
+	NetworkString _header;
+	QList<NetworkString> _params;
 };
 
 #endif // MESSAGE_H

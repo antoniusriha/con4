@@ -25,119 +25,83 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
 #include <QStringList>
 #include "con4netglobals.h"
 #include "initiatorservice.h"
 
 using namespace std;
 
-InitiatorService::InitiatorService(NetworkGame *game, QObject *parent)
-	: NetworkPlayerService(game, parent), _joined(false), _socket(), _timer()
-{
-	connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
-	_connect();
-	_timer.start(500);
+InitiatorService::InitiatorServiceConf::InitiatorServiceConf(NetworkGame &game)
+	: _game(game) {}
 
-	connect(game, SIGNAL(set(FieldValue,int,int)),
-			this, SLOT(set(FieldValue,int,int)));
+void InitiatorService::InitiatorServiceConf::setPlayerName(NetworkString value)
+{
+	if (value.string().isEmpty())
+		throw Exception("PlayerName must not be empty.");
+	_playerName = value;
 }
 
-InitiatorService::~InitiatorService()
+InitiatorService::InitiatorService(InitiatorServiceConf conf, QObject *parent)
+	: NetworkPlayerService(*conf.game(), parent), _joined(false),
+	  _playerName(conf.playerName()), _endpoint(10000, this)
 {
-	_timer.stop();
+	connect(&_endpoint, SIGNAL(messageReceived(Message)),
+			this, SLOT(_msgReceived(Message)));
+	connect(&_endpoint, SIGNAL(connectToServerFinished(bool,QString)),
+			this, SLOT(connectToServerFinished(bool, QString)));
 }
 
-bool InitiatorService::join(QString &errMsg)
+InitiatorService::~InitiatorService() {}
+
+void InitiatorService::connectToServer()
 {
-	if (_joined) {
-		errMsg = "Already joined a game.";
-		return false;
-	}
-
-	errMsg = "";
-	QString msg = QString("join_game;%1;%2;%3\n").arg("guest")
-			.arg(networkGame()->name()).arg("V2");
-
-	QStringList respTokens;
-	try {
-		respTokens = _sendMsg(msg);
-	} catch (runtime_error &ex) {
-		errMsg = ex.what();
-	}
-
-	if (respTokens.empty())
-		errMsg = INVALID_RESP_ERR;
-
-	if (respTokens.at(0) == "join_game_failed") {
-		if (respTokens.size() > 1) errMsg = respTokens.at(1);
-		else errMsg = "The server has denied you access to the game.";
-	}
-
-	if (errMsg.isEmpty()) {
-		_joined = true;
-		return true;
-	} else {
-		_socket.disconnectFromHost();
-		return false;
-	}
+	_endpoint.connectToServer(game()->ipAddress(), game()->port());
 }
 
-void InitiatorService::update()
+void InitiatorService::join()
 {
-	_connect();
-	if (_socket.state() == QAbstractSocket::ConnectedState) {
-		if (_socket.bytesAvailable() > 0) {
-			char buffer[MSG_BUF_SIZE];
-			int bytesRead = _socket.read(buffer, MSG_BUF_SIZE - 1);
-			buffer[bytesRead] = 0;
-			QString qsResp = QString::fromUtf8(buffer);
-			_handleMsg(qsResp.split(MSG_SPLIT_CHAR));
-		}
-	}
+	if (_joined) throw InvalidOperationException("Already joined a game.");
+	_endpoint.send(Messages::joinGame(_playerName, game()->name()));
 }
 
-void InitiatorService::set(FieldValue player, int width, int depth)
+void InitiatorService::set(FieldValue player, Game::BoardIndex index)
 {
 	if (player == Player2) {
-		int height;
-		game()->full(width, depth, height);
-		int x = depth * game()->width() * game()->height() +
-				height * game()->width() + width;
-		_sendMsg(QString("move;%1\n").arg(x));
+		Messages::Vector3 dims;
+		dims.w = game()->dims().width();
+		dims.h = game()->dims().height();
+		dims.d = game()->dims().depth();
+
+		Messages::Vector3 vals;
+		vals.w = index.wVal();
+		vals.h = index.hVal();
+		vals.d = index.dVal();
+
+		_endpoint.send(Messages::move(dims, vals));
 	}
 }
 
-bool InitiatorService::_connect()
+void InitiatorService::_msgReceived(Message msg)
 {
-	if (_socket.state() == QAbstractSocket::ConnectedState)
-		return true;
+	if (!game()->hasStarted()) {
+		/*
+		  expecting:
+			- join answer
+			- start signal
+			- sync board/update board
+		*/
+		NetworkString failReason;
+		if (Messages::parseJoinGameSuccess(msg, _protocolVersion)) {
+			_joined = true;
 
-	_socket.connectToHost(networkGame()->ipAddress(), networkGame()->port());
-	if (!_socket.waitForConnected(5000))
-		return false;
-	return true;
-}
+		} else if (Messages::parseJoinGameFailed(msg, failReason)) {
+			_endpoint.disconnectFromHost();
+		} else if (Messages::parseStartGame(msg)) {
 
-QStringList InitiatorService::_sendMsg(QString msg)
-{
-	_connect();
-	_socket.write(msg.toUtf8());
-	if (!_socket.waitForBytesWritten())
-		throw runtime_error("Error: Failed to send data to server.");
+		}
+	}
 
-	if (!_socket.waitForReadyRead())
-		throw runtime_error("Error: No response from server.");
-
-	char buffer[MSG_BUF_SIZE];
-	int bytesRead = _socket.read(buffer, MSG_BUF_SIZE - 1);
-	buffer[bytesRead] = 0;
-	QString qsResp = QString::fromUtf8(buffer);
-	return qsResp.split(MSG_SPLIT_CHAR);
-}
-
-void InitiatorService::_handleMsg(QStringList msgTokens)
-{
+	/*
 	if (msgTokens.empty()) return;
 	QString header = msgTokens.at(0);
 
@@ -168,10 +132,12 @@ void InitiatorService::_handleMsg(QStringList msgTokens)
 			_socket.disconnectFromHost();
 		}
 	}
+	  */
 }
 
 void InitiatorService::_handleSyncGameBoard(QStringList msgTokens)
 {
+	/*
 	if ((msgTokens.size() - 2)/2 != game()->width() * game()->height() *
 			game()->depth()) {
 		_abort("Invalid game board synchronization");
@@ -208,10 +174,12 @@ void InitiatorService::_handleSyncGameBoard(QStringList msgTokens)
 
 	if (!game()->set(width, depth))
 		_abort("Invalid game board synchronization");
+		*/
 }
 
 void InitiatorService::_handleUpdateGameBoard(QStringList msgTokens)
 {
+	/*
 	if (msgTokens.size() < 3) {
 		_abort("Invalid game board upadate");
 		return;
@@ -227,15 +195,19 @@ void InitiatorService::_handleUpdateGameBoard(QStringList msgTokens)
 	}
 
 	if (!game()->set(xw, xd)) _abort("Invalid game board upadate");
+	*/
 }
 
 void InitiatorService::_abort(QString reason)
 {
-	_sendMsg(QString("abort_game;%1\n").arg(reason));
+	_endpoint.send(Messages::abortGame(reason));
+	_endpoint.disconnectFromHost();
 	game()->abort(Player2, reason);
-	_socket.disconnectFromHost();
 }
 
+
+
+/*
 bool InitiatorService::_getCoords(int fieldNumber, int &width, int &height,
 								  int &depth)
 {
@@ -250,3 +222,4 @@ bool InitiatorService::_getCoords(int fieldNumber, int &width, int &height,
 	if (width >= game()->width() || height >= game()->height()) return false;
 	if (game()->nDims() == 3 && depth >= game()->depth()) return false;
 }
+*/

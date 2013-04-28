@@ -31,27 +31,27 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include "application.h"
-#include "../con4net/opponentservice.h"
-#include "../con4net/initiatorservice.h"
 #include "../con4net/networkgamelist.h"
 
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
 	Q_OBJECT
+
 public:
-	explicit MainWindow (QWidget *parent = 0);
-	~MainWindow ();
+	explicit MainWindow(QWidget *parent = 0);
+	~MainWindow();
 
 private slots:
-	void gameTypeSelectionChanged ();
-	void viewIndexServersClicked ();
-	void startClicked ();
-	void createNetworkGameClicked ();
-	void joinClicked ();
-	void refreshClicked ();
+	void gameTypeSelectionChanged();
+	void viewIndexServersClicked();
+	void startClicked();
+	void createNetworkGameClicked();
+	void joinClicked();
+	void refreshClicked();
 	void player1Clicked();
 	void player2Clicked();
 	void closeGame();
@@ -64,10 +64,7 @@ private:
 
 	Ui::MainWindow *ui;
 	Application &_application;
-	Game *_localGame, *_currentGame;
 	QColor _player1Color, _player2Color;
-	OpponentService *_oppService;
-	InitiatorService *_initService;
 	NetworkGameList *_networkGames;
 };
 

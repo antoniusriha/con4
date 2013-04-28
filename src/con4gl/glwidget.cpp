@@ -151,7 +151,7 @@ static void qNormalizeAngle(int &angle)
 		angle -= 360 * 16;
 }
 
-void GLWidget::setXRotation(int angle)
+void GLWidget::_setXRotation(int angle)
 {
 	qNormalizeAngle(angle);
 	if (angle != _xRot) {
@@ -160,7 +160,7 @@ void GLWidget::setXRotation(int angle)
 	}
 }
 
-void GLWidget::setYRotation(int angle)
+void GLWidget::_setYRotation(int angle)
 {
 	qNormalizeAngle(angle);
 	if (angle != _yRot) {
@@ -169,7 +169,7 @@ void GLWidget::setYRotation(int angle)
 	}
 }
 
-void GLWidget::setZRotation(int angle)
+void GLWidget::_setZRotation(int angle)
 {
 	qNormalizeAngle(angle);
 	if (angle != _zRot) {
@@ -212,7 +212,7 @@ void GLWidget::resizeGL(int width, int height)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(45, (float)width/(float)height, 0.1, 1000);//	QSpacerItem *horizontalSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	gluPerspective(45, (float)width/(float)height, 0.1, 1000);
 
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -229,11 +229,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	int dy = event->y() - _lastPos.y();
 
 	if (event->buttons() & Qt::LeftButton) {
-		setXRotation(_xRot + 8 * dy);
-		setYRotation(_yRot + 8 * dx);
+		_setXRotation(_xRot + 8 * dy);
+		_setYRotation(_yRot + 8 * dx);
 	} else if (event->buttons() & Qt::RightButton) {
-		setXRotation(_xRot + 8 * dy);
-		setZRotation(_zRot + 8 * dx);
+		_setXRotation(_xRot + 8 * dy);
+		_setZRotation(_zRot + 8 * dx);
 	}
 	_lastPos = event->pos();
 	event->accept();

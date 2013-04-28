@@ -28,44 +28,102 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+#include <QUuid>
+#include <QHostAddress>
 #include "message.h"
-#include "networkgame.h"
 
 namespace Messages
 {
-enum ProtocolVersion
+
+enum ProtocolVersion { V1, V2 };
+
+enum GameState { Open, Sealed };
+
+struct Vector3 { uint w, h, d; };
+
+struct GameData
 {
-	V1,
-	V2
+	GameState state;
+	NetworkString initiatorName, gameName;
+	Vector3 dims;
+	QHostAddress ipAddress;
+	quint16 port;
 };
 
-Message registerGame(NetworkGame &game);
-Message registerSuccess(NetworkGame &game);
-Message registerFailed(QString &reason);
-Message requestGameList();
-Message answerGameList(QList<NetworkGame *> &games);
-Message unregisterGame(NetworkGame &game);
-Message unregisterSuccess();
-Message unregisterFailed(QString &reason);
-Message joinGame(QString &playerName, NetworkGame &game);
-Message joinGameSuccess(ProtocolVersion protocolVersion);
-Message joinGameFailed(QString &reason);
-Message sealGame(NetworkGame &game);
-Message sealGameSuccess();
-Message sealGameFailed(QString &reason);
-Message startGame();
-Message move(NetworkGame &game, int wVal, int hVal, int dVal);
-Message synchronizeGameBoard(NetworkGame &game);
-Message updateGameBoard(NetworkGame &game, int wVal, int hVal, int dVal,
-						FieldValue fieldValue);
-Message movedFailed(const QString &reason);
-Message endGame(FieldValue winner);
-Message abortGame(QString &reason);
-Message heartBeat();
+Message registerGame(GameData game);
+bool parseRegisterGame(Message msg, GameData &gameData);
 
-QString &sanitize(QString &parameter);
-Message failed(const char *header, QString &reason);
-int fieldNumber(NetworkGame &game, int wVal, int hVal, int dVal);
+Message registerSuccess(QUuid guid);
+bool parseRegisterSuccess(Message msg, QUuid &guid);
+
+Message registerFailed(NetworkString reason);
+bool parseRegisterFailed(Message msg, NetworkString &reason);
+
+Message unregisterGame(QUuid guid);
+bool parseUnregisterGame(Message msg, QUuid &guid);
+
+Message unregisterSuccess();
+bool parseUnregisterSuccess(Message msg);
+
+Message unregisterFailed(NetworkString reason);
+bool parseUnregisterFailed(Message msg, NetworkString &reason);
+
+Message requestGameList();
+bool parseRequestGameList(Message msg);
+
+Message answerGameList(QList<GameData> gameData);
+bool parseAnswerGameList(Message msg, QList<GameData> &gameData);
+
+Message sealGame(QUuid guid);
+bool parseSealGame(Message msg, QUuid &guid);
+
+Message sealGameSuccess();
+bool parseSealGameSuccess(Message msg);
+
+Message sealGameFailed(NetworkString reason);
+bool parseSealGameFailed(Message msg, NetworkString &reason);
+
+Message joinGame(NetworkString playerName, NetworkString gameName);
+bool parseJoinGame(Message msg, NetworkString &playerName,
+				   NetworkString &gameName);
+
+Message joinGameSuccess(ProtocolVersion protocolVersion);
+bool parseJoinGameSuccess(Message msg, ProtocolVersion &protocolVersion);
+
+Message joinGameFailed(NetworkString reason);
+bool parseJoinGameFailed(Message msg, NetworkString &reason);
+
+Message startGame();
+bool parseStartGame(Message msg);
+
+Message move(Vector3 dims, Vector3 vals);
+bool parseMove(Message msg, Vector3 &dims, Vector3 &index);
+
+enum FieldState { None, Player1, Player2 };
+struct Field { Vector3 index; FieldState state; };
+Message synchronizeGameBoard(Vector3 dims, QList<Field> fields);
+bool parseSynchronizeGameBoard(Message msg, Vector3 &dims,
+							   QList<Field> &fields);
+
+Message updateGameBoard(Vector3 dims, Vector3 vals, FieldState fieldState);
+bool parseUpdateGameBoard(Message msg, Vector3 &dims, Vector3 &vals,
+						  FieldState &fieldState);
+
+Message movedFailed(NetworkString reason);
+bool parseMovedFailed(Message msg, NetworkString &reason);
+
+Message endGame(FieldState winner);
+bool parseEndGame(Message msg, FieldState &winner);
+
+Message abortGame(NetworkString reason);
+bool parseAbortGame(Message msg, NetworkString &reason);
+
+Message heartBeat();
+bool parseHeartBeat(Message msg);
+
+Message failed(NetworkString header, NetworkString reason);
+int fieldNumber(Vector3 dims, Vector3 vals);
+
 }
 
 #endif // MESSAGES_H

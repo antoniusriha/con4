@@ -28,59 +28,204 @@
 #ifndef ENDPOINT_H
 #define ENDPOINT_H
 
+#include <stdexcept>
 #include <QQueue>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QSharedPointer>
 #include "message.h"
+
+class Request : public QObject
+{
+	Q_OBJECT
+
+public:
+	explicit Request(QObject *parent = 0);
+	virtual ~Request() {}
+
+	bool success() const { return _success; }
+	QString errorString() const { return _errorString; }
+
+signals:
+	void finished();
+
+protected:
+	void endRequest(bool success, QString errorString = QString());
+
+private:
+	bool _success, _ended;
+	QString _errorString;
+};
+
+typedef QSharedPointer<Request> RequestPtr;
+
+class SendingState;
+class SendingAndReceivingState;
+class DisconnectingState;
+
+class SendRequest : public Request
+{
+	SendRequest(Message msg, QObject *parent = 0);
+	Message message() const { return _msg; }
+
+private:
+	Message _msg;
+	friend class SendingState;
+};
+
+class SendAndReceiveRequest : public Request
+{
+	SendAndReceiveRequest(Message msgSent, QObject *parent = 0);
+	Message msgSent() const { return _msgSent; }
+	Message msgReceived() const { return _msgReceived; }
+
+private:
+
+	Message _msgSent, _msgReceived;
+	friend class SendingAndReceivingState;
+};
+
+class DisconnectRequest : public Request
+{
+	DisconnectRequest(QObject *parent = 0);
+
+private:
+	friend class DisconnectingState;
+};
 
 class Endpoint : public QObject
 {
 	Q_OBJECT
 
 public:
-	enum EndpointError {
-		Timeout,
-		Fatal
+	class InvalidOperationException : public std::logic_error
+	{
+	public:
+		explicit InvalidOperationException(QString what)
+			: logic_error(what.toStdString()) {}
 	};
 
 	const static int maxTimeout = 30000;
 	const static int minTimeout = 0;
 
-	int timeout() const { return _timeout; }
-	void setTimeout(int value);
+	int defaultTimeout() const { return _defaultTimeout; }
+	void setDefaultTimeout(int value);
 
-	void sendMessage(Message msg);
-	void disconnectFromHost();
+	bool connected() const;
+
+	Request send(Message msg);
+	Request sendAndReceive(Message msg);
+	Request sendAndReceive(Message msg, int timeout);
+	Request disconnectFromHost();
 	
 signals:
+	void sendFinished(bool success, Message msg, QString failMessage);
+	void sendAndReceiveFinished(bool success, Message msg, QString failMessage);
+	void disconnectFromHostFinished(bool success, QString failMessage);
 	void messageReceived(Message msg);
-	void error(EndpointError err, QString msg,
-			   Message msgProcessed = Message());
 
 protected:
-	explicit Endpoint(int timeout, QObject *parent = 0);
+	explicit Endpoint(int defaultTimeout, QObject *parent = 0);
 
 	QTcpSocket *socket() const { return _socket; }
 	void setSocket(QTcpSocket &value);
 
 private slots:
-	void _bytesWritten(quint64 bytes);
-	void _readyRead();
-	void _writeTimeout();
-	void _readTimeout();
-	void _error(QAbstractSocket::SocketError err);
+//	void _bytesWritten(quint64 bytes);
+//	void _readyRead();
+//	void _error();
+//	void _sendAndReceiveTimeout();
 
 private:
-	void _init(int timeout);
-	void _processMsg();
+	class EndpointState
+	{
+	public:
+		virtual bool connected() const { return false; }
+		virtual void setSocket(Endpoint *endpoint, QTcpSocket &value) = 0;
+		virtual void send(Endpoint *endpoint, Message msg) = 0;
+		virtual void sendAndReceive(Endpoint *endpoint, Message msg,
+									int timeout) = 0;
+		virtual void disconnectFromHost(Endpoint *endpoint) = 0;
+	};
 
-	QQueue<Message> _msgQueue;
+	class DisconnectedState : public EndpointState
+	{
+	public:
+		void setSocket(Endpoint *endpoint, QTcpSocket &value);
+		void send(Endpoint *, Message);
+		void sendAndReceive(Endpoint *, Message, int);
+		void disconnectFromHost(Endpoint *endpoint);
+	};
+
+	class ListeningState : public EndpointState
+	{
+	public:
+		bool connected() const { return true; }
+		void send(Endpoint *endpoint, Message msg);
+		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
+		void disconnectFromHost(Endpoint *endpoint);
+	};
+
+	class SendingState : public EndpointState
+	{
+	public:
+		bool connected() const { return true; }
+		void send(Endpoint *endpoint, Message msg);
+		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
+		void disconnectFromHost(Endpoint *endpoint);
+	};
+
+	class SendingAndReceivingState : public EndpointState
+	{
+	public:
+		bool connected() const { return true; }
+		void send(Endpoint *endpoint, Message msg);
+		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
+		void disconnectFromHost(Endpoint *endpoint);
+	};
+
+	class DisconnectingState : public EndpointState
+	{
+	public:
+		bool connected() const { return true; }
+		void send(Endpoint *endpoint, Message msg);
+		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
+		void disconnectFromHost(Endpoint *endpoint);
+	};
+
+
+
+	enum ProcessingState {
+		Disconnecting,
+		Idle,
+		Send,
+		SendAndReceive
+	};
+
+	struct ProcessingUnit
+	{
+		enum Type { Send, SendAndReceive, Receive };
+		Message msg;
+		Type type;
+		int timeout;
+	};
+
+	void _init(int defaultTimeout);
+	void _processMsg();
+	void _processSend();
+	void _processSendAndReceive(int timeout);
+
+	QQueue<ProcessingUnit> _msgQueue;
 	Message _curMsg;
-	bool _processing;
+	ProcessingState _processingState;
 	QTcpSocket *_socket;
-	int _timeout, _nBytes;
-	QTimer *_writeTimer, *_readTimer;
+	int _defaultTimeout, _nBytes;
+	QTimer _timer;
 	QByteArray _residuum;
+	bool _waitingForEndReceive;
+
+	EndpointState *_state;
+	friend class EndpointState;
 };
 
 #endif // ENDPOINT_H
