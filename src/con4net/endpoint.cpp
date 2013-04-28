@@ -40,58 +40,6 @@ void Request::endRequest(bool success, QString errorString)
 SendRequest::SendRequest(Message msg, QObject *parent)
 	: Request(parent), _msg(msg) {}
 
-void Endpoint::DisconnectedState::setSocket(Endpoint *endpoint,
-											QTcpSocket &value)
-{
-	if (endpoint->_socket) {
-		if (endpoint->_socket->state() != QAbstractSocket::UnconnectedState)
-
-			endpoint->disconnectFromHost();
-	}
-//		if (_socket) {
-
-
-//		}
-
-	// old socket:
-	// disconnect signals: readyRead, error, disconnected
-	// disconnect socket
-	// delete socket
-
-	// new socket:
-	// connect to signals: readyRead, error, disconnected
-
-}
-
-void Endpoint::DisconnectedState::send(Endpoint *, Message)
-{
-	throw Endpoint::InvalidOperationException("Cannot send messages, "
-											  "when not connected.");
-}
-
-void Endpoint::DisconnectedState::sendAndReceive(Endpoint *, Message, int)
-{
-	throw Endpoint::InvalidOperationException("Cannot send messages, "
-											  "when not connected.");
-}
-
-void Endpoint::DisconnectedState::disconnectFromHost(Endpoint *endpoint)
-{
-	emit endpoint->disconnectFromHostFinished(true, QString());
-}
-
-
-
-
-
-
-
-
-
-
-/*
-
-
 void Endpoint::setDefaultTimeout(int value)
 {
 	if (value < minTimeout) value = minTimeout;
@@ -104,22 +52,25 @@ bool Endpoint::connected() const
 	return false;
 }
 
-void Endpoint::send(Message msg)
+SendRequest Endpoint::send(Message msg)
 {
+	ProcessingScopeGuard guard(this);
+
+	SendRequestPtr req (new SendRequest(msg));
 	ProcessingUnit unit;
-	unit.msg = msg;
+	unit.req = req;
 	unit.timeout = defaultTimeout();
 	unit.type = ProcessingUnit::Send;
 	_msgQueue.enqueue(unit);
-	_processMsg();
+	return req;
 }
 
-void Endpoint::sendAndReceive(Message msg)
+SendAndReceiveRequest Endpoint::sendAndReceive(Message msg)
 {
-	sendAndReceive(msg, _defaultTimeout);
+	return sendAndReceive(msg, _defaultTimeout);
 }
 
-void Endpoint::sendAndReceive(Message msg, int timeout)
+SendAndReceiveRequest Endpoint::sendAndReceive(Message msg, int timeout)
 {
 	ProcessingUnit unit;
 	unit.msg = msg;
@@ -129,7 +80,7 @@ void Endpoint::sendAndReceive(Message msg, int timeout)
 	_processMsg();
 }
 
-void Endpoint::disconnectFromHost()
+DisconnectRequest Endpoint::disconnectFromHost()
 {
 	_msgQueue.clear();
 	_socket->disconnectFromHost();
@@ -239,6 +190,14 @@ void Endpoint::_sendAndReceiveTimeout()
 	emit sendFinished(false, _curMsg, "Timeout.");
 }
 
+Endpoint::ProcessingScopeGuard::ProcessingScopeGuard(Endpoint *endpoint)
+	: _endpoint(endpoint) {}
+
+Endpoint::ProcessingScopeGuard::~ProcessingScopeGuard()
+{
+	_endpoint->_processMsg();
+}
+
 void Endpoint::_init(int timeout)
 {
 	_msgQueue = QQueue<ProcessingUnit>();
@@ -298,5 +257,3 @@ void Endpoint::_processSendAndReceive(int timeout)
 	for (int i = 0; i < _nBytes; i += bWritten)
 		bWritten = _socket->write(bytes.mid(i));
 }
-
-*/

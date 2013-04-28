@@ -57,11 +57,7 @@ private:
 	QString _errorString;
 };
 
-typedef QSharedPointer<Request> RequestPtr;
 
-class SendingState;
-class SendingAndReceivingState;
-class DisconnectingState;
 
 class SendRequest : public Request
 {
@@ -70,8 +66,11 @@ class SendRequest : public Request
 
 private:
 	Message _msg;
-	friend class SendingState;
+	friend class Endpoint;
 };
+
+typedef QSharedPointer<SendRequest> SendRequestPtr;
+
 
 class SendAndReceiveRequest : public Request
 {
@@ -82,16 +81,23 @@ class SendAndReceiveRequest : public Request
 private:
 
 	Message _msgSent, _msgReceived;
-	friend class SendingAndReceivingState;
+	friend class Endpoint;
 };
+
+typedef QSharedPointer<SendAndReceiveRequest> SendAndReceiveRequestPtr;
+
 
 class DisconnectRequest : public Request
 {
 	DisconnectRequest(QObject *parent = 0);
 
 private:
-	friend class DisconnectingState;
+	friend class Endpoint;
 };
+
+typedef QSharedPointer<SendRequest> DisconnectRequestPtr;
+
+
 
 class Endpoint : public QObject
 {
@@ -113,10 +119,10 @@ public:
 
 	bool connected() const;
 
-	Request send(Message msg);
-	Request sendAndReceive(Message msg);
-	Request sendAndReceive(Message msg, int timeout);
-	Request disconnectFromHost();
+	SendRequest send(Message msg);
+	SendAndReceiveRequest sendAndReceive(Message msg);
+	SendAndReceiveRequest sendAndReceive(Message msg, int timeout);
+	DisconnectRequest disconnectFromHost();
 	
 signals:
 	void sendFinished(bool success, Message msg, QString failMessage);
@@ -131,69 +137,20 @@ protected:
 	void setSocket(QTcpSocket &value);
 
 private slots:
-//	void _bytesWritten(quint64 bytes);
-//	void _readyRead();
-//	void _error();
-//	void _sendAndReceiveTimeout();
+	void _bytesWritten(quint64 bytes);
+	void _readyRead();
+	void _error();
+	void _sendAndReceiveTimeout();
 
 private:
-	class EndpointState
+	class ProcessingScopeGuard
 	{
 	public:
-		virtual bool connected() const { return false; }
-		virtual void setSocket(Endpoint *endpoint, QTcpSocket &value) = 0;
-		virtual void send(Endpoint *endpoint, Message msg) = 0;
-		virtual void sendAndReceive(Endpoint *endpoint, Message msg,
-									int timeout) = 0;
-		virtual void disconnectFromHost(Endpoint *endpoint) = 0;
+		ProcessingScopeGuard(Endpoint *endpoint);
+		~ProcessingScopeGuard();
+	private:
+		Endpoint *_endpoint;
 	};
-
-	class DisconnectedState : public EndpointState
-	{
-	public:
-		void setSocket(Endpoint *endpoint, QTcpSocket &value);
-		void send(Endpoint *, Message);
-		void sendAndReceive(Endpoint *, Message, int);
-		void disconnectFromHost(Endpoint *endpoint);
-	};
-
-	class ListeningState : public EndpointState
-	{
-	public:
-		bool connected() const { return true; }
-		void send(Endpoint *endpoint, Message msg);
-		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
-		void disconnectFromHost(Endpoint *endpoint);
-	};
-
-	class SendingState : public EndpointState
-	{
-	public:
-		bool connected() const { return true; }
-		void send(Endpoint *endpoint, Message msg);
-		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
-		void disconnectFromHost(Endpoint *endpoint);
-	};
-
-	class SendingAndReceivingState : public EndpointState
-	{
-	public:
-		bool connected() const { return true; }
-		void send(Endpoint *endpoint, Message msg);
-		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
-		void disconnectFromHost(Endpoint *endpoint);
-	};
-
-	class DisconnectingState : public EndpointState
-	{
-	public:
-		bool connected() const { return true; }
-		void send(Endpoint *endpoint, Message msg);
-		void sendAndReceive(Endpoint *endpoint, Message msg, int timeout);
-		void disconnectFromHost(Endpoint *endpoint);
-	};
-
-
 
 	enum ProcessingState {
 		Disconnecting,
@@ -205,9 +162,9 @@ private:
 	struct ProcessingUnit
 	{
 		enum Type { Send, SendAndReceive, Receive };
-		Message msg;
 		Type type;
 		int timeout;
+		QSharedPointer<Request> req;
 	};
 
 	void _init(int defaultTimeout);
@@ -223,9 +180,6 @@ private:
 	QTimer _timer;
 	QByteArray _residuum;
 	bool _waitingForEndReceive;
-
-	EndpointState *_state;
-	friend class EndpointState;
 };
 
 #endif // ENDPOINT_H
