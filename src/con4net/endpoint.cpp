@@ -27,11 +27,15 @@
 
 #include "endpoint.h"
 
+using namespace std;
+
 Request::Request(QObject *parent)
 	: QObject(parent), _success(false), _ended(false), _errorString() {}
 
 void Request::endRequest(bool success, QString errorString)
 {
+	if (_ended) return;
+	_ended = true;
 	_success = success;
 	_errorString = errorString;
 	emit finished();
@@ -45,6 +49,50 @@ SendAndReceiveRequest::SendAndReceiveRequest(Message msgSent, int timeout,
 	: Request(parent), _msgSent(msgSent), _timeout(timeout) {}
 
 DisconnectRequest::DisconnectRequest(QObject *parent) : Request(parent) {}
+
+class ReceiveRequest : public Request
+{
+public:
+	ReceiveRequest(Message msg, QObject *parent = 0)
+		: Request(parent), _msg(msg) {}
+	Message message() const { return _msg; }
+private:
+	Message _msg;
+	friend class Endpoint;
+};
+
+class ProcessingUnit
+{
+public:
+	enum Type { Invalid, Send, SendAndReceive, Receive, Disconnect };
+
+	ProcessingUnit() : _type(Invalid), _req(0) {}
+
+	ProcessingUnit(Type type, Request *req) : _type(type), _req(req)
+	{
+		if (type == Invalid) _req = 0;
+		else if (!req) throw invalid_argument("req cannot be 0, "
+											  "if type is not Invalid.");
+	}
+
+	~ProcessingUnit() { if (type == Receive) delete req; }
+
+	Type type() const { return _type; }
+	Request *req() const { return _req; }
+	bool isValid() const { return _type != Invalid; }
+
+private:
+	ProcessingUnit(const ProcessingUnit &);
+	ProcessingUnit &operator=(const ProcessingUnit &);
+
+	Type _type;
+	Request *_req;
+};
+
+Endpoint::~Endpoint()
+{
+	if (_socket) delete _socket;
+}
 
 void Endpoint::setDefaultTimeout(int value)
 {
@@ -60,27 +108,21 @@ bool Endpoint::connected() const
 
 void Endpoint::send(SendRequest &request)
 {
-	ProcessingUnit unit;
-	unit.req = &request;
-	unit.type = ProcessingUnit::Send;
+	ProcessingUnit unit(ProcessingUnit::Send, &request);
 	_msgQueue.enqueue(unit);
 	_processMsg();
 }
 
 void Endpoint::sendAndReceive(SendAndReceiveRequest &request)
 {
-	ProcessingUnit unit;
-	unit.req = &request;
-	unit.type = ProcessingUnit::SendAndReceive;
+	ProcessingUnit unit(ProcessingUnit::SendAndReceive, &request);
 	_msgQueue.enqueue(unit);
 	_processMsg();
 }
 
-void Endpoint::disconnectFromHost(DisconnectRequest &request)
+void Endpoint::disconnectFromHost(Request &request)
 {
-	ProcessingUnit unit;
-	unit.req = &request;
-	unit.type = ProcessingUnit::Disconnect;
+	ProcessingUnit unit(ProcessingUnit::Disconnect, &request);
 	_msgQueue.enqueue(unit);
 	_processMsg();
 }
@@ -93,8 +135,7 @@ Endpoint::Endpoint(int defaultTimeout, QObject *parent)
 
 void Endpoint::setSocket(QTcpSocket &value)
 {
-	if (_socket)
-		disconnect(_socket, SIGNAL(_readyRead()), this, SLOT(_readyRead()));
+	if (_socket) delete _socket;
 	_socket = &value;
 	connect(_socket, SIGNAL(_readyRead()), this, SLOT(_readyRead()));
 }
@@ -109,7 +150,7 @@ void Endpoint::_bytesWritten(quint64 bytes)
 		if (_processingState == Send) {
 			disconnect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
 					   this, SLOT(_error()));
-			emit sendFinished(true, _curMsg, QString());
+			_curUnit.req->endRequest(true);
 			_processingState = Idle;
 			_processMsg();
 		} else if (_processingState == SendAndReceive) {
@@ -119,7 +160,6 @@ void Endpoint::_bytesWritten(quint64 bytes)
 	}
 }
 
-
 void Endpoint::_readyRead()
 {
 	QByteArray data = _socket->readAll();
@@ -128,28 +168,26 @@ void Endpoint::_readyRead()
 	QVector<Message> msgs = Message::fromBytes(_residuum + data, _residuum);
 	if (msgs.isEmpty()) return;
 
-	ProcessingUnit unit;
 	if (_processingState == SendAndReceive) {
 		int msgIdx = 0;
 
 		if (_waitingForEndReceive) {
 			_waitingForEndReceive = false;
-			unit.req = new ReceiveRequest(msgs.first());
-			unit.type = ProcessingUnit::Receive;
+			ProcessingUnit unit(ProcessingUnit::Receive,
+								new ReceiveRequest(msgs.first()));
 			_msgQueue.enqueue(unit);
 			msgIdx = 1;
 		}
 
 		if (msgs.size() > msgIdx) {
-			disconnect(_socket, SIGNAL(readyRead()), this, SLOT(_readyRead()));
 			disconnect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
 					   this, SLOT(_error()));
 			_timer.stop();
 
 			// all surplus msgs go as new units into the queue
 			for (int i = msgIdx + 1; i < msgs.size(); i++) {
-				unit.req = new ReceiveRequest(msgs.at(i));
-				unit.type = ProcessingUnit::Receive;
+				ProcessingUnit unit(ProcessingUnit::Receive,
+									new ReceiveRequest(msgs.at(i)));
 				_msgQueue.enqueue(unit);
 			}
 
@@ -157,12 +195,11 @@ void Endpoint::_readyRead()
 			emit sendAndReceiveFinished(true, msgs.at(msgIdx), QString());
 			_processingState = Idle;
 			_processMsg();
-			// end
 		}
 	} else {
 		for (int i = 0; i < msgs.size(); i++) {
-			unit.req = new ReceiveRequest(msgs.at(i));
-			unit.type = ProcessingUnit::Receive;
+			ProcessingUnit unit(ProcessingUnit::Receive,
+								new ReceiveRequest(msgs.at(i)));
 			_msgQueue.enqueue(unit);
 		}
 		_processMsg();
@@ -172,10 +209,10 @@ void Endpoint::_readyRead()
 void Endpoint::_error()
 {
 	_nBytes = 0;
-	disconnect(_socket, SIGNAL(bytesWritten(qint64)),
-			   this, SLOT(_bytesWritten(quint64)));
-	disconnect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
-			   this, SLOT(_error()));
+	_socket->disconnect(SIGNAL(bytesWritten(qint64)));
+	_socket->disconnect(SIGNAL(error(QAbstractSocket::SocketError)));
+
+	if (_curUnit)
 	emit sendFinished(false, _curMsg, _socket->errorString());
 }
 
@@ -219,7 +256,6 @@ void Endpoint::_processMsg()
 		_msgQueue.clear();
 		_socket->disconnectFromHost();
 		_socket->waitForDisconnected(_defaultTimeout);
-		DisconnectRequest *req = static_cast<DisconnectRequest *>(unit.req);
 		req->endRequest(true);
 		_processMsg();
 	}
@@ -256,6 +292,3 @@ void Endpoint::_processSendAndReceive(int timeout)
 	for (int i = 0; i < _nBytes; i += bWritten)
 		bWritten = _socket->write(bytes.mid(i));
 }
-
-Endpoint::ReceiveRequest::ReceiveRequest(Message msg, QObject *parent)
-	: Request(parent), _msg(msg) {}

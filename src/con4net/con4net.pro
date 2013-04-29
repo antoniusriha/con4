@@ -23,7 +23,8 @@ SOURCES += main.cpp \
 	networkgame.cpp \
     message.cpp \
     endpoint.cpp \
-    messages.cpp
+    messages.cpp \
+    processingqueue.cpp
 
 HEADERS += \
 	../con4core/player.h \
@@ -34,3 +35,4 @@ HEADERS += \
     message.h \
     endpoint.h \
     messages.h \
+    processingqueue.h

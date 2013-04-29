@@ -46,11 +46,10 @@ public:
 	bool success() const { return _success; }
 	QString errorString() const { return _errorString; }
 
+	void endRequest(bool success, QString errorString = QString());
+
 signals:
 	void finished();
-
-protected:
-	void endRequest(bool success, QString errorString = QString());
 
 private:
 	bool _success, _ended;
@@ -90,19 +89,7 @@ private:
 
 typedef QSharedPointer<SendAndReceiveRequest> SendAndReceiveRequestPtr;
 
-
-class DisconnectRequest : public Request
-{
-public:
-	DisconnectRequest(QObject *parent = 0);
-
-private:
-	friend class Endpoint;
-};
-
-typedef QSharedPointer<SendRequest> DisconnectRequestPtr;
-
-
+class ProcessingUnit;
 
 class Endpoint : public QObject
 {
@@ -119,6 +106,8 @@ public:
 	const static int maxTimeout = 30000;
 	const static int minTimeout = 0;
 
+	virtual ~Endpoint();
+
 	int defaultTimeout() const { return _defaultTimeout; }
 	void setDefaultTimeout(int value);
 
@@ -126,8 +115,8 @@ public:
 
 	void send(SendRequest &request);
 	void sendAndReceive(SendAndReceiveRequest &request);
-	void disconnectFromHost(DisconnectRequest &request);
-	
+	void disconnectFromHost(Request &request);
+
 signals:
 	void sendFinished(bool success, Message msg, QString failMessage);
 	void sendAndReceiveFinished(bool success, Message msg, QString failMessage);
@@ -154,30 +143,13 @@ private:
 		SendAndReceive
 	};
 
-	class ReceiveRequest : public Request
-	{
-	public:
-		ReceiveRequest(Message msg, QObject *parent = 0);
-		Message message() const { return _msg; }
-	private:
-		Message _msg;
-		friend class Endpoint;
-	};
-
-	struct ProcessingUnit
-	{
-		enum Type { Send, SendAndReceive, Receive, Disconnect };
-		Type type;
-		Request *req;
-	};
-
 	void _init(int defaultTimeout);
 	void _processMsg();
 	void _processSend();
 	void _processSendAndReceive(int timeout);
 
-	QQueue<ProcessingUnit> _msgQueue;
-	Request *_curReq;
+	QQueue<ProcessingUnit *> _msgQueue;
+	ProcessingUnit *_curUnit;
 	ProcessingState _processingState;
 	QTcpSocket *_socket;
 	int _defaultTimeout, _nBytes;
