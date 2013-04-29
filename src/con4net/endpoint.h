@@ -61,6 +61,7 @@ private:
 
 class SendRequest : public Request
 {
+public:
 	SendRequest(Message msg, QObject *parent = 0);
 	Message message() const { return _msg; }
 
@@ -74,13 +75,16 @@ typedef QSharedPointer<SendRequest> SendRequestPtr;
 
 class SendAndReceiveRequest : public Request
 {
-	SendAndReceiveRequest(Message msgSent, QObject *parent = 0);
+public:
+	SendAndReceiveRequest(Message msgSent, int timeout = 10000,
+						  QObject *parent = 0);
 	Message msgSent() const { return _msgSent; }
 	Message msgReceived() const { return _msgReceived; }
+	int timeout() const { return _timeout; }
 
 private:
-
 	Message _msgSent, _msgReceived;
+	int _timeout;
 	friend class Endpoint;
 };
 
@@ -89,6 +93,7 @@ typedef QSharedPointer<SendAndReceiveRequest> SendAndReceiveRequestPtr;
 
 class DisconnectRequest : public Request
 {
+public:
 	DisconnectRequest(QObject *parent = 0);
 
 private:
@@ -119,10 +124,9 @@ public:
 
 	bool connected() const;
 
-	SendRequest send(Message msg);
-	SendAndReceiveRequest sendAndReceive(Message msg);
-	SendAndReceiveRequest sendAndReceive(Message msg, int timeout);
-	DisconnectRequest disconnectFromHost();
+	void send(SendRequest &request);
+	void sendAndReceive(SendAndReceiveRequest &request);
+	void disconnectFromHost(DisconnectRequest &request);
 	
 signals:
 	void sendFinished(bool success, Message msg, QString failMessage);
@@ -143,15 +147,6 @@ private slots:
 	void _sendAndReceiveTimeout();
 
 private:
-	class ProcessingScopeGuard
-	{
-	public:
-		ProcessingScopeGuard(Endpoint *endpoint);
-		~ProcessingScopeGuard();
-	private:
-		Endpoint *_endpoint;
-	};
-
 	enum ProcessingState {
 		Disconnecting,
 		Idle,
@@ -159,12 +154,21 @@ private:
 		SendAndReceive
 	};
 
+	class ReceiveRequest : public Request
+	{
+	public:
+		ReceiveRequest(Message msg, QObject *parent = 0);
+		Message message() const { return _msg; }
+	private:
+		Message _msg;
+		friend class Endpoint;
+	};
+
 	struct ProcessingUnit
 	{
-		enum Type { Send, SendAndReceive, Receive };
+		enum Type { Send, SendAndReceive, Receive, Disconnect };
 		Type type;
-		int timeout;
-		QSharedPointer<Request> req;
+		Request *req;
 	};
 
 	void _init(int defaultTimeout);
@@ -173,7 +177,7 @@ private:
 	void _processSendAndReceive(int timeout);
 
 	QQueue<ProcessingUnit> _msgQueue;
-	Message _curMsg;
+	Request *_curReq;
 	ProcessingState _processingState;
 	QTcpSocket *_socket;
 	int _defaultTimeout, _nBytes;
