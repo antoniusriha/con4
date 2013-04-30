@@ -32,13 +32,13 @@ ProcessingUnit::ProcessingUnit(QObject *parent) : QObject(parent) {}
 ProcessingQueue::ProcessingQueue(QObject *parent)
 	: QObject(parent), _processing(false), _queue() {}
 
-void ProcessingQueue::Add(ProcessingUnit *unit)
+void ProcessingQueue::add(ProcessingUnit *unit)
 {
 	_queue.enqueue(unit);
-	Process();
+	process();
 }
 
-void ProcessingQueue::Process()
+void ProcessingQueue::process()
 {
 	if (_processing) return;
 	_processing = true;
@@ -53,5 +53,5 @@ void ProcessingQueue::processingFinished(ProcessingUnit *unit)
 {
 	delete unit;
 	_processing = false;
-	Process();
+	process();
 }

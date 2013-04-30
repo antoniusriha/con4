@@ -30,7 +30,6 @@
 
 #include <QQueue>
 #include <QObject>
-#include "processingunit.h"
 
 class ProcessingUnit : public QObject
 {
@@ -38,7 +37,7 @@ class ProcessingUnit : public QObject
 
 public:
 	explicit ProcessingUnit(QObject *parent = 0);
-	void Process();
+	virtual void Process() = 0;
 
 signals:
 	void finished(ProcessingUnit *unit);
@@ -50,8 +49,8 @@ class ProcessingQueue : public QObject
 public:
 	explicit ProcessingQueue(QObject *parent = 0);
 
-	void Add(ProcessingUnit *unit);
-	void Process();
+	void add(ProcessingUnit *unit);
+	void process();
 
 private slots:
 	void processingFinished(ProcessingUnit *unit);

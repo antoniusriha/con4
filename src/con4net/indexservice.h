@@ -35,6 +35,16 @@
 #include "networkgame.h"
 #include "messages.h"
 
+class RegisterRequest : public Request
+{
+public:
+	RegisterRequest(IndexService *service, QObject *parent = 0);
+
+private:
+	IndexService _service;
+	QUuid _guid;
+};
+
 class IndexService : public QObject
 {
 	Q_OBJECT
@@ -63,19 +73,9 @@ private slots:
 	void _sendAndReceiveFinished(bool success, Message msg, QString failReason);
 
 private:
-	struct ProcessingUnit
-	{
-		enum MsgType { Register, Unregister, Refresh, Seal };
-		Message msg;
-		MsgType type;
-	};
-
-	void _processMsg();
 	void _readGameListAnswer(QList<Messages::GameData> &gameData);
 
-	bool _processing;
-	QQueue<ProcessingUnit> _msgQueue;
-	ProcessingUnit _curUnit;
+	ProcessingQueue _queue;
 	ClientEndpoint _endpoint;
 	QHostAddress _host;
 	quint16 _port;

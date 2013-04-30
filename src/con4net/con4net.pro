@@ -24,7 +24,10 @@ SOURCES += main.cpp \
     message.cpp \
     endpoint.cpp \
     messages.cpp \
-    processingqueue.cpp
+    processingqueue.cpp \
+    clientendpoint.cpp \
+    serverendpoint.cpp \
+    indexservice.cpp
 
 HEADERS += \
 	../con4core/player.h \
@@ -35,4 +38,7 @@ HEADERS += \
     message.h \
     endpoint.h \
     messages.h \
-    processingqueue.h
+    processingqueue.h \
+    clientendpoint.h \
+    serverendpoint.h \
+    indexservice.h

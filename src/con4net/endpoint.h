@@ -29,11 +29,9 @@
 #define ENDPOINT_H
 
 #include <stdexcept>
-#include <QQueue>
 #include <QTcpSocket>
-#include <QTimer>
-#include <QSharedPointer>
 #include "message.h"
+#include "processingqueue.h"
 
 class Request : public QObject
 {
@@ -57,6 +55,10 @@ private:
 };
 
 
+class ReceiveUnit;
+class SendUnit;
+class SendAndReceiveUnit;
+class DisconnectUnit;
 
 class SendRequest : public Request
 {
@@ -66,11 +68,8 @@ public:
 
 private:
 	Message _msg;
-	friend class Endpoint;
+	friend class SendUnit;
 };
-
-typedef QSharedPointer<SendRequest> SendRequestPtr;
-
 
 class SendAndReceiveRequest : public Request
 {
@@ -84,12 +83,8 @@ public:
 private:
 	Message _msgSent, _msgReceived;
 	int _timeout;
-	friend class Endpoint;
+	friend class SendAndReceiveUnit;
 };
-
-typedef QSharedPointer<SendAndReceiveRequest> SendAndReceiveRequestPtr;
-
-class ProcessingUnit;
 
 class Endpoint : public QObject
 {
@@ -111,16 +106,11 @@ public:
 	int defaultTimeout() const { return _defaultTimeout; }
 	void setDefaultTimeout(int value);
 
-	bool connected() const;
-
 	void send(SendRequest &request);
 	void sendAndReceive(SendAndReceiveRequest &request);
 	void disconnectFromHost(Request &request);
 
 signals:
-	void sendFinished(bool success, Message msg, QString failMessage);
-	void sendAndReceiveFinished(bool success, Message msg, QString failMessage);
-	void disconnectFromHostFinished(bool success, QString failMessage);
 	void messageReceived(Message msg);
 
 protected:
@@ -130,32 +120,18 @@ protected:
 	void setSocket(QTcpSocket &value);
 
 private slots:
-	void _bytesWritten(quint64 bytes);
 	void _readyRead();
-	void _error();
-	void _sendAndReceiveTimeout();
 
 private:
-	enum ProcessingState {
-		Disconnecting,
-		Idle,
-		Send,
-		SendAndReceive
-	};
-
-	void _init(int defaultTimeout);
-	void _processMsg();
-	void _processSend();
-	void _processSendAndReceive(int timeout);
-
-	QQueue<ProcessingUnit *> _msgQueue;
-	ProcessingUnit *_curUnit;
-	ProcessingState _processingState;
+	ProcessingQueue _queue;
 	QTcpSocket *_socket;
-	int _defaultTimeout, _nBytes;
-	QTimer _timer;
+	int _defaultTimeout;
 	QByteArray _residuum;
-	bool _waitingForEndReceive;
+
+	friend class ReceiveUnit;
+	friend class SendUnit;
+	friend class SendAndReceiveUnit;
+	friend class DisconnectUnit;
 };
 
 #endif // ENDPOINT_H
