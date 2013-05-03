@@ -34,7 +34,7 @@
 #include "clientendpoint.h"
 #include "messages.h"
 
-class InitiatorService : public NetworkPlayerService
+class InitiatorService : public QObject
 {
 	Q_OBJECT
 
@@ -81,8 +81,8 @@ signals:
 	void joinGameFinished(bool success, QString failReason);
 
 private slots:
-	void aborted(FieldValue requester, QString reason);
-	void set(FieldValue player, Game::BoardIndex index);
+	void _aborted(FieldValue requester, QString reason);
+	void _set(FieldValue player, Game::BoardIndex index);
 	void _connectFinished(Request *request);
 	void _joinFinished(Request *request);
 	void _msgReceived(Message msg);
@@ -95,6 +95,7 @@ private:
 	void _abort(QString reason);
 
 	bool _joined;
+	NetworkGame &_game;
 	NetworkString _playerName;
 	ClientEndpoint _endpoint;
 };

@@ -59,6 +59,7 @@ public:
 
 signals:
 	void created(IndexService *item);
+	void deleting(IndexService *item);
 	void deletedAt(int index);
 
 private:

@@ -50,7 +50,7 @@ private:
 
 class IndexServiceWrapper;
 
-class OpponentService : public NetworkPlayerService
+class OpponentService : public QObject
 {
 	Q_OBJECT
 
@@ -77,7 +77,7 @@ signals:
 	void abortGame(QString reason);
 
 private slots:
-	void _indexServiceDeletedAt(int index);
+	void _indexServiceDeleting(IndexService *service);
 	void _registerGameFinished(Request *req);
 	void _messageReceived(Message msg);
 	void aborted(FieldValue requester, QString reason);

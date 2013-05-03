@@ -133,6 +133,7 @@ bool IndexServiceList::deleteAt(int index)
 	if (index < 0 || index >= _list.size()) return false;
 	IndexService *item = _list.at(index);
 	beginRemoveRows(QModelIndex(), index, index);
+	emit deleting(item);
 	_list.removeAt(index);
 	_updateSettings();
 	endRemoveRows();

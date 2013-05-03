@@ -67,7 +67,9 @@ private slots:
 	void _registerGameFinished(Request *request)
 	{
 		NetworkGameRequest *req = static_cast<NetworkGameRequest *>(request);
-
+		if (request->success()) {
+			_state = Registered;
+		}
 	}
 
 	void _sealGameFinished(Request *request)
@@ -85,11 +87,32 @@ OpponentService::OpponentService(OpponentServiceConf conf, QObject *parent)
 	: NetworkPlayerService(*new NetworkGame(conf.networkGameConf()), parent),
 	  _list(conf.indexServices()), _endpoint(10000, this)
 {
-	connect(&_list, SIGNAL(deletedAt(int)),
-			this, SLOT(_indexServiceDeletedAt(int)));
+
+	connect(&_list, SIGNAL(deleting(IndexService*)),
+			this, SLOT(_indexServiceDeleting(IndexService*)));
 }
 
-OpponentService::~OpponentService() { delete game(); }
+void OpponentService::_indexServiceDeleting(IndexService *service)
+{
+	for (int i = 0; i < _wrappers.size(); i++) {
+		if (_wrappers.at(i)->service() == service) {
+			IndexServiceWrapper *wrapper = _wrappers.takeAt(i);
+			wrapper->unregisterGame();
+			delete wrapper;
+			return;
+		}
+	}
+
+	if (_wrappers.size() == 0)
+		game()->abort(Player1, "All index services have been removed.");
+}
+
+OpponentService::~OpponentService()
+{
+	delete game();
+	for (int i = 0; i < _wrappers.size(); i++)
+		delete _wrappers.takeFirst();
+}
 
 bool OpponentService::startService(QString *errMsg)
 {

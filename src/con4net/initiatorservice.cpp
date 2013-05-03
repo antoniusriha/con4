@@ -38,10 +38,15 @@ void InitiatorService::InitiatorServiceConf::setPlayerName(NetworkString value)
 }
 
 InitiatorService::InitiatorService(InitiatorServiceConf conf, QObject *parent)
-	: NetworkPlayerService(*conf.game(), parent), _joined(false),
+	: QObject(parent), _joined(false), _game(*conf.game()),
 	  _playerName(conf.playerName()),
 	  _endpoint(conf.game()->ipAddress(), conf.game()->port(), 10000, this)
 {
+	connect(&game, SIGNAL(aborted(FieldValue,QString)),
+			this, SLOT(_aborted(FieldValue,QString)));
+	connect(&game, SIGNAL(set(FieldValue,Game::BoardIndex)),
+			this, SLOT(_set(FieldValue,Game::BoardIndex)));
+
 	connect(&_endpoint, SIGNAL(messageReceived(Message)),
 			this, SLOT(_msgReceived(Message)));
 	connect(&_endpoint, SIGNAL(connectToServerFinished(bool,QString)),
