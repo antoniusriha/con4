@@ -46,7 +46,7 @@ void ProcessingQueue::process()
 	ProcessingUnit *unit = _queue.dequeue();
 	connect(unit, SIGNAL(finished(ProcessingUnit *)),
 			this, SLOT(processingFinished(ProcessingUnit *)));
-	unit->Process();
+	unit->process();
 }
 
 void ProcessingQueue::processingFinished(ProcessingUnit *unit)

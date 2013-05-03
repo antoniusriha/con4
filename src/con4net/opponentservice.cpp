@@ -26,34 +26,67 @@
  */
 
 #include <stdexcept>
-#include <QTcpSocket>
-#include "con4netglobals.h"
 #include "opponentservice.h"
 #include "messages.h"
 
-/*
-using namespace std;
-
-OpponentServiceConf::OpponentServiceConf(QList<IndexService *> indexServices)
-	: _networkGameConf()
+class IndexServiceWrapper : public QObject
 {
-	setIndexServices(indexServices);
-}
+	Q_OBJECT
 
-void OpponentServiceConf::setIndexServices(QList<IndexService *> value)
-{
-	if (value.empty()) throw invalid_argument(
-				"value must be a non-empty list of index services.");
-	_indexServices = value;
-}
+public:
+	enum State { NotRegistered, Registered, Sealed, Unregistered };
+
+	IndexServiceWrapper(IndexService &service, NetworkGame &game)
+		: _service(service), _game(game), _state(NotRegistered)
+	{
+
+	}
+
+	IndexService *service() const { return &_service; }
+	State state() const { return _state; }
+
+	void registerGame()
+	{
+		NetworkGameRequest *req = new NetworkGameRequest(_game);
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_registerGameFinished(Request*)));
+		_service.registerGame(*req);
+	}
+
+	void sealGame()
+	{}
+	void unregisterGame()
+	{}
+
+signals:
+	void registerGameFinished(IndexServiceWrapper *wrapper);
+	void sealGameFinished(IndexServiceWrapper *wrapper);
+	void unregisterGameFinished(IndexServiceWrapper *wrapper);
+
+private slots:
+	void _registerGameFinished(Request *request)
+	{
+		NetworkGameRequest *req = static_cast<NetworkGameRequest *>(request);
+
+	}
+
+	void _sealGameFinished(Request *request)
+	{}
+	void _unregisterGameFinished(Request *request)
+	{}
+
+private:
+	IndexService &_service;
+	NetworkGame &_game;
+	State _state;
+};
 
 OpponentService::OpponentService(OpponentServiceConf conf, QObject *parent)
-	: NetworkPlayerService(new NetworkGame(conf.networkGameConf()), parent),
-	  _indexServices(conf.indexServices()),
-	  _endpoint(*new ServerEndpoint(10000, this))
+	: NetworkPlayerService(*new NetworkGame(conf.networkGameConf()), parent),
+	  _list(conf.indexServices()), _endpoint(10000, this)
 {
-	connect(game(), SIGNAL(_set(FieldValue,int,int)),
-			this, SLOT(_set(FieldValue, int, int)));
+	connect(&_list, SIGNAL(deletedAt(int)),
+			this, SLOT(_indexServiceDeletedAt(int)));
 }
 
 OpponentService::~OpponentService() { delete game(); }
@@ -69,6 +102,11 @@ bool OpponentService::startService(QString *errMsg)
 	bool registerSuccess = false;
 	QString finalErrMsg;
 	for (int i = 0; i < _indexServices.size(); i++) {
+
+
+
+
+
 		QString errMsg;
 		if (!_indexServices.at(i)->registerGame(*game())) {
 			finalErrMsg.append(errMsg + "\n");
@@ -84,6 +122,23 @@ bool OpponentService::startService(QString *errMsg)
 	}
 
 	return true;
+}
+
+void OpponentService::registerGame()
+{
+	for (int i = 0; i < _indexServices.size(); i++) {
+		NetworkGameRequest *req = new NetworkGameRequest(*game());
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_registerGameFinished(Request*)));
+		_indexServices.at(i)->registerGame(*req);
+	}
+
+	_endpoint.sendAndReceive(*req);
+}
+
+void OpponentService::_registerGameFinished(Request *req)
+{
+
 }
 
 void OpponentService::acceptJoinRequest()
@@ -175,4 +230,3 @@ void OpponentService::_messageReceived(Message msg)
 
 	}
 }
-*/

@@ -47,13 +47,16 @@ IndexServiceList::IndexServiceList(Settings *settings, QObject *parent)
 
 	Settings::ValuesArray servicesData =
 			_settings->getArray(IdxSrvArrayKey, _keys);
+	IndexServiceConf conf;
 	for (int i = 0; i < servicesData.size(); i++) {
-		QString name = servicesData.at(i).at(0).toString();
-		QHostAddress address =
-				QHostAddress(servicesData.at(i).at(1).toString());
-		quint16 port = (quint16)servicesData.at(i).at(2).toInt();
-		IndexService *item = new IndexService(address, port, name);
-		_list.append(item);
+		try {
+			conf.setName(servicesData.at(i).at(0).toString());
+			QHostAddress address (servicesData.at(i).at(1).toString());
+			conf.setIpAddress(address);
+			conf.setPort((quint16)servicesData.at(i).at(2).toInt());
+			IndexService *item = new IndexService(conf);
+			_list.append(item);
+		} catch (IndexServiceConf::Exception) {}
 	}
 }
 
@@ -105,7 +108,11 @@ QVariant IndexServiceList::headerData(int section, Qt::Orientation orientation,
 
 void IndexServiceList::create(QHostAddress host, quint16 port, QString name)
 {
-	IndexService *item = new IndexService(host, port, name);
+	IndexServiceConf conf;
+	conf.setName(name);
+	conf.setIpAddress(host);
+	conf.setPort(port);
+	IndexService *item = new IndexService(conf);
 	int index = _list.size();
 	beginInsertRows(QModelIndex(), index, index);
 	_list.append(item);

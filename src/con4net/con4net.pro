@@ -27,7 +27,11 @@ SOURCES += main.cpp \
     processingqueue.cpp \
     clientendpoint.cpp \
     serverendpoint.cpp \
-    indexservice.cpp
+    indexservice.cpp \
+    indexservicelist.cpp \
+    initiatorservice.cpp \
+    networkplayerservice.cpp \
+    opponentservice.cpp
 
 HEADERS += \
 	../con4core/player.h \
@@ -41,4 +45,8 @@ HEADERS += \
     processingqueue.h \
     clientendpoint.h \
     serverendpoint.h \
-    indexservice.h
+    indexservice.h \
+    indexservicelist.h \
+    initiatorservice.h \
+    networkplayerservice.h \
+    opponentservice.h

@@ -30,7 +30,6 @@
 
 #include <stdexcept>
 #include <QTcpSocket>
-#include <QStringList>
 #include "networkplayerservice.h"
 #include "clientendpoint.h"
 #include "messages.h"
@@ -76,38 +75,28 @@ public:
 
 	void connectToServer();
 	void join();
-	void move(int fieldNumber) const;
-	void abortGame(QString reason) const;
 
 signals:
 	void connectToServerFinished(bool success, QString failReason);
-	void joinGameSuccess();
-	void joinGameFailed(QString reason);
-	void startGame();
-	void synchronizeGameBoard(int **fieldNumberAndValue);
-	void updatedGameBoard(int fieldNumber, FieldValue value);
-	void movedFailed(QString reason);
-	void endGame(int result);
-	void abortGame(QString reason);
+	void joinGameFinished(bool success, QString failReason);
 
 private slots:
 	void aborted(FieldValue requester, QString reason);
-	void finished(FieldValue winner);
 	void set(FieldValue player, Game::BoardIndex index);
-	void started(FieldValue startPlayer);
-	void undone(FieldValue player, Game::BoardIndex index);
+	void _connectFinished(Request *request);
+	void _joinFinished(Request *request);
 	void _msgReceived(Message msg);
+	void _setFinished(Request *request);
 
 private:
-	void _handleMsg(QStringList msgTokens);
-	void _handleSyncGameBoard(QStringList msgTokens);
-	void _handleUpdateGameBoard(QStringList msgTokens);
+	void _handleSyncGameBoard(QList<Messages::Field> fields);
+	void _handleUpdateGameBoard(Messages::Vector3 vals,
+								Messages::FieldState state);
 	void _abort(QString reason);
 
 	bool _joined;
 	NetworkString _playerName;
 	ClientEndpoint _endpoint;
-	Messages::ProtocolVersion _protocolVersion;
 };
 
 #endif // INITIATORSERVICE_H

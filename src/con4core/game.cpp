@@ -243,13 +243,13 @@ void Game::abort(FieldValue requester, QString reason)
 {
 	if (!_hasStarted)
 		throw InvalidOperationException(
-				"Cannot start, since game has not yet started.");
+				"Cannot abort, since game has not yet started.");
 	if (_finished)
 		throw InvalidOperationException(
-				"Cannot start, since game is already finished.");
+				"Cannot abort, since game is already finished.");
 	if (_aborted)
 		throw InvalidOperationException(
-				"Cannot start, since game has been aborted.");
+				"Cannot abort, since game has already been aborted.");
 
 	_aborted = true;
 	emit aborted(requester, reason);

@@ -28,8 +28,6 @@
 #ifndef OPPONENTSERVICE_H
 #define OPPONENTSERVICE_H
 
-#include <QUuid>
-#include <QStringList>
 #include "serverendpoint.h"
 #include "networkplayerservice.h"
 #include "indexservicelist.h"
@@ -37,18 +35,20 @@
 class OpponentServiceConf
 {
 public:
-	OpponentServiceConf(QList<IndexService *> indexServices);
+	OpponentServiceConf(IndexServiceList &list)
+		: _list(list), _networkGameConf() {}
 
 	NetworkGameConf networkGameConf() const { return _networkGameConf; }
 	void setNetworkGameConf(NetworkGameConf value) { _networkGameConf = value; }
 
-	QList<IndexService *> indexServices() const { return _indexServices; }
-	void setIndexServices(QList<IndexService *> value);
+	IndexServiceList *indexServices() const { return &_list; }
 
 private:
 	NetworkGameConf _networkGameConf;
-	QList<IndexService *> _indexServices;
+	IndexServiceList &_list;
 };
+
+class IndexServiceWrapper;
 
 class OpponentService : public NetworkPlayerService
 {
@@ -59,6 +59,7 @@ public:
 	~OpponentService();
 
 	bool startService(QString *errMsg = 0);
+	void registerGame();
 
 	void acceptJoinRequest();
 	void rejectJoinRequest(QString reason);
@@ -70,11 +71,14 @@ public:
 	void abortGame(QString reason) const;
 
 signals:
+	void registerGameFinished(bool success, QString failReason);
 	void joinGame(QString playerName);
 	void move(int fieldIndex);
 	void abortGame(QString reason);
 
 private slots:
+	void _indexServiceDeletedAt(int index);
+	void _registerGameFinished(Request *req);
 	void _messageReceived(Message msg);
 	void aborted(FieldValue requester, QString reason);
 	void finished(FieldValue winner);
@@ -86,8 +90,9 @@ private:
 	void _handleMsg(QStringList msgTokens);
 	bool _sendMsg(QString msg);
 
-	QList<IndexService *> _indexServices;
-	ServerEndpoint &_endpoint;
+	IndexServiceList &_list;
+	QList<IndexServiceWrapper *> _wrappers;
+	ServerEndpoint _endpoint;
 };
 
 #endif // OPPONENTSERVICE_H

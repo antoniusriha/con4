@@ -41,5 +41,3 @@ Player::Player(Game &game, QObject *parent)
 	connect(&game, SIGNAL(undone(FieldValue,Game::BoardIndex)),
 			this, SLOT(undone(FieldValue,Game::BoardIndex)));
 }
-
-Player::~Player() {}

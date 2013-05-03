@@ -35,6 +35,8 @@
 namespace Messages
 {
 
+const QString InvalidRespErr = "Error: Invalid response from server.";
+
 enum ProtocolVersion { V1, V2 };
 
 enum GameState { Open, Sealed };
@@ -102,11 +104,10 @@ bool parseMove(Message msg, Vector3 &dims, Vector3 &index);
 enum FieldState { None, Player1, Player2 };
 struct Field { Vector3 index; FieldState state; };
 Message synchronizeGameBoard(Vector3 dims, QList<Field> fields);
-bool parseSynchronizeGameBoard(Message msg, Vector3 &dims,
-							   QList<Field> &fields);
+bool parseSynchronizeGameBoard(Message msg, Vector3 dims, QList<Field> &fields);
 
 Message updateGameBoard(Vector3 dims, Vector3 vals, FieldState fieldState);
-bool parseUpdateGameBoard(Message msg, Vector3 &dims, Vector3 &vals,
+bool parseUpdateGameBoard(Message msg, Vector3 dims, Vector3 &vals,
 						  FieldState &fieldState);
 
 Message movedFailed(NetworkString reason);
@@ -122,7 +123,9 @@ Message heartBeat();
 bool parseHeartBeat(Message msg);
 
 Message failed(NetworkString header, NetworkString reason);
-int fieldNumber(Vector3 dims, Vector3 vals);
+bool parseFailed(Message msg, NetworkString header, NetworkString &reason);
+int toFieldNumber(Vector3 dims, Vector3 vals);
+bool toVals(Vector3 dims, int fieldNumber, Vector3 &vals);
 
 }
 

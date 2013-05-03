@@ -27,32 +27,58 @@
 
 #include "clientendpoint.h"
 
-ClientEndpoint::ClientEndpoint(int timeout, QObject *parent) :
-	Endpoint(timeout, parent), _socket(*new QTcpSocket(this))
+class ConnectUnit : public ProcessingUnit
 {
-	setSocket(_socket);
+public:
+	ConnectUnit(QTcpSocket *socket, QHostAddress ipAddress, quint16 port,
+				Request *req, QObject *parent = 0)
+		: ProcessingUnit(parent), _socket(socket), _ipAddress(ipAddress),
+		  _port(port), _req(req) {}
+
+protected:
+	void process()
+	{
+		connect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+				this, SLOT(_error()));
+		connect(_socket, SIGNAL(connected()), this, SLOT(_connected()));
+		_socket->connectToHost(_ipAddress, _port);
+	}
+
+private slots:
+	void _error()
+	{
+		disconnect(_socket, SIGNAL(connected()), this, SLOT(_connected()));
+		disconnect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+				   this, SLOT(_error()));
+		_req->endRequest(false, _socket->errorString());
+		emit finished(this);
+	}
+
+	void _connected()
+	{
+		disconnect(_socket, SIGNAL(connected()), this, SLOT(_connected()));
+		disconnect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+				   this, SLOT(_error()));
+		_req->endRequest(true);
+		emit finished(this);
+	}
+
+private:
+	QTcpSocket *_socket;
+	QHostAddress _ipAddress;
+	quint16 _port;
+	Request *_req;
+};
+
+ClientEndpoint::ClientEndpoint(QHostAddress ipAddress, quint16 port,
+							   int timeout, QObject *parent) :
+	Endpoint(timeout, parent), _ipAddress(ipAddress), _port(port)
+{
+	setSocket(*new QTcpSocket());
 }
 
-void ClientEndpoint::connectToServer(QHostAddress ip, quint16 port)
+void ClientEndpoint::connectToServer(Request &request)
 {
-	connect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)),
-			this, SLOT(_error()));
-	connect(&_socket, SIGNAL(connected()), this, SLOT(_connected()));
-	_socket.connectToHost(ip, port);
-}
-
-void ClientEndpoint::_error()
-{
-	disconnect(&_socket, SIGNAL(connected()), this, SLOT(_connected()));
-	disconnect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)),
-			   this, SLOT(_error()));
-	emit connectToServerFinished(false, _socket.errorString());
-}
-
-void ClientEndpoint::_connected()
-{
-	disconnect(&_socket, SIGNAL(connected()), this, SLOT(_connected()));
-	disconnect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)),
-			   this, SLOT(_error()));
-	emit connectToServerFinished(true, QString());
+	ConnectUnit *unit = new ConnectUnit(socket(), _ipAddress, _port, &request);
+	queue()->add(unit);
 }

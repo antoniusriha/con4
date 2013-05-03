@@ -28,8 +28,6 @@
 #include <QTimer>
 #include "endpoint.h"
 
-using namespace std;
-
 Request::Request(QObject *parent)
 	: QObject(parent), _success(false), _ended(false), _errorString() {}
 
@@ -39,7 +37,7 @@ void Request::endRequest(bool success, QString errorString)
 	_ended = true;
 	_success = success;
 	_errorString = errorString;
-	emit finished();
+	emit finished(this);
 }
 
 SendRequest::SendRequest(Message msg, QObject *parent)
@@ -55,7 +53,7 @@ public:
 	ReceiveUnit(Endpoint *endpoint, Message msg, QObject *parent = 0)
 		: ProcessingUnit(parent), _endpoint(endpoint), _msg(msg) {}
 
-	void Process()
+	void process()
 	{
 		emit _endpoint->messageReceived(_msg);
 		emit finished(this);
@@ -72,7 +70,7 @@ public:
 	SendUnit(Endpoint *endpoint, SendRequest *req, QObject *parent = 0)
 		: ProcessingUnit(parent), _endpoint(endpoint), _req(req), _nBytes(0) {}
 
-	void Process()
+	void process()
 	{
 		connect(_endpoint->_socket, SIGNAL(bytesWritten(qint64)),
 				this, SLOT(_bytesWritten(quint64)));
@@ -131,7 +129,7 @@ public:
 		connect(&_timer, SIGNAL(timeout()), this, SLOT(_timeout()));
 	}
 
-	void Process()
+	void process()
 	{
 		connect(_endpoint->_socket, SIGNAL(bytesWritten(qint64)),
 				this, SLOT(_bytesWritten(quint64)));
@@ -248,7 +246,7 @@ public:
 	DisconnectUnit(Endpoint *endpoint, Request *req, QObject *parent = 0)
 		: ProcessingUnit(parent), _endpoint(endpoint), _req(req) {}
 
-	void Process()
+	void process()
 	{
 		connect(_endpoint->_socket, SIGNAL(disconnected()),
 				this, SLOT(_disconnected));

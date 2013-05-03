@@ -37,7 +37,7 @@ class NetworkPlayerService : public Player
 
 public:
 	NetworkPlayerService(NetworkGame &game, QObject *parent = 0);
-	~NetworkPlayerService();
+    ~NetworkPlayerService() {}
 
 	NetworkGame *game() const { return &_game; }
 

@@ -47,7 +47,7 @@ public:
 	void endRequest(bool success, QString errorString = QString());
 
 signals:
-	void finished();
+	void finished(Request *request);
 
 private:
 	bool _success, _ended;
@@ -118,6 +118,8 @@ protected:
 
 	QTcpSocket *socket() const { return _socket; }
 	void setSocket(QTcpSocket &value);
+
+	ProcessingQueue *queue() { return &_queue; }
 
 private slots:
 	void _readyRead();

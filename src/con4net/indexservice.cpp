@@ -25,19 +25,247 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
-#include "con4netglobals.h"
 #include "indexservice.h"
 
-using namespace std;
-
-IndexService::IndexService (QHostAddress host, quint16 port, QString name)
-	: _processing(false), _msgQueue(), _curUnit(), _endpoint(10000, this),
-	  _host (host), _port (port), _name (name), _games()
+IndexServiceConf::IndexServiceConf()
 {
-	connect(&_endpoint, SIGNAL(sendAndReceiveFinished(bool,Message,QString)),
-			this, SLOT(_sendAndReceiveFinished(bool,Message,QString)));
+	setName("Local");
+	setIpAddress(QHostAddress::LocalHost);
+	setPort(9090);
 }
+
+void IndexServiceConf::setName(QString value)
+{
+	if (value.isEmpty()) throw Exception("Name must not be empty.");
+	_name = value;
+}
+
+void IndexServiceConf::setIpAddress(QHostAddress value)
+{
+	if (value.isNull())
+		throw Exception("IpAddress must be a non-null host address.");
+	_ipAddress = value;
+}
+
+void IndexServiceConf::setPort(quint16 value)
+{
+	if (value < 1025)
+		throw Exception("Port must be a port number above 1024.");
+	_port = value;
+}
+
+class IndexServiceUnit : public ProcessingUnit
+{
+protected:
+	IndexServiceUnit(ClientEndpoint *endpoint, Request *req,
+					 QObject *parent = 0)
+		: ProcessingUnit(parent), _endpoint(endpoint), _req(req)
+	{
+		_conReq = new Request(this);
+		_disconReq = new Request(this);
+		connect(_conReq, SIGNAL(finished(Request*)),
+				this, SLOT(_conFinished()));
+		connect(_disconReq, SIGNAL(finished(Request*)),
+				this, SLOT(_disconFinished()));
+	}
+
+	ClientEndpoint *endpoint() const { return _endpoint; }
+	Request *req() const { return _req; }
+	SendAndReceiveRequest *internalReq() const { return _internalReq; }
+
+	virtual Message getMsg() = 0;
+	virtual void onReqSuccess() = 0;
+
+private slots:
+	void _conFinished()
+	{
+		if (_conReq->success()) {
+			_internalReq = new SendAndReceiveRequest(getMsg(), 10000, this);
+			connect(_internalReq, SIGNAL(finished(Request*)),
+					this, SLOT(_finished()));
+			_endpoint->sendAndReceive(*_internalReq);
+		} else {
+			_req->endRequest(false, _conReq->errorString());
+			emit finished(this);
+		}
+	}
+
+	void _finished()
+	{
+		if (_internalReq->success()) onReqSuccess();
+		else _req->endRequest(false, _internalReq->errorString());
+		_endpoint->disconnectFromHost(*_disconReq);
+	}
+
+	void _disconFinished() { emit finished(this); }
+
+private:
+	void process() { _endpoint->connectToServer(*_conReq); }
+
+	ClientEndpoint *_endpoint;
+	Request *_conReq, *_req, *_disconReq;
+	SendAndReceiveRequest *_internalReq;
+};
+
+class RegisterUnit : public IndexServiceUnit
+{
+public:
+	RegisterUnit(ClientEndpoint *endpoint, NetworkGameRequest *req,
+				 QObject *parent = 0)
+		: IndexServiceUnit(endpoint, req, parent) {}
+
+private:
+	Message getMsg()
+	{
+		NetworkGameRequest *request = static_cast<NetworkGameRequest *>(req());
+		NetworkGame *game = request->game();
+		Messages::Vector3 dims;
+		dims.w = game->dims().width();
+		dims.h = game->dims().height();
+		dims.d = game->dims().depth();
+
+		Messages::GameData gameData;
+		gameData.dims = dims;
+		gameData.gameName = game->name();
+		gameData.initiatorName = game->initiatorName();
+		gameData.ipAddress = game->ipAddress();
+		gameData.port = game->port();
+		gameData.state = Messages::Open;
+
+		return Messages::registerGame(gameData);
+	}
+
+	void onReqSuccess()
+	{
+		NetworkGameRequest *request = static_cast<NetworkGameRequest *>(req());
+		QUuid guid;
+		NetworkString reason;
+		if (Messages::parseRegisterSuccess(
+				internalReq()->msgReceived(), guid)) {
+			request->game()->setGuid(guid);
+			request->endRequest(true);
+		} else if (Messages::parseRegisterFailed(
+					   internalReq()->msgReceived(), reason)) {
+			request->endRequest(false, reason.string());
+		} else request->endRequest(false, Messages::InvalidRespErr);
+	}
+};
+
+class UnregisterUnit : public IndexServiceUnit
+{
+public:
+	UnregisterUnit(ClientEndpoint *endpoint, NetworkGameRequest *req,
+				   QObject *parent = 0)
+		: IndexServiceUnit(endpoint, req, parent) {}
+
+private:
+	Message getMsg()
+	{
+		NetworkGameRequest *request = static_cast<NetworkGameRequest *>(req());
+		return Messages::unregisterGame(request->game()->guid());
+	}
+
+	void onReqSuccess()
+	{
+		NetworkGameRequest *request = static_cast<NetworkGameRequest *>(req());
+		NetworkString reason;
+		if (Messages::parseUnregisterSuccess(internalReq()->msgReceived()))
+			request->endRequest(true);
+		else if (Messages::parseUnregisterFailed(
+					   internalReq()->msgReceived(), reason)) {
+			request->endRequest(false, reason.string());
+		} else request->endRequest(false, Messages::InvalidRespErr);
+	}
+};
+
+class SealUnit : public IndexServiceUnit
+{
+public:
+	SealUnit(ClientEndpoint *endpoint, NetworkGameRequest *req,
+			 QObject *parent = 0)
+		: IndexServiceUnit(endpoint, req, parent) {}
+
+private:
+	Message getMsg()
+	{
+		NetworkGameRequest *request = static_cast<NetworkGameRequest *>(req());
+		return Messages::sealGame(request->game()->guid());
+	}
+
+	void onReqSuccess()
+	{
+		NetworkGameRequest *request = static_cast<NetworkGameRequest *>(req());
+		NetworkString reason;
+		if (Messages::parseSealGameSuccess(internalReq()->msgReceived()))
+			request->endRequest(true);
+		else if (Messages::parseSealGameFailed(
+					   internalReq()->msgReceived(), reason)) {
+			request->endRequest(false, reason.string());
+		} else request->endRequest(false, Messages::InvalidRespErr);
+	}
+};
+
+class RequestGameListUnit : public IndexServiceUnit
+{
+public:
+	RequestGameListUnit(IndexService *service, Request *req,
+						QObject *parent = 0)
+		: IndexServiceUnit(&service->_endpoint, req, parent), _service(service)
+	{}
+
+private:
+	Message getMsg() { return Messages::requestGameList(); }
+
+	void onReqSuccess()
+	{
+		QList<Messages::GameData> gameData;
+		if (Messages::parseAnswerGameList(
+				internalReq()->msgReceived(), gameData)) {
+
+			QList<NetworkGame *> *_games = &_service->_games;
+			for (int i = _games->size() - 1; i >=0; i--) {
+				NetworkGame *game = _games->at(i);
+				if (!game->hasStarted()) {
+					_games->removeAt(i);
+					delete game;
+				}
+			}
+
+			NetworkGameConf conf;
+			for (int i = 0; i < gameData.size(); i++) {
+				Messages::GameData data = gameData.at(i);
+				if (data.state == Messages::Sealed) continue;
+
+				// if game exists already, skip
+				bool cont = false;
+				for (int i = 0; i < _games->size(); i++) {
+					if ((cont = (_games->at(i)->name().string() ==
+								 data.gameName.string())))
+						break;
+				}
+				if (cont) continue;
+
+				try {
+					Game::Dimensions dims(4, data.dims.w,
+										  data.dims.h, data.dims.d);
+					conf.setDims(dims);
+					conf.setInitiatorName(data.initiatorName);
+					conf.setIpAddress(data.ipAddress);
+					conf.setName(data.gameName);
+					conf.setPort(data.port);
+					_games->append(new NetworkGame(conf));
+				} catch (Game::Dimensions::Exception) {
+				} catch (NetworkGameConf::Exception) {}
+			}
+			req()->endRequest(true);
+		} else req()->endRequest(false, Messages::InvalidRespErr);
+	}
+
+	IndexService *_service;
+};
+
+IndexService::IndexService(IndexServiceConf conf)
+	: _endpoint(conf.ipAddress(), conf.port(), 10000), _conf(conf), _games() {}
 
 IndexService::~IndexService()
 {
@@ -45,205 +273,30 @@ IndexService::~IndexService()
 		delete _games.takeFirst();
 }
 
-void IndexService::registerGame(NetworkGame &game)
+void IndexService::registerGame(NetworkGameRequest &request)
 {
-	if (game.hasStarted())
-		throw logic_error("Cannot register games that have already started.");
+	if (request.game()->hasStarted())
+		throw InvalidOperationException("Cannot register games that "
+										"have already started.");
 
-	// register game
-	Messages::Vector3 dims;
-	dims.w = game.dims().width();
-	dims.h = game.dims().height();
-	dims.d = game.dims().depth();
-
-	Messages::GameData gameData;
-	gameData.dims = dims;
-	gameData.gameName = game.name();
-	gameData.initiatorName = game.initiatorName();
-	gameData.ipAddress = game.ipAddress();
-	gameData.port = game.port();
-	gameData.state = Messages::Open;
-
-	ProcessingUnit unit;
-	unit.msg = Messages::registerGame(gameData);
-	unit.type = ProcessingUnit::Register;
-	_msgQueue.enqueue(unit);
-	_processMsg();
+	RegisterUnit *unit = new RegisterUnit(&_endpoint, &request);
+	_queue.add(unit);
 }
 
-void IndexService::unregisterGame (NetworkGame &game)
+void IndexService::unregisterGame (NetworkGameRequest &request)
 {
-	ProcessingUnit unit;
-	unit.msg = Messages::unregisterGame(game.guid());
-	unit.type = ProcessingUnit::Unregister;
-	_msgQueue.enqueue(unit);
-	_processMsg();
+	UnregisterUnit *unit = new UnregisterUnit(&_endpoint, &request);
+	_queue.add(unit);
 }
 
-void IndexService::refreshGameList()
+void IndexService::refreshGameList(Request &request)
 {
-	ProcessingUnit unit;
-	unit.msg = Messages::requestGameList();
-	unit.type = ProcessingUnit::Refresh;
-	_msgQueue.enqueue(unit);
-	_processMsg();
+	RequestGameListUnit *unit = new RequestGameListUnit(this, &request);
+	_queue.add(unit);
 }
 
-void IndexService::sealGame(NetworkGame &game)
+void IndexService::sealGame(NetworkGameRequest &request)
 {
-	ProcessingUnit unit;
-	unit.msg = Messages::sealGame(game.guid());
-	unit.type = ProcessingUnit::Seal;
-	_msgQueue.enqueue(unit);
-	_processMsg();
-
-	/*
-	QString msg = QString("seal_game;%1\n").arg(game.guid());
-	QStringList respTokens;
-	try {
-		respTokens = _sendMsg(msg);
-	} catch (runtime_error &ex) {
-		errMsg = ex.what();
-		return false;
-	}
-
-	if (respTokens.size() == 0) {
-		errMsg = INVALID_RESP_ERR;
-		return false;
-	}
-
-	if (respTokens[0] == "seal_game_success") return true;
-	errMsg = respTokens.size() > 1 ? respTokens[1] : "Unspecified error.";
-	return false;
-	*/
-}
-
-/*
-void IndexService::_msgReceived(Message msg)
-{
-	NetworkString failReason;
-	QUuid guid;
-	QList<Messages::GameData> gameData;
-	if (Messages::parseRegisterSuccess(msg, guid)) {
-		emit registerSuccess(guid);
-	} else if (Messages::parseRegisterFailed(msg, failReason)) {
-		emit registerFailed(failReason);
-	} else if (Messages::parseUnregisterSuccess(msg)) {
-	} else if (Messages::parseUnregisterFailed(msg, failReason)) {
-	} else if (Messages::parseAnswerGameList(msg, gameData)) {
-	} else if (Messages::parseSealGameSuccess(msg)) {
-	} else if (Messages::parseSealGameFailed(msg, failReason)) {
-	}
-
-	_endpoint.disconnectFromHost();
-}
-*/
-
-void IndexService::_processMsg()
-{
-	if (_processing || _msgQueue.isEmpty()) return;
-
-	_processing = true;
-	_endpoint.connectToServer(_host, _port);
-	_curUnit = _msgQueue.dequeue();
-	_endpoint.send(_curUnit.msg);
-}
-
-void IndexService::_sendAndReceiveFinished(bool success, Message msg,
-										   QString failReason)
-{
-	QString parseErrMsg = "Invalid response msg from server.";
-
-	if (_curUnit.type == ProcessingUnit::Refresh) {
-		if (!success) emit refreshGameListFinished(false, failReason);
-		else {
-			QList<Messages::GameData> gameData;
-			if (Messages::parseAnswerGameList(msg, gameData))
-				_readGameListAnswer(gameData);
-			else emit refreshGameListFinished(false, parseErrMsg);
-		}
-
-		QUuid guid;
-		NetworkString failMsg;
-		if (Messages::parseRegisterSuccess(msg, guid)) {
-			emit registerFinished(true, guid, QString());
-		} else if (Messages::parseRegisterFailed(msg, failMsg)) {
-			emit registerFinished(false, QUuid(), failMsg.string());
-		}
-	} else if (_curUnit.type == ProcessingUnit::Register) {
-
-	} else if (_curUnit.type == ProcessingUnit::Seal) {
-
-	} else if (_curUnit.type == ProcessingUnit::Unregister) {
-
-	}
-
-	_endpoint.disconnectFromHost();
-	_processing = false;
-}
-
-void IndexService::_readGameListAnswer(QList<Messages::GameData> &gameData)
-{
-	NetworkGameConf conf;
-
-	/*
-	for (int i = _games.size() - 1; i >=0; i--) {
-		NetworkGame *game = _games.at(i);
-		if (!game->hasStarted()) {
-			_games.removeAt(i);
-			delete game;
-		}
-	}
-
-	QStringList respTokens;
-	try {
-		respTokens = _sendMsg("request_game_list\n");
-	} catch (runtime_error &ex) {
-		errMsg = ex.what();
-		return false;
-	}
-
-	if (respTokens.size() < 2) {
-		errMsg = INVALID_RESP_ERR;
-		return false;
-	}
-
-	int n = (respTokens.size() - 2) / 8;
-	for (int i = 0; i < n; i++) {
-		if (gameData.at(i).state == Messages::Sealed) continue;
-
-		QString playerName
-		QString gameName = respTokens[baseIdx + 2];
-		int width = respTokens[baseIdx + 3].toInt();
-		int height = respTokens[baseIdx + 4].toInt();
-		bool depthOk;
-		int depth = (respTokens[baseIdx + 5]).toInt(&depthOk);
-		QHostAddress host;
-		bool hostOk = host.setAddress(respTokens[baseIdx + 6]);
-		quint16 port = (quint16)QString(respTokens[baseIdx +7]).toInt();
-
-		if (width == 0 || height == 0 || !depthOk || !hostOk || port == 0)
-			continue;
-
-		// if game exists already, skip
-		bool cont = false;
-		for (int i = 0; i < _games.size(); i++)
-			if ((cont = (_games.at(i)->name() == gameName))) break;
-		if (cont) continue;
-
-		Messages::GameData data = gameData.at(i);
-
-		try {
-			Game::Dimensions dims(4, data.dims.w, data.dims.h, data.dims.d);
-			conf.setDims(dims);
-			conf.setInitiatorName(data.initiatorName);
-			conf.setIpAddress(data.ipAddress);
-			conf.setName(data.gameName);
-			conf.setPort(data.port);
-			_games.append(new NetworkGame(conf));
-		} catch (Game::Dimensions::Exception) {
-		} catch (Game::Bo)
-	}
-
-	*/
+	SealUnit *unit = new SealUnit(&_endpoint, &request);
+	_queue.add(unit);
 }

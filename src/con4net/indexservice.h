@@ -28,60 +28,85 @@
 #ifndef INDEXSERVICE_H
 #define INDEXSERVICE_H
 
+#include <stdexcept>
 #include <QUuid>
-#include <QHostAddress>
 #include <QUdpSocket>
 #include "clientendpoint.h"
 #include "networkgame.h"
 #include "messages.h"
 
-class RegisterRequest : public Request
+class IndexServiceConf
 {
 public:
-	RegisterRequest(IndexService *service, QObject *parent = 0);
+	class Exception : public std::invalid_argument
+	{
+	public:
+		explicit Exception(QString what)
+			: invalid_argument(what.toStdString()) {}
+	};
+
+	IndexServiceConf();
+
+	QString name() const { return _name; }
+	void setName(QString value);
+
+	QHostAddress ipAddress() const { return _ipAddress; }
+	void setIpAddress(QHostAddress value);
+
+	quint16 port() const { return _port; }
+	void setPort(quint16 value);
 
 private:
-	IndexService _service;
-	QUuid _guid;
+	QString _name;
+	QHostAddress _ipAddress;
+	quint16 _port;
 };
+
+class NetworkGameRequest : public Request
+{
+public:
+	NetworkGameRequest(NetworkGame &game, QObject *parent = 0);
+	NetworkGame *game() const { return &_game; }
+
+private:
+	NetworkGame &_game;
+};
+
+class RequestGameListUnit;
 
 class IndexService : public QObject
 {
 	Q_OBJECT
 
 public:
-	IndexService (QHostAddress host, quint16 port, QString name);
+	class InvalidOperationException : public std::logic_error
+	{
+	public:
+		explicit InvalidOperationException(QString what)
+			: logic_error(what.toStdString()) {}
+	};
+
+	IndexService(IndexServiceConf conf);
 	~IndexService();
 
-	QString name () const { return _name; }
-	QHostAddress ipAddress () const { return _host; }
-	quint16 port () const { return _port; }
-	QList<NetworkGame *> *games() { return &_games; }
+	QString name() const { return _conf.name(); }
+	QHostAddress ipAddress() const { return _conf.ipAddress(); }
+	quint16 port() const { return _conf.port(); }
+	const QList<NetworkGame *> *games() const { return &_games; }
 
-	void registerGame(NetworkGame &game);
-	void unregisterGame (NetworkGame &game);
-	void refreshGameList ();
-	void sealGame (NetworkGame &game);
-
-signals:
-	void registerFinished(bool success, QUuid guid, QString failReason);
-	void unregisterFinished(bool success, QString failReason);
-	void refreshGameListFinished(bool success, QString failReason);
-	void sealGameFinished(bool success, QString failReason);
-
-private slots:
-	void _sendAndReceiveFinished(bool success, Message msg, QString failReason);
+	void registerGame(NetworkGameRequest &request);
+	void unregisterGame(NetworkGameRequest &request);
+	void refreshGameList(Request &request);
+	void sealGame(NetworkGameRequest &request);
 
 private:
-	void _readGameListAnswer(QList<Messages::GameData> &gameData);
-
 	ProcessingQueue _queue;
 	ClientEndpoint _endpoint;
-	QHostAddress _host;
-	quint16 _port;
-	QString _name;
+	IndexServiceConf _conf;
 	QList<NetworkGame *> _games;
 	QUdpSocket _udpSocket;
+
+	friend class RequestGameListUnit;
 };
 
 #endif // INDEXSERVICE_H

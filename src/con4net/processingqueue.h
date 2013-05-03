@@ -37,7 +37,7 @@ class ProcessingUnit : public QObject
 
 public:
 	explicit ProcessingUnit(QObject *parent = 0);
-	virtual void Process() = 0;
+	virtual void process() = 0;
 
 signals:
 	void finished(ProcessingUnit *unit);

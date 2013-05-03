@@ -25,11 +25,7 @@
  * THE SOFTWARE.
  */
 
-#include <QStringList>
-#include "con4netglobals.h"
 #include "initiatorservice.h"
-
-using namespace std;
 
 InitiatorService::InitiatorServiceConf::InitiatorServiceConf(NetworkGame &game)
 	: _game(game) {}
@@ -43,7 +39,8 @@ void InitiatorService::InitiatorServiceConf::setPlayerName(NetworkString value)
 
 InitiatorService::InitiatorService(InitiatorServiceConf conf, QObject *parent)
 	: NetworkPlayerService(*conf.game(), parent), _joined(false),
-	  _playerName(conf.playerName()), _endpoint(10000, this)
+	  _playerName(conf.playerName()),
+	  _endpoint(conf.game()->ipAddress(), conf.game()->port(), 10000, this)
 {
 	connect(&_endpoint, SIGNAL(messageReceived(Message)),
 			this, SLOT(_msgReceived(Message)));
@@ -55,13 +52,44 @@ InitiatorService::~InitiatorService() {}
 
 void InitiatorService::connectToServer()
 {
-	_endpoint.connectToServer(game()->ipAddress(), game()->port());
+	Request *req = new Request();
+	connect(req, SIGNAL(finished(Request*)),
+			this, SLOT(_connectFinished(Request*)));
+	_endpoint.connectToServer(*req);
+}
+
+void InitiatorService::_connectFinished(Request *request)
+{
+	emit connectToServerFinished(request->success(), request->errorString());
+	delete request;
 }
 
 void InitiatorService::join()
 {
 	if (_joined) throw InvalidOperationException("Already joined a game.");
-	_endpoint.send(Messages::joinGame(_playerName, game()->name()));
+
+	SendAndReceiveRequest *req = new SendAndReceiveRequest(
+				Messages::joinGame(_playerName, game()->name()));
+	connect(req, SIGNAL(finished(Request*)),
+			this, SLOT(_joinFinished(Request*)));
+	_endpoint.sendAndReceive(*req);
+}
+
+void InitiatorService::_joinFinished(Request *request)
+{
+	if (request->success()) {
+		SendAndReceiveRequest *req =
+				static_cast<SendAndReceiveRequest *>(request);
+		NetworkString reason;
+		Messages::ProtocolVersion pVersion;
+		if (Messages::parseJoinGameSuccess(req->msgReceived(), pVersion)) {
+			_joined = true;
+			emit joinGameFinished(true, QString());
+		} else if (Messages::parseJoinGameFailed(req->msgReceived(), reason))
+			emit joinGameFinished(false, reason.string());
+		else emit joinGameFinished(false, Messages::InvalidRespErr);
+	}
+	delete request;
 }
 
 void InitiatorService::set(FieldValue player, Game::BoardIndex index)
@@ -77,149 +105,143 @@ void InitiatorService::set(FieldValue player, Game::BoardIndex index)
 		vals.h = index.hVal();
 		vals.d = index.dVal();
 
-		_endpoint.send(Messages::move(dims, vals));
+		SendAndReceiveRequest *req = new SendAndReceiveRequest(
+					Messages::move(dims, vals));
+		_endpoint.sendAndReceive(*req);
 	}
+}
+
+void InitiatorService::_setFinished(Request *request)
+{
+	if (request->success()) {
+		SendAndReceiveRequest *req =
+				static_cast<SendAndReceiveRequest *>(request);
+		Message msg = req->msgReceived();
+
+		Messages::Vector3 dims, vals;
+		dims.w = game()->dims().width();
+		dims.h = game()->dims().height();
+		dims.d = game()->dims().depth();
+		QList<Messages::Field> fields;
+		Messages::FieldState state;
+		NetworkString reason;
+		if (Messages::parseSynchronizeGameBoard(msg, dims, fields))
+			_handleSyncGameBoard(fields);
+		else if (Messages::parseUpdateGameBoard(msg, dims, vals, state))
+			_handleUpdateGameBoard(vals, state);
+		else if (Messages::parseMovedFailed(msg, reason))
+			_abort(QString("Move failed: ").append(reason.string()));
+		else _abort(Messages::InvalidRespErr);
+	}
+	delete request;
 }
 
 void InitiatorService::_msgReceived(Message msg)
 {
+	if (!_joined) return;
+
+	// abort can come at any time
+	NetworkString reason;
+	if (Messages::parseAbortGame(msg, reason)) {
+		game()->abort(Player1, reason.string());
+		return;
+	}
+
+	Messages::FieldState state;
 	if (!game()->hasStarted()) {
 		/*
 		  expecting:
-			- join answer
 			- start signal
 			- sync board/update board
 		*/
-		NetworkString failReason;
-		if (Messages::parseJoinGameSuccess(msg, _protocolVersion)) {
-			_joined = true;
-
-		} else if (Messages::parseJoinGameFailed(msg, failReason)) {
-			_endpoint.disconnectFromHost();
-		} else if (Messages::parseStartGame(msg)) {
-
+		Messages::Vector3 dims, vals;
+		dims.w = game()->dims().width();
+		dims.h = game()->dims().height();
+		dims.d = game()->dims().depth();
+		QList<Messages::Field> fields;
+		if (Messages::parseStartGame(msg)) game()->start(Player2);
+		else if (Messages::parseSynchronizeGameBoard(msg, dims, fields)) {
+			game()->start(Player1);
+			_handleSyncGameBoard(fields);
+		} else if (Messages::parseUpdateGameBoard(msg, dims, vals, state)) {
+			game()->start(Player1);
+			_handleUpdateGameBoard(vals, state);
+		}
+	} else {
+		if (Messages::parseEndGame(msg, state)) {
+			if (!game()->finished()) _abort("Invalid server message");
+			Request *req = new Request();
+			connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+			_endpoint.disconnectFromHost(*req);
 		}
 	}
-
-	/*
-	if (msgTokens.empty()) return;
-	QString header = msgTokens.at(0);
-
-	if (_joined && !networkGame()->hasStarted()) {
-		// expect start signal or update resp. synchronize
-		if (header == "start_game") {
-			networkGame()->start(Player2);
-		} else if (header == "synchronize_game_board") {
-			networkGame()->start(Player1);
-			_handleSyncGameBoard(msgTokens);
-		} else if (header == "update_game_board") {
-			networkGame()->start(Player1);
-			_handleUpdateGameBoard(msgTokens);
-		}
-	} else if (networkGame()->hasStarted()) {
-		// expect sync/update, abort, end_game
-		if (header == "synchronize_game_board") {
-			_handleSyncGameBoard(msgTokens);
-		} else if (header == "update_game_board") {
-			_handleUpdateGameBoard(msgTokens);
-		} else if (header == "end_game") {
-			if (!game()->finished())
-				game()->abort(Player2, "Unfair server game play");
-			_socket.disconnectFromHost();
-		} else if (header == "abort_game") {
-			game()->abort(Player1, msgTokens.size() > 1 ? msgTokens.at(1)
-														: "Server error");
-			_socket.disconnectFromHost();
-		}
-	}
-	  */
 }
 
-void InitiatorService::_handleSyncGameBoard(QStringList msgTokens)
+void InitiatorService::_handleSyncGameBoard(QList<Messages::Field> fields)
 {
-	/*
-	if ((msgTokens.size() - 2)/2 != game()->width() * game()->height() *
-			game()->depth()) {
-		_abort("Invalid game board synchronization");
-		return;
-	}
-
-	int width = -1, height = -1, depth = -1, disksSet = 0;
-	for (int i = 2; i < msgTokens.size(); i += 2) {
-		int x = msgTokens.at(i).toInt();
-		int v = msgTokens.at(i + 1).toInt();
-
-		int xw, xh, xd;
-		if (!_getCoords(x, xw, xh, xd)) {
+	Game::BoardIndex idxSet;
+	for (int i = 0; i < fields.size(); i++) {
+		try {
+			const Messages::Field field = fields.at(i);
+			Game::BoardIndex idx = game()->index(field.index.w, field.index.d,
+												 field.index.h);
+			if (game()->get(idx) == None) {
+				if (field.state == Messages::Player1) {
+					// fail if more than one field has been set, else prep set
+					if (idxSet.isValid()) {
+						_abort("Invalid game board synchronization");
+						return;
+					} else idxSet = idx;
+				} else if (field.state == Messages::Player2) {
+					_abort("Invalid game board synchronization");
+					return;
+				}
+			} else {
+				if ((int)game()->get(idx) != (int)field.state) {
+					_abort("Invalid game board synchronization");
+					return;
+				}
+			}
+		} catch(Game::BoardIndex::Exception) {
 			_abort("Invalid game board synchronization");
 			return;
 		}
-
-		if (v > 0) disksSet++;
-		if (v != game()->get(xw, xh, xd)) {
-			if (width != -1 || height != -1 || depth != -1 || v < 1) {
-				_abort("Invalid game board synchronization");
-				return;
-			}
-			width = xw;
-			height = xh;
-			depth = xd;
-		}
 	}
 
-	if (disksSet - 1 != game()->setCount() || width == -1 || depth == -1) {
-		_abort("Invalid game board synchronization");
-		return;
-	}
-
-	if (!game()->set(width, depth))
-		_abort("Invalid game board synchronization");
-		*/
+	if (idxSet.isValid()) game()->set(idxSet);
 }
 
-void InitiatorService::_handleUpdateGameBoard(QStringList msgTokens)
+void InitiatorService::_handleUpdateGameBoard(Messages::Vector3 vals,
+											  Messages::FieldState state)
 {
-	/*
-	if (msgTokens.size() < 3) {
-		_abort("Invalid game board upadate");
-		return;
+	try {
+		Game::BoardIndex idx = game()->index(vals.w, vals.d, vals.h);
+		if (game()->get(idx) == None) {
+			if (state == Messages::Player1) game()->set(idx);
+			else if (state == Messages::Player2)
+				_abort("Invalid game board update");
+		} else {
+			if ((int)game()->get(idx) != (int)state)
+				_abort("Invalid game board update");
+		}
+	} catch(Game::BoardIndex::Exception) {
+		_abort("Invalid game board update");
 	}
-
-	int x = msgTokens.at(1).toInt();
-	FieldValue v = (FieldValue)msgTokens.at(2).toInt();
-
-	int xw, xh, xd;
-	if (!_getCoords(x, xw, xh, xd) || game()->get(xw, xh, xd) != None) {
-		_abort("Invalid game board upadate");
-		return;
-	}
-
-	if (!game()->set(xw, xd)) _abort("Invalid game board upadate");
-	*/
 }
 
 void InitiatorService::_abort(QString reason)
 {
-	_endpoint.send(Messages::abortGame(reason));
-	_endpoint.disconnectFromHost();
 	game()->abort(Player2, reason);
 }
 
-
-
-/*
-bool InitiatorService::_getCoords(int fieldNumber, int &width, int &height,
-								  int &depth)
+void InitiatorService::aborted(FieldValue requester, QString reason)
 {
-	if (fieldNumber <= 0) return false;
-
-	div_t r = div(fieldNumber, game()->width() * game()->height());
-	depth = r.quot;
-	r = div(r.rem, game()->width());
-	height = r.quot;
-	width = r.rem;
-
-	if (width >= game()->width() || height >= game()->height()) return false;
-	if (game()->nDims() == 3 && depth >= game()->depth()) return false;
+	if (requester == Player2) {
+		SendRequest *req = new SendRequest(Messages::abortGame(reason));
+		connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+		_endpoint.send(*req);
+	}
+	Request *req = new Request();
+	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+	_endpoint.disconnectFromHost(*req);
 }
-*/
