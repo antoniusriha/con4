@@ -25,20 +25,10 @@
  * THE SOFTWARE.
  */
 
-#include "initiatorservice.h"
+#include "netopponent.h"
 
-InitiatorService::InitiatorServiceConf::InitiatorServiceConf(NetworkGame &game)
-	: _game(game) {}
-
-void InitiatorService::InitiatorServiceConf::setPlayerName(NetworkString value)
-{
-	if (value.string().isEmpty())
-		throw Exception("PlayerName must not be empty.");
-	_playerName = value;
-}
-
-InitiatorService::InitiatorService(InitiatorServiceConf conf, QObject *parent)
-	: QObject(parent), _joined(false), _game(*conf.game()),
+NetOpponent::NetOpponent(NetworkGameConf conf, QObject *parent)
+	: QObject(parent), _joined(false), _game(conf),
 	  _playerName(conf.playerName()),
 	  _endpoint(conf.game()->ipAddress(), conf.game()->port(), 10000, this)
 {
@@ -51,11 +41,20 @@ InitiatorService::InitiatorService(InitiatorServiceConf conf, QObject *parent)
 			this, SLOT(_msgReceived(Message)));
 	connect(&_endpoint, SIGNAL(connectToServerFinished(bool,QString)),
 			this, SLOT(connectToServerFinished(bool, QString)));
+
+	setPlayerName("Player2");
 }
 
-InitiatorService::~InitiatorService() {}
+NetOpponent::~NetOpponent() {}
 
-void InitiatorService::connectToServer()
+void NetOpponent::setPlayerName(NetworkString value)
+{
+	if (value.string().isEmpty())
+		throw ArgumentException("PlayerName must not be empty.");
+	_playerName = value;
+}
+
+void NetOpponent::connectToServer()
 {
 	Request *req = new Request();
 	connect(req, SIGNAL(finished(Request*)),
@@ -63,13 +62,13 @@ void InitiatorService::connectToServer()
 	_endpoint.connectToServer(*req);
 }
 
-void InitiatorService::_connectFinished(Request *request)
+void NetOpponent::_connectFinished(Request *request)
 {
 	emit connectToServerFinished(request->success(), request->errorString());
 	delete request;
 }
 
-void InitiatorService::join()
+void NetOpponent::join()
 {
 	if (_joined) throw InvalidOperationException("Already joined a game.");
 
@@ -80,7 +79,7 @@ void InitiatorService::join()
 	_endpoint.sendAndReceive(*req);
 }
 
-void InitiatorService::_joinFinished(Request *request)
+void NetOpponent::_joinFinished(Request *request)
 {
 	if (request->success()) {
 		SendAndReceiveRequest *req =
@@ -97,7 +96,7 @@ void InitiatorService::_joinFinished(Request *request)
 	delete request;
 }
 
-void InitiatorService::set(FieldValue player, Game::BoardIndex index)
+void NetOpponent::set(FieldValue player, Game::BoardIndex index)
 {
 	if (player == Player2) {
 		Messages::Vector3 dims;
@@ -116,7 +115,7 @@ void InitiatorService::set(FieldValue player, Game::BoardIndex index)
 	}
 }
 
-void InitiatorService::_setFinished(Request *request)
+void NetOpponent::_setFinished(Request *request)
 {
 	if (request->success()) {
 		SendAndReceiveRequest *req =
@@ -141,7 +140,7 @@ void InitiatorService::_setFinished(Request *request)
 	delete request;
 }
 
-void InitiatorService::_msgReceived(Message msg)
+void NetOpponent::_msgReceived(Message msg)
 {
 	if (!_joined) return;
 
@@ -182,7 +181,7 @@ void InitiatorService::_msgReceived(Message msg)
 	}
 }
 
-void InitiatorService::_handleSyncGameBoard(QList<Messages::Field> fields)
+void NetOpponent::_handleSyncGameBoard(QList<Messages::Field> fields)
 {
 	Game::BoardIndex idxSet;
 	for (int i = 0; i < fields.size(); i++) {
@@ -216,7 +215,7 @@ void InitiatorService::_handleSyncGameBoard(QList<Messages::Field> fields)
 	if (idxSet.isValid()) game()->set(idxSet);
 }
 
-void InitiatorService::_handleUpdateGameBoard(Messages::Vector3 vals,
+void NetOpponent::_handleUpdateGameBoard(Messages::Vector3 vals,
 											  Messages::FieldState state)
 {
 	try {
@@ -234,12 +233,12 @@ void InitiatorService::_handleUpdateGameBoard(Messages::Vector3 vals,
 	}
 }
 
-void InitiatorService::_abort(QString reason)
+void NetOpponent::_abort(QString reason)
 {
 	game()->abort(Player2, reason);
 }
 
-void InitiatorService::aborted(FieldValue requester, QString reason)
+void NetOpponent::aborted(FieldValue requester, QString reason)
 {
 	if (requester == Player2) {
 		SendRequest *req = new SendRequest(Messages::abortGame(reason));

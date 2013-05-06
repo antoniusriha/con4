@@ -34,33 +34,11 @@
 #include "clientendpoint.h"
 #include "messages.h"
 
-class InitiatorService : public QObject
+class NetOpponent : public QObject
 {
 	Q_OBJECT
 
 public:
-	class InitiatorServiceConf
-	{
-	public:
-		class Exception : public std::invalid_argument
-		{
-		public:
-			explicit Exception(QString what)
-				: invalid_argument(what.toStdString()) {}
-		};
-
-		InitiatorServiceConf(NetworkGame &game);
-
-		NetworkGame *game() const { return &_game; }
-
-		NetworkString playerName() const { return _playerName; }
-		void setPlayerName(NetworkString value);
-
-	private:
-		NetworkGame &_game;
-		NetworkString _playerName;
-	};
-
 	class InvalidOperationException : public std::logic_error
 	{
 	public:
@@ -68,13 +46,24 @@ public:
 			: logic_error(what.toStdString()) {}
 	};
 
-	InitiatorService(InitiatorServiceConf conf, QObject *parent = 0);
-	~InitiatorService();
+	class ArgumentException : public std::invalid_argument
+	{
+	public:
+		explicit ArgumentException(QString what)
+			: invalid_argument(what.toStdString()) {}
+	};
+
+	NetOpponent(NetworkGameConf conf, QObject *parent = 0);
+	~NetOpponent();
+
+	const NetworkGame *game() const { return &_game; }
 
 	NetworkString playerName() const { return _playerName; }
+	void setPlayerName(NetworkString value);
 
 	void connectToServer();
 	void join();
+	void stop();
 
 signals:
 	void connectToServerFinished(bool success, QString failReason);
@@ -95,7 +84,7 @@ private:
 	void _abort(QString reason);
 
 	bool _joined;
-	NetworkGame &_game;
+	NetworkGame _game;
 	NetworkString _playerName;
 	ClientEndpoint _endpoint;
 };

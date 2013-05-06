@@ -34,6 +34,7 @@
 #include "clientendpoint.h"
 #include "networkgame.h"
 #include "messages.h"
+#include "netopponent.h"
 
 class IndexServiceConf
 {
@@ -92,7 +93,6 @@ public:
 	QString name() const { return _conf.name(); }
 	QHostAddress ipAddress() const { return _conf.ipAddress(); }
 	quint16 port() const { return _conf.port(); }
-	const QList<NetworkGame *> *games() const { return &_games; }
 
 	void registerGame(NetworkGameRequest &request);
 	void unregisterGame(NetworkGameRequest &request);
@@ -103,7 +103,8 @@ private:
 	ProcessingQueue _queue;
 	ClientEndpoint _endpoint;
 	IndexServiceConf _conf;
-	QList<NetworkGame *> _games;
+	QList<NetOpponent *> _opps;
+	QList<NetworkGame *> _regGames;
 	QUdpSocket _udpSocket;
 
 	friend class RequestGameListUnit;

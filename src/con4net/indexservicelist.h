@@ -43,11 +43,6 @@ public:
 	explicit IndexServiceList(Settings *settings, QObject *parent = 0);
 	~IndexServiceList();
 
-	int rowCount(const QModelIndex & parent) const;
-	int columnCount(const QModelIndex &parent) const;
-	QVariant data(const QModelIndex &index, int role) const;
-	QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
 	IndexService *at(int index) { return _list.at(index); }
 	void create(QHostAddress host, quint16 port, QString name);
 	bool deleteItem(IndexService *item);

@@ -1,5 +1,5 @@
 /*
- * opponentservice.cpp
+ * NetInitiator.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,8 +25,7 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
-#include "opponentservice.h"
+#include "netinitiator.h"
 #include "messages.h"
 
 class IndexServiceWrapper : public QObject
@@ -37,26 +36,27 @@ public:
 	enum State { NotRegistered, Registered, Sealed, Unregistered };
 
 	IndexServiceWrapper(IndexService &service, NetworkGame &game)
-		: _service(service), _game(game), _state(NotRegistered)
+		: _service(service), _game(game), _state(NotRegistered),
+		  _regReq(game), _sealReq(game), _unregReq(game)
 	{
-
+		connect(&_regReq, SIGNAL(finished(Request*)),
+				this, SLOT(_registerGameFinished(Request*)));
+		connect(&_sealReq, SIGNAL(finished(Request*)),
+				this, SLOT(_sealGameFinished(Request*)));
+		connect(&_unregReq, SIGNAL(finished(Request*)),
+				this, SLOT(_unregisterGameFinished(Request*)));
 	}
 
 	IndexService *service() const { return &_service; }
 	State state() const { return _state; }
 
-	void registerGame()
-	{
-		NetworkGameRequest *req = new NetworkGameRequest(_game);
-		connect(req, SIGNAL(finished(Request*)),
-				this, SLOT(_registerGameFinished(Request*)));
-		_service.registerGame(*req);
-	}
+	NetworkGameRequest *regRequest() const { return &_regReq; }
+	NetworkGameRequest *sealRequest() const { return &_sealReq; }
+	NetworkGameRequest *unregRequest() const { return &_unregReq; }
 
-	void sealGame()
-	{}
-	void unregisterGame()
-	{}
+	void registerGame() { _service.registerGame(_regReq); }
+	void sealGame()	{ _service.sealGame(_sealReq); }
+	void unregisterGame() { _service.unregisterGame(_unregReq); }
 
 signals:
 	void registerGameFinished(IndexServiceWrapper *wrapper);
@@ -66,33 +66,40 @@ signals:
 private slots:
 	void _registerGameFinished(Request *request)
 	{
-		NetworkGameRequest *req = static_cast<NetworkGameRequest *>(request);
-		if (request->success()) {
-			_state = Registered;
-		}
+		if (request->success()) _state = Registered;
+		emit registerGameFinished(this);
 	}
 
 	void _sealGameFinished(Request *request)
-	{}
+	{
+		if (request->success()) _state = Sealed;
+		emit sealGameFinished(this);
+	}
+
 	void _unregisterGameFinished(Request *request)
-	{}
+	{
+		if (request->success()) _state = Unregistered;
+		emit unregisterGameFinished(this);
+	}
 
 private:
 	IndexService &_service;
 	NetworkGame &_game;
 	State _state;
+	NetworkGameRequest _regReq, _sealReq, _unregReq;
 };
 
-OpponentService::OpponentService(OpponentServiceConf conf, QObject *parent)
-	: NetworkPlayerService(*new NetworkGame(conf.networkGameConf()), parent),
-	  _list(conf.indexServices()), _endpoint(10000, this)
+NetInitiator::NetInitiator(NetInitiatorConf conf, QObject *parent)
+	: QObject(parent), _list(*conf.indexServiceList()),
+	  _game(conf.networkGameConf()), _wrappers(), _endpoint(10000, this)
 {
-
 	connect(&_list, SIGNAL(deleting(IndexService*)),
 			this, SLOT(_indexServiceDeleting(IndexService*)));
+	for (int i = 0; i < _list.size(); i++)
+		_wrappers.append(new IndexServiceWrapper(*_list.at(i), _game));
 }
 
-void OpponentService::_indexServiceDeleting(IndexService *service)
+void NetInitiator::_indexServiceDeleting(IndexService *service)
 {
 	for (int i = 0; i < _wrappers.size(); i++) {
 		if (_wrappers.at(i)->service() == service) {
@@ -104,67 +111,49 @@ void OpponentService::_indexServiceDeleting(IndexService *service)
 	}
 
 	if (_wrappers.size() == 0)
-		game()->abort(Player1, "All index services have been removed.");
+		_game.abort(Player1, "All index services have been removed.");
 }
 
-OpponentService::~OpponentService()
+NetInitiator::~NetInitiator()
 {
-	delete game();
 	for (int i = 0; i < _wrappers.size(); i++)
 		delete _wrappers.takeFirst();
 }
 
-bool OpponentService::startService(QString *errMsg)
+bool NetInitiator::startService(QString *errMsg)
 {
-	if (!_endpoint.listen(game()->port())) {
-		if (errMsg) *errMsg = QString("Unable to listen on port ")
-				.arg(game()->port());
+	if (!_endpoint.listen(_game.port())) {
+		if (errMsg)
+			*errMsg = QString("Unable to listen on port %1.").arg(_game.port());
 		return false;
 	}
-
-	bool registerSuccess = false;
-	QString finalErrMsg;
-	for (int i = 0; i < _indexServices.size(); i++) {
-
-
-
-
-
-		QString errMsg;
-		if (!_indexServices.at(i)->registerGame(*game())) {
-			finalErrMsg.append(errMsg + "\n");
-			break;
-		}
-		registerSuccess = true;
-	}
-
-	if (!registerSuccess) {
-		if (errMsg) *errMsg = QString("Unable to register game.")
-				.append(finalErrMsg);
-		return false;
-	}
-
 	return true;
 }
 
-void OpponentService::registerGame()
+void NetInitiator::registerGame()
 {
-	for (int i = 0; i < _indexServices.size(); i++) {
-		NetworkGameRequest *req = new NetworkGameRequest(*game());
-		connect(req, SIGNAL(finished(Request*)),
-				this, SLOT(_registerGameFinished(Request*)));
-		_indexServices.at(i)->registerGame(*req);
+	for (int i = 0; i < _wrappers.size(); i++) {
+		IndexServiceWrapper *wrapper = _wrappers.at(i);
+		connect(wrapper, SIGNAL(registerGameFinished(IndexServiceWrapper*)),
+				this, SLOT(_registerGameFinished(IndexServiceWrapper*)));
+		wrapper->registerGame();
 	}
-
-	_endpoint.sendAndReceive(*req);
 }
 
-void OpponentService::_registerGameFinished(Request *req)
+void NetInitiator::_registerGameFinished(IndexServiceWrapper *wrapper)
 {
-
+	if (wrapper->regRequest()->success())
 }
 
-void OpponentService::acceptJoinRequest()
+void NetInitiator::_sealGameFinished(IndexServiceWrapper *wrapper)
+{
+}
+
+void NetInitiator::_unregisterGameFinished(IndexServiceWrapper *wrapper)
+{
+}
+
+void NetInitiator::acceptJoinRequest()
 {
 	// seal game
 	for (int i = 0; i < _indexServices.size(); i++)
@@ -179,12 +168,12 @@ void OpponentService::acceptJoinRequest()
 		_endpoint.send(Messages::startGame());
 }
 
-void OpponentService::rejectJoinRequest(QString reason)
+void NetInitiator::rejectJoinRequest(QString reason)
 {
 	_endpoint.send(Messages::joinGameFailed(reason));
 }
 
-void OpponentService::_set(FieldValue player, int width, int depth)
+void NetInitiator::_set(FieldValue player, int width, int depth)
 {
 	if (player == Player1) {
 		Game::BoardIndex idx = game()->index(width, depth);
@@ -205,7 +194,7 @@ void OpponentService::_set(FieldValue player, int width, int depth)
 	}
 }
 
-void OpponentService::_handleMsg(QStringList msgTokens)
+void NetInitiator::_handleMsg(QStringList msgTokens)
 {
 	if (msgTokens.empty()) return;
 	QString header = msgTokens.at(0);
@@ -242,7 +231,7 @@ void OpponentService::_handleMsg(QStringList msgTokens)
 	}
 }
 
-void OpponentService::_messageReceived(Message msg)
+void NetInitiator::_messageReceived(Message msg)
 {
 	if (!msg.isValid()) return;
 

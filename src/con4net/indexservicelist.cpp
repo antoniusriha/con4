@@ -60,51 +60,7 @@ IndexServiceList::IndexServiceList(Settings *settings, QObject *parent)
 	}
 }
 
-IndexServiceList::~IndexServiceList()
-{
-	for (int i = 0; i < _list.size(); i++) {
-		IndexService *item = _list.at(i);
-		_list.removeAt(i);
-		delete item;
-	}
-}
-
-int IndexServiceList::rowCount(const QModelIndex &parent) const
-{
-	if (parent.isValid()) return 0;
-	return _list.size();
-}
-
-int IndexServiceList::columnCount(const QModelIndex &parent) const
-{
-	if (parent.isValid()) return 0;
-	return 3;
-}
-
-QVariant IndexServiceList::data(const QModelIndex &index, int role) const
-{
-	if (!index.isValid() || role != Qt::DisplayRole || index.row() < 0 ||
-			index.row() >= _list.size() || index.column() < 0)
-		return QVariant::Invalid;
-
-	IndexService *item = _list.at(index.row());
-	if (index.column() == 0) return item->name();
-	else if (index.column() == 1) return item->ipAddress().toString();
-	else if (index.column() == 2) return item->port();
-	return QVariant::Invalid;
-}
-
-QVariant IndexServiceList::headerData(int section, Qt::Orientation orientation,
-									  int role) const
-{
-	if (orientation != Qt::Horizontal || section < 0 || section > 2 ||
-			role != Qt::DisplayRole) return QVariant::Invalid;
-
-	if (section == 0) return "Name";
-	else if (section == 1) return "IP Address";
-	else if (section == 2) return "Port";
-	return QVariant::Invalid;
-}
+IndexServiceList::~IndexServiceList() { qDeleteAll(_list); }
 
 void IndexServiceList::create(QHostAddress host, quint16 port, QString name)
 {

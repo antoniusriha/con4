@@ -32,31 +32,31 @@
 #include "networkplayerservice.h"
 #include "indexservicelist.h"
 
-class OpponentServiceConf
+class NetInitiatorConf
 {
 public:
-	OpponentServiceConf(IndexServiceList &list)
+	NetInitiatorConf(IndexServiceList &list)
 		: _list(list), _networkGameConf() {}
 
 	NetworkGameConf networkGameConf() const { return _networkGameConf; }
 	void setNetworkGameConf(NetworkGameConf value) { _networkGameConf = value; }
 
-	IndexServiceList *indexServices() const { return &_list; }
+	IndexServiceList *indexServiceList() const { return &_list; }
 
 private:
-	NetworkGameConf _networkGameConf;
 	IndexServiceList &_list;
+	NetworkGameConf _networkGameConf;
 };
 
 class IndexServiceWrapper;
 
-class OpponentService : public QObject
+class NetInitiator : public QObject
 {
 	Q_OBJECT
 
 public:
-	OpponentService(OpponentServiceConf conf, QObject *parent = 0);
-	~OpponentService();
+	NetInitiator(NetInitiatorConf conf, QObject *parent = 0);
+	~NetInitiator();
 
 	bool startService(QString *errMsg = 0);
 	void registerGame();
@@ -78,7 +78,9 @@ signals:
 
 private slots:
 	void _indexServiceDeleting(IndexService *service);
-	void _registerGameFinished(Request *req);
+	void _registerGameFinished(IndexServiceWrapper *wrapper);
+	void _sealGameFinished(IndexServiceWrapper *wrapper);
+	void _unregisterGameFinished(IndexServiceWrapper *wrapper);
 	void _messageReceived(Message msg);
 	void aborted(FieldValue requester, QString reason);
 	void finished(FieldValue winner);
@@ -91,6 +93,7 @@ private:
 	bool _sendMsg(QString msg);
 
 	IndexServiceList &_list;
+	NetworkGame _game;
 	QList<IndexServiceWrapper *> _wrappers;
 	ServerEndpoint _endpoint;
 };

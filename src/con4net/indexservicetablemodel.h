@@ -1,5 +1,5 @@
 /*
- * networkgame.cpp
+ * indexservicetablemodel.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,45 +25,29 @@
  * THE SOFTWARE.
  */
 
-#include "networkgame.h"
+#ifndef INDEXSERVICETABLEMODEL_H
+#define INDEXSERVICETABLEMODEL_H
 
-NetworkGameConf::NetworkGameConf() : _dims()
+#include <QAbstractTableModel>
+#include "indexservicelist.h"
+
+class IndexServiceTableModel : public QAbstractTableModel
 {
-	setInitiatorName("Initiator");
-	setName("Initiator's network game");
-	setIpAddress(QHostAddress::LocalHost);
-	setPort(9999);
-}
+	Q_OBJECT
 
-void NetworkGameConf::setInitiatorName(NetworkString value)
-{
-	if (value.string().isEmpty())
-		throw Exception("InitiatorName must be a non-empty string.");
-	_initiatorName = value;
-}
+public:
+	explicit IndexServiceTableModel(IndexServiceList &list,
+									QObject *parent = 0);
+	~IndexServiceTableModel();
 
-void NetworkGameConf::setName(NetworkString value)
-{
-	if (value.string().isEmpty())
-		throw Exception("Name must be a non-empty string.");
-	_name = value;
-}
+	int rowCount(const QModelIndex & parent) const;
+	int columnCount(const QModelIndex &parent) const;
+	QVariant data(const QModelIndex &index, int role) const;
+	QVariant headerData(int section, Qt::Orientation orientation,
+						int role) const;
 
-void NetworkGameConf::setIpAddress(QHostAddress value)
-{
-	if (value.isNull())
-		throw Exception("IpAddress must be a non-null host address.");
-	_ipAddress = value;
-}
+private:
+	IndexServiceList &_list;
+};
 
-void NetworkGameConf::setPort(quint16 value)
-{
-	if (value < 1025)
-		throw Exception("Port must be a port number above 1024.");
-	_port = value;
-}
-
-NetworkGame::NetworkGame(NetworkGameConf conf, QObject *parent)
-	: Game(conf.dims(), parent), _conf(conf), _guid() {}
-
-NetworkGame::~NetworkGame() {}
+#endif // INDEXSERVICETABLEMODEL_H

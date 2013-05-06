@@ -222,15 +222,29 @@ private:
 		if (Messages::parseAnswerGameList(
 				internalReq()->msgReceived(), gameData)) {
 
-			QList<NetworkGame *> *_games = &_service->_games;
-			for (int i = _games->size() - 1; i >=0; i--) {
-				NetworkGame *game = _games->at(i);
-				if (!game->hasStarted()) {
-					_games->removeAt(i);
-					delete game;
+			QList<NetOpponent *> opps = _service->_opps;
+
+			// remove games which are not entailed in the download list
+			bool exists;
+			for (int i = opps.size() - 1; i >= 0; i--) {
+				exists = false;
+				for (int j = 0; j < gameData.size(); j++) {
+					if (opps.at(i)->game()->name().string() ==
+							gameData.at(j).gameName.string()) {
+						exists = true;
+						break;
+					}
+				}
+
+				if (!exists) {
+					// remove game
+					opps.at(i)->stop();
+					delete opps.takeAt(i);
 				}
 			}
 
+			// add game with name A, if no game with
+			// name A exists and game is Open
 			NetworkGameConf conf;
 			for (int i = 0; i < gameData.size(); i++) {
 				Messages::GameData data = gameData.at(i);
@@ -238,10 +252,9 @@ private:
 
 				// if game exists already, skip
 				bool cont = false;
-				for (int i = 0; i < _games->size(); i++) {
-					if ((cont = (_games->at(i)->name().string() ==
-								 data.gameName.string())))
-						break;
+				for (int i = 0; i < opps.size(); i++) {
+					if ((cont = (opps.at(i)->game()->name().string() ==
+								 data.gameName.string()))) break;
 				}
 				if (cont) continue;
 
@@ -253,7 +266,7 @@ private:
 					conf.setIpAddress(data.ipAddress);
 					conf.setName(data.gameName);
 					conf.setPort(data.port);
-					_games->append(new NetworkGame(conf));
+					opps.append(new NetOpponent(conf));
 				} catch (Game::Dimensions::Exception) {
 				} catch (NetworkGameConf::Exception) {}
 			}
@@ -265,12 +278,12 @@ private:
 };
 
 IndexService::IndexService(IndexServiceConf conf)
-	: _endpoint(conf.ipAddress(), conf.port(), 10000), _conf(conf), _games() {}
+	: _endpoint(conf.ipAddress(), conf.port(), 10000), _conf(conf) {}
 
 IndexService::~IndexService()
 {
-	for (int i = 0; i < _games.size(); i++)
-		delete _games.takeFirst();
+	for (int i = 0; i < _opps.size(); i++)
+		delete _opps.takeFirst();
 }
 
 void IndexService::registerGame(NetworkGameRequest &request)

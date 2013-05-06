@@ -73,7 +73,7 @@ class NetworkGame : public Game
 	Q_OBJECT
 
 public:
-	NetworkGame(NetworkGameConf conf);
+	NetworkGame(NetworkGameConf conf, QObject *parent = 0);
 	~NetworkGame();
 
 	NetworkString name() const { return _conf.name(); }
