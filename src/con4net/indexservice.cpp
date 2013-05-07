@@ -54,6 +54,9 @@ void IndexServiceConf::setPort(quint16 value)
 	_port = value;
 }
 
+NetworkGameRequest::NetworkGameRequest(NetworkGame &game, QObject *parent)
+	: Request(parent), _game(game) {}
+
 class IndexServiceUnit : public ProcessingUnit
 {
 protected:
@@ -277,13 +280,21 @@ private:
 	IndexService *_service;
 };
 
-IndexService::IndexService(IndexServiceConf conf)
-	: _endpoint(conf.ipAddress(), conf.port(), 10000), _conf(conf) {}
+IndexService::IndexService(IndexServiceConf conf) : _queue(),
+	_endpoint(conf.ipAddress(), conf.port(), 10000), _conf(conf) {}
 
 IndexService::~IndexService()
 {
 	for (int i = 0; i < _opps.size(); i++)
 		delete _opps.takeFirst();
+}
+
+QList<const NetworkGame *> IndexService::games() const
+{
+	QList<const NetworkGame *> games;
+	for (int i = 0; i < _opps.size(); i++)
+		games.append(_opps.at(i)->game());
+	return games;
 }
 
 void IndexService::registerGame(NetworkGameRequest &request)

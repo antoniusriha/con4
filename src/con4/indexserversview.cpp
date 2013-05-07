@@ -27,13 +27,15 @@
 
 #include "indexserversview.h"
 #include "ui_indexserversview.h"
+#include "indexservicetablemodel.h"
 #include "addindexserverdialog.h"
 
-IndexServersView::IndexServersView(IndexServiceList *model, QWidget *parent)
-    : QDialog(parent), ui(new Ui::IndexServersView), _model(model)
+IndexServersView::IndexServersView(IndexServiceList &list, QWidget *parent)
+	: QDialog(parent), ui(new Ui::IndexServersView), _list(list)
 {
     ui->setupUi(this);
-    ui->tableView->setModel(_model);
+	IndexServiceTableModel *model = new IndexServiceTableModel(list, this);
+	ui->tableView->setModel(model);
 }
 
 IndexServersView::~IndexServersView() { delete ui; }
@@ -47,15 +49,15 @@ void IndexServersView::deleteClicked()
     QModelIndexList idcs = selModel->selectedRows();
     for (int i = 0; i < idcs.size(); i++) {
         int idx = idcs.at(i).row();
-        services.append(_model->at(idx));
+		services.append(_list.at(idx));
     }
 
     for (int i = 0; i < idcs.size(); i++)
-        _model->deleteItem(services.at(i));
+		_list.deleteItem(services.at(i));
 }
 
 void IndexServersView::addClicked()
 {
-    AddIndexServerDialog dlg(_model, this);
+	AddIndexServerDialog dlg(_list, this);
     dlg.exec();
 }

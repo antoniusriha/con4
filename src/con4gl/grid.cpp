@@ -28,7 +28,7 @@
 #include "grid.h"
 
 Grid::Grid(Game *game, QObject *parent)
-	: GLElement(parent), _game (game)
+	: GLElement(parent), _game (game), _dims(game->dims())
 {
 	setPlayerColor(Player1, QColor(Qt::red));
 	setPlayerColor(Player2, QColor(Qt::yellow));
@@ -43,23 +43,15 @@ Grid::Grid(Game *game, QObject *parent)
 	_quadric = gluNewQuadric();
 }
 
-Grid::~Grid()
-{
-	gluDeleteQuadric(_quadric);
-	if (_game->finished()) {
-		delete [] _conWidthIdcs;
-		delete [] _conHeightIdcs;
-		delete [] _conDepthIdcs;
-	}
-}
+Grid::~Grid() { gluDeleteQuadric(_quadric); }
 
 void Grid::draw() const
 {
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _bottomColor);
 
 	// center board
-	float boardWidth = _game->width() * _colsDistance;
-	float boardDepth = _game->depth() * _colsDistance;
+	float boardWidth = _dims.width() * _colsDistance;
+	float boardDepth = _dims.depth() * _colsDistance;
 	glTranslatef(-boardWidth / 2, 0, boardDepth / 2);
 	_drawBoardBottom(boardWidth, boardDepth);
 
@@ -67,42 +59,52 @@ void Grid::draw() const
 
 	if (!_game->hasStarted()) return;
 
-	glTranslatef(_colsDistance / 2, _boardBaseHeight + _sphereRadius, -_colsDistance / 2);
-	for (int i = 0; i < _game->height(); i++) {
-		for (int j = 0; j < _game->depth(); j++) {
-			for (int k = 0; k < _game->width(); k++) {
-				FieldValue field = _game->get(k, i, j);
+	glTranslatef(_colsDistance / 2, _boardBaseHeight + _sphereRadius,
+				 -_colsDistance / 2);
+	for (int i = 0; i < _dims.height(); i++) {
+		for (int j = 0; j < _dims.depth(); j++) {
+			for (int k = 0; k < _dims.width(); k++) {
+				FieldValue field = _game->get(_game->index(k, j, i));
 				if (field != None) {
 					if (field == Player1)
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _player1Colorf);
-					else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _player2Colorf);
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+									 _player1Colorf);
+					else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+									  _player2Colorf);
 					gluSphere(_quadric, _sphereRadius, 35, 35);
 				}
 				glTranslatef(_colsDistance, 0.0, 0.0);
 			}
-			glTranslatef(-_colsDistance * _game->width(), 0.0, -_colsDistance);
+			glTranslatef(-_colsDistance * _dims.width(), 0.0, -_colsDistance);
 		}
-		glTranslatef(0.0, _sphereRadius * 2, _colsDistance * _game->depth());
+		glTranslatef(0.0, _sphereRadius * 2, _colsDistance * _dims.depth());
 	}
 
 	if (!_game->finished()) {
-		glTranslatef(_wCursor * _colsDistance, _sphereRadius / 2, -_dCursor * _colsDistance);
+		glTranslatef(_wCursor * _colsDistance, _sphereRadius / 2,
+					 -_dCursor * _colsDistance);
 		if (_game->curPlayer() == Player1)
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _player1Colorf);
-		else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _player2Colorf);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+						 _player1Colorf);
+		else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+						  _player2Colorf);
 		gluSphere(_quadric, _sphereRadius, 35, 35);
 	} else {
 		if (_game->winner() == Player1)
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _player1WinColor);
-		else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _player2WinColor);
-		glTranslatef(0.0, -_game->height() * _sphereRadius * 2, 0.0);
-		for (int i = 0; i < _game->nConnect(); i++) {
-			int wIdx = _conWidthIdcs[i];
-			int hIdx = _conHeightIdcs[i];
-			int dIdx = _conDepthIdcs[i];
-			glTranslatef(wIdx * _colsDistance, hIdx * _sphereRadius * 2, -dIdx * _colsDistance);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+						 _player1WinColor);
+		else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+						  _player2WinColor);
+		glTranslatef(0.0, -_dims.height() * _sphereRadius * 2, 0.0);
+		for (int i = 0; i < _dims.nConnect(); i++) {
+			Game::BoardIndex idx = _conIdcs.at(i);
+			glTranslatef(idx.wVal() * _colsDistance,
+						 idx.hVal() * _sphereRadius * 2,
+						 -idx.dVal() * _colsDistance);
 			gluSphere(_quadric, _sphereRadius * 1.001, 35, 35);
-			glTranslatef(-wIdx * _colsDistance, -hIdx * _sphereRadius * 2, dIdx * _colsDistance);
+			glTranslatef(-idx.wVal() * _colsDistance,
+						 -idx.hVal() * _sphereRadius * 2,
+						 idx.dVal() * _colsDistance);
 		}
 	}
 }
@@ -123,7 +125,7 @@ void Grid::setPlayerColor(FieldValue player, QColor color)
 
 bool Grid::moveCursorUp()
 {
-	if (_dCursor < _game->depth() - 1) _dCursor++;
+	if (_dCursor < _dims.depth() - 1) _dCursor++;
 	else return false;
 	return true;
 }
@@ -137,7 +139,7 @@ bool Grid::moveCursorDown()
 
 bool Grid::moveCursorRight()
 {
-	if (_wCursor < _game->width() - 1) _wCursor++;
+	if (_wCursor < _dims.width() - 1) _wCursor++;
 	else return false;
 	return true;
 }
@@ -151,13 +153,9 @@ bool Grid::moveCursorLeft()
 
 bool Grid::setDisk()
 {
-	bool success = _game->set(_wCursor, _dCursor);
-	if (_game->finished()) {
-		_conWidthIdcs = new int[_game->nConnect()];
-		_conHeightIdcs = new int[_game->nConnect()];
-		_conDepthIdcs = new int[_game->nConnect()];
-		_game->connected(_conWidthIdcs, _conHeightIdcs, _conDepthIdcs);
-	}
+	Game::BoardIndex idx = _game->index(_wCursor, _dCursor);
+	bool success = _game->set(idx);
+	if (_game->finished()) _game->connected(_conIdcs);
 	return success;
 }
 
@@ -213,18 +211,20 @@ void Grid::_drawBoardBottom(float width, float depth) const
 void Grid::_drawCylinders() const
 {
 	float sphereDiameter = _sphereRadius * 2;
-	float height = sphereDiameter * _game->height();
+	float height = sphereDiameter * _dims.height();
 
 	// rotate on x,z
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
 	glTranslatef(_colsDistance / 2, _colsDistance / 2, _boardBaseHeight);
-	for (int i = 0; i < _game->depth(); i++) {
-		for (int j = 0; j < _game->width(); j++) {
+	for (int i = 0; i < _dims.depth(); i++) {
+		for (int j = 0; j < _dims.width(); j++) {
 			gluCylinder(_quadric, 0.01, 0.01, height, 15, 15);
 			glTranslatef(_colsDistance, 0.0, 0.0);
 		}
-		glTranslatef(-_colsDistance * _game->width(), _colsDistance, 0.0);
+		glTranslatef(-_colsDistance * _dims.width(), _colsDistance, 0.0);
 	}
-	glTranslatef(-_colsDistance / 2, -_colsDistance * _game->depth() - _colsDistance / 2, -_boardBaseHeight);
+	glTranslatef(-_colsDistance / 2,
+				 -_colsDistance * _dims.depth() - _colsDistance / 2,
+				 -_boardBaseHeight);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 }

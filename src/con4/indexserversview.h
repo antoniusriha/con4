@@ -40,7 +40,7 @@ class IndexServersView : public QDialog
     Q_OBJECT
 
 public:
-    explicit IndexServersView(IndexServiceList *model, QWidget *parent = 0);
+	explicit IndexServersView(IndexServiceList &list, QWidget *parent = 0);
     ~IndexServersView();
     
 private slots:
@@ -49,7 +49,7 @@ private slots:
 
 private:
     Ui::IndexServersView *ui;
-    IndexServiceList *_model;
+	IndexServiceList &_list;
 };
 
 #endif // INDEXSERVERSVIEW_H

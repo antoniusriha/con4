@@ -29,12 +29,12 @@
 
 NetOpponent::NetOpponent(NetworkGameConf conf, QObject *parent)
 	: QObject(parent), _joined(false), _game(conf),
-	  _playerName(conf.playerName()),
-	  _endpoint(conf.game()->ipAddress(), conf.game()->port(), 10000, this)
+	  _playerName(conf.initiatorName()),
+	  _endpoint(conf.ipAddress(), conf.port(), 10000, this)
 {
-	connect(&game, SIGNAL(aborted(FieldValue,QString)),
+	connect(&_game, SIGNAL(aborted(FieldValue,QString)),
 			this, SLOT(_aborted(FieldValue,QString)));
-	connect(&game, SIGNAL(set(FieldValue,Game::BoardIndex)),
+	connect(&_game, SIGNAL(set(FieldValue,Game::BoardIndex)),
 			this, SLOT(_set(FieldValue,Game::BoardIndex)));
 
 	connect(&_endpoint, SIGNAL(messageReceived(Message)),
@@ -79,6 +79,10 @@ void NetOpponent::join()
 	_endpoint.sendAndReceive(*req);
 }
 
+void NetOpponent::stop()
+{
+}
+
 void NetOpponent::_joinFinished(Request *request)
 {
 	if (request->success()) {
@@ -96,7 +100,7 @@ void NetOpponent::_joinFinished(Request *request)
 	delete request;
 }
 
-void NetOpponent::set(FieldValue player, Game::BoardIndex index)
+void NetOpponent::_set(FieldValue player, Game::BoardIndex index)
 {
 	if (player == Player2) {
 		Messages::Vector3 dims;
@@ -147,7 +151,7 @@ void NetOpponent::_msgReceived(Message msg)
 	// abort can come at any time
 	NetworkString reason;
 	if (Messages::parseAbortGame(msg, reason)) {
-		game()->abort(Player1, reason.string());
+		_game.abort(Player1, reason.string());
 		return;
 	}
 
@@ -163,12 +167,12 @@ void NetOpponent::_msgReceived(Message msg)
 		dims.h = game()->dims().height();
 		dims.d = game()->dims().depth();
 		QList<Messages::Field> fields;
-		if (Messages::parseStartGame(msg)) game()->start(Player2);
+		if (Messages::parseStartGame(msg)) _game.start(Player2);
 		else if (Messages::parseSynchronizeGameBoard(msg, dims, fields)) {
-			game()->start(Player1);
+			_game.start(Player1);
 			_handleSyncGameBoard(fields);
 		} else if (Messages::parseUpdateGameBoard(msg, dims, vals, state)) {
-			game()->start(Player1);
+			_game.start(Player1);
 			_handleUpdateGameBoard(vals, state);
 		}
 	} else {
@@ -212,7 +216,7 @@ void NetOpponent::_handleSyncGameBoard(QList<Messages::Field> fields)
 		}
 	}
 
-	if (idxSet.isValid()) game()->set(idxSet);
+	if (idxSet.isValid()) _game.set(idxSet);
 }
 
 void NetOpponent::_handleUpdateGameBoard(Messages::Vector3 vals,
@@ -221,11 +225,11 @@ void NetOpponent::_handleUpdateGameBoard(Messages::Vector3 vals,
 	try {
 		Game::BoardIndex idx = game()->index(vals.w, vals.d, vals.h);
 		if (game()->get(idx) == None) {
-			if (state == Messages::Player1) game()->set(idx);
+			if (state == Messages::Player1) _game.set(idx);
 			else if (state == Messages::Player2)
 				_abort("Invalid game board update");
 		} else {
-			if ((int)game()->get(idx) != (int)state)
+			if ((int)_game.get(idx) != (int)state)
 				_abort("Invalid game board update");
 		}
 	} catch(Game::BoardIndex::Exception) {
@@ -235,10 +239,10 @@ void NetOpponent::_handleUpdateGameBoard(Messages::Vector3 vals,
 
 void NetOpponent::_abort(QString reason)
 {
-	game()->abort(Player2, reason);
+	_game.abort(Player2, reason);
 }
 
-void NetOpponent::aborted(FieldValue requester, QString reason)
+void NetOpponent::_aborted(FieldValue requester, QString reason)
 {
 	if (requester == Player2) {
 		SendRequest *req = new SendRequest(Messages::abortGame(reason));

@@ -94,6 +94,8 @@ public:
 	QHostAddress ipAddress() const { return _conf.ipAddress(); }
 	quint16 port() const { return _conf.port(); }
 
+	QList<const NetworkGame *> games() const;
+
 	void registerGame(NetworkGameRequest &request);
 	void unregisterGame(NetworkGameRequest &request);
 	void refreshGameList(Request &request);

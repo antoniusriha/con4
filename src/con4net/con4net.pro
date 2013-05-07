@@ -30,7 +30,7 @@ SOURCES += main.cpp \
 	indexservicelist.cpp \
     netinitiator.cpp \
     netopponent.cpp \
-    indexservicetablemodel.cpp
+    netinitiatorhelper.cpp \
 
 HEADERS += \
 	../con4core/game.h \
@@ -47,4 +47,4 @@ HEADERS += \
 	indexservicelist.h \
     netinitiator.h \
     netopponent.h \
-    indexservicetablemodel.h
+    netinitiatorhelper.h

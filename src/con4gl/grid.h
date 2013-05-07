@@ -66,10 +66,11 @@ private:
 	QColor _player1Color, _player2Color;
 	float _bottomColor[4], _player1Colorf[4], _player2Colorf[4],
 		  _player1WinColor[4], _player2WinColor[4];
-	int *_conWidthIdcs, *_conHeightIdcs, *_conDepthIdcs;
+	QVector<Game::BoardIndex> _conIdcs;
 	float _colsDistance, _boardBaseHeight, _sphereRadius;
 	int _wCursor, _dCursor;
 	Game *_game;
+	Game::Dimensions _dims;
 	GLUquadricObj *_quadric;
 };
 

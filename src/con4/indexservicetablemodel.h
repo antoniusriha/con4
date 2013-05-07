@@ -1,5 +1,5 @@
 /*
- * ngltreeitem.h
+ * indexservicetablemodel.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,33 +25,35 @@
  * THE SOFTWARE.
  */
 
-#ifndef NGLTREEITEM_H
-#define NGLTREEITEM_H
+#ifndef INDEXSERVICETABLEMODEL_H
+#define INDEXSERVICETABLEMODEL_H
 
-#include <QVector>
-#include <QVariant>
+#include <QAbstractTableModel>
+#include "../con4net/indexservicelist.h"
 
-class NglTreeItem {
+class IndexServiceTableModel : public QAbstractTableModel
+{
+	Q_OBJECT
+
 public:
-	NglTreeItem(const QVector<QVariant> &data, NglTreeItem *parent = 0);
-	~NglTreeItem();
+	explicit IndexServiceTableModel(IndexServiceList &list,
+									QObject *parent = 0);
+	~IndexServiceTableModel() {}
 
-	NglTreeItem *child(int number);
-	int childCount() const;
-	int columnCount() const;
-	QVariant data(int column) const;
-	bool insertChildren(int position, int count, int columns);
-	bool insertColumns(int position, int columns);
-	NglTreeItem *parent();
-	bool removeChildren(int position, int count);
-	bool removeColumns(int position, int columns);
-	int childNumber() const;
-	bool setData(int column, const QVariant &value);
+	int rowCount(const QModelIndex & parent) const;
+	int columnCount(const QModelIndex &parent) const;
+	QVariant data(const QModelIndex &index, int role) const;
+	QVariant headerData(int section, Qt::Orientation orientation,
+						int role) const;
+
+private slots:
+	void _creating(IndexService *, int index);
+	void _created(IndexService *, int);
+	void _deleting(IndexService *, int index);
+	void _deletedAt(int index);
 
 private:
-	QList<NglTreeItem *> _childItems;
-	QVector<QVariant> _itemData;
-	NglTreeItem *_parentItem;
+	IndexServiceList &_list;
 };
 
-#endif // NGLTREEITEM_H
+#endif // INDEXSERVICETABLEMODEL_H

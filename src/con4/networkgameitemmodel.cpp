@@ -1,5 +1,5 @@
 /*
- * networkgamelist.cpp
+ * networkgameitemmodel.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,11 +25,12 @@
  * THE SOFTWARE.
  */
 
-#include "networkgamelist.h"
+#include "networkgameitemmodel.h"
+#include "ngltreeitem.h"
 
-NetworkGameList::NetworkGameList(IndexServiceList *indexServices,
-								 QObject *parent)
-	: QAbstractItemModel(parent), _indexServices(indexServices), _refreshLog()
+NetworkGameItemModel::NetworkGameItemModel(IndexServiceList &list,
+										   QObject *parent)
+	: QAbstractItemModel(parent), _list(list)
 {
 	QVector<QVariant> headers(4);
 	headers[0] = "Name";
@@ -37,12 +38,13 @@ NetworkGameList::NetworkGameList(IndexServiceList *indexServices,
 	headers[2] = "Dimensions";
 	headers[3] = "IP Address/Port";
 	_rootItem = new NglTreeItem(headers);
+
+	connect(&list, SIGNAL(refreshing()), this, SLOT(_refreshing()));
+	connect(&list, SIGNAL(refreshed()), this, SLOT(_refreshed()));
 }
 
-NetworkGameList::~NetworkGameList() { delete _rootItem; }
-
-QModelIndex NetworkGameList::index(int row, int column,
-								   const QModelIndex &parent) const
+QModelIndex NetworkGameItemModel::index(int row, int column,
+										const QModelIndex &parent) const
 {
 	if (row < 0 || column < 0 || (parent.isValid() && parent.column() != 0))
 		return QModelIndex();
@@ -53,7 +55,7 @@ QModelIndex NetworkGameList::index(int row, int column,
 	return QModelIndex();
 }
 
-QModelIndex NetworkGameList::parent(const QModelIndex &child) const
+QModelIndex NetworkGameItemModel::parent(const QModelIndex &child) const
 {
 	if (!child.isValid()) return QModelIndex();
 	NglTreeItem *childItem = _getItem(child);
@@ -62,87 +64,78 @@ QModelIndex NetworkGameList::parent(const QModelIndex &child) const
 	return createIndex(parentItem->childNumber(), 0, parentItem);
 }
 
-int NetworkGameList::rowCount(const QModelIndex &parent) const
+int NetworkGameItemModel::rowCount(const QModelIndex &parent) const
 {
 	NglTreeItem *parentItem = _getItem(parent);
 	return parentItem->childCount();
 }
 
-int NetworkGameList::columnCount(const QModelIndex &parent) const
+int NetworkGameItemModel::columnCount(const QModelIndex &parent) const
 {
 	return _rootItem->columnCount();
 }
 
-QVariant NetworkGameList::data(const QModelIndex &index, int role) const
+QVariant NetworkGameItemModel::data(const QModelIndex &index, int role) const
 {
 	if (!index.isValid() || role != Qt::DisplayRole || index.row() < 0 ||
-			index.column() < 0)
+		index.column() < 0)
 		return QVariant::Invalid;
 
 	NglTreeItem *item = _getItem(index);
 	return item->data(index.column());
 }
 
-QVariant NetworkGameList::headerData(int section, Qt::Orientation orientation,
-									 int role) const
+QVariant NetworkGameItemModel::headerData(int section,
+										  Qt::Orientation orientation,
+										  int role) const
 {
 	if (orientation != Qt::Horizontal || section < 0 ||
-			section > _colCountGame || role != Qt::DisplayRole)
+		section > _colCountGame || role != Qt::DisplayRole)
 		return QVariant::Invalid;
 	return _rootItem->data(section);
 }
 
-void NetworkGameList::refresh()
+void NetworkGameItemModel::_refreshed()
 {
-	_refreshLog = "";
-	beginResetModel();
+	QList<const NetworkGame *> games;
 
 	_rootItem->removeChildren(0, _rootItem->childCount());
+	for (int i = 0; i < _list.size(); i++) {
+		IndexService *service = _list.at(i);
+		int position = _rootItem->childCount();
+		_rootItem->insertChildren(position, 1, _colCountIdxSrv);
+		NglTreeItem *item = _rootItem->child(position);
 
-	for (int i = 0; i < _indexServices->size(); i++) {
-		QString errMsg;
-		if (!_indexServices->at(i)->refreshGameList())
-			_refreshLog.append(errMsg + "\n");
-		else {
-			IndexService *service = _indexServices->at(i);
-			int position = _rootItem->childCount();
-			_rootItem->insertChildren(position, 1, _colCountIdxSrv);
-			NglTreeItem *item = _rootItem->child(position);
+		QString data = QString("%1 (%2:%3)").arg(service->name())
+			.arg(service->ipAddress().toString()).arg(service->port());
+		item->setData(0, data);
 
-			QString data = QString("%1 (%2:%3)").arg(service->name())
-					.arg(service->ipAddress().toString())
-					.arg(service->port());
-			item->setData(0, data);
+		games = service->games();
+		item->insertChildren(0, games.size(), _colCountGame);
+		for (int j = 0; j < games.size(); j++) {
+			const NetworkGame *game = games.at(j);
+			NglTreeItem *gameItem = item->child(j);
+			gameItem->setData(0, game->name().string());
+			gameItem->setData(1, game->initiatorName().string());
 
-			item->insertChildren(0, service->games()->size(), _colCountGame);
-			for (int j = 0; j < service->games()->size(); j++) {
-				NetworkGame *game = service->games()->at(j);
-				NglTreeItem *gameItem = item->child(j);
-				gameItem->setData(0, game->name().string());
-				gameItem->setData(1, game->initiatorName().string());
-
-				QString dims;
-				if (game->dims().depth() == 1) {
-					dims = QString("%1x%2").arg(game->dims().width())
-							.arg(game->dims().height());
-				} else {
-					dims = QString("%1x%2x%3").arg(game->dims().width())
-							.arg(game->dims().height())
-							.arg(game->dims().depth());
-				}
-				gameItem->setData(2, dims);
-
-				QString ipAndPort = QString("%1:%2")
-						.arg(game->ipAddress().toString())
-						.arg(game->port());
-				gameItem->setData(3, ipAndPort);
+			QString dimsStr;
+			Game::Dimensions dims = game->dims();
+			if (dims.depth() == 1)
+				dimsStr = QString("%1x%2").arg(dims.width()).arg(dims.height());
+			else {
+				dimsStr = QString("%1x%2x%3").arg(dims.width())
+						.arg(dims.height()).arg(dims.depth());
 			}
+			gameItem->setData(2, dimsStr);
+
+			QString ipAndPort = QString("%1:%2")
+					.arg(game->ipAddress().toString()).arg(game->port());
+			gameItem->setData(3, ipAndPort);
 		}
 	}
-	endResetModel();
 }
 
-NglTreeItem *NetworkGameList::_getItem(const QModelIndex &index) const
+NglTreeItem *NetworkGameItemModel::_getItem(const QModelIndex &index) const
 {
 	if (index.isValid()) {
 		NglTreeItem *item = static_cast<NglTreeItem *>(index.internalPointer());

@@ -29,9 +29,7 @@
 
 IndexServiceTableModel::IndexServiceTableModel(IndexServiceList &list,
 											   QObject *parent) :
-	QAbstractTableModel(parent), _list(list)
-{
-}
+	QAbstractTableModel(parent), _list(list) {}
 
 int IndexServiceTableModel::rowCount(const QModelIndex &parent) const
 {
@@ -58,8 +56,9 @@ QVariant IndexServiceTableModel::data(const QModelIndex &index, int role) const
 	return QVariant::Invalid;
 }
 
-QVariant IndexServiceTableModel::headerData(int section, Qt::Orientation orientation,
-									  int role) const
+QVariant IndexServiceTableModel::headerData(int section,
+											Qt::Orientation orientation,
+											int role) const
 {
 	if (orientation != Qt::Horizontal || section < 0 || section > 2 ||
 			role != Qt::DisplayRole) return QVariant::Invalid;
@@ -68,4 +67,24 @@ QVariant IndexServiceTableModel::headerData(int section, Qt::Orientation orienta
 	else if (section == 1) return "IP Address";
 	else if (section == 2) return "Port";
 	return QVariant::Invalid;
+}
+
+void IndexServiceTableModel::_creating(IndexService *, int index)
+{
+	beginInsertRows(QModelIndex(), index, index);
+}
+
+void IndexServiceTableModel::_created(IndexService *, int)
+{
+	endInsertRows();
+}
+
+void IndexServiceTableModel::_deleting(IndexService *, int index)
+{
+	beginRemoveRows(QModelIndex(), index, index);
+}
+
+void IndexServiceTableModel::_deletedAt(int index)
+{
+	endRemoveRows();
 }

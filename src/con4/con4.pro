@@ -14,7 +14,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    aiplayer.cpp \
     addindexserverdialog.cpp \
     application.cpp \
     indexserversview.cpp \
@@ -27,23 +26,24 @@ SOURCES += main.cpp\
     boardconf.cpp \
     ../con4core/player.cpp \
     ../con4net/indexservice.cpp \
-    ../con4net/opponentservice.cpp \
-    ../con4net/networkplayerservice.cpp \
-    ../con4net/initiatorservice.cpp \
     ../con4net/indexservicelist.cpp \
     ../con4core/settings.cpp \
     ../con4net/networkgame.cpp \
-    ../con4net/networkgamelist.cpp \
-    ../con4net/ngltreeitem.cpp \
     ../con4net/serverendpoint.cpp \
     ../con4net/messages.cpp \
     ../con4net/message.cpp \
     ../con4net/endpoint.cpp \
     ../con4net/clientendpoint.cpp \
-    gamehost.cpp
+    gamehost.cpp \
+    indexservicetablemodel.cpp \
+    ../con4net/netopponent.cpp \
+    ../con4net/netinitiatorhelper.cpp \
+    ../con4net/netinitiator.cpp \
+    networkgameitemmodel.cpp \
+    ngltreeitem.cpp \
+    ../con4net/processingqueue.cpp
 
 HEADERS  += mainwindow.h \
-    aiplayer.h \
     addindexserverdialog.h \
     application.h \
     indexserversview.h \
@@ -56,21 +56,23 @@ HEADERS  += mainwindow.h \
     boardconf.h \
     ../con4core/player.h \
     ../con4net/indexservice.h \
-    ../con4net/opponentservice.h \
-    ../con4net/networkplayerservice.h \
-    ../con4net/initiatorservice.h \
     ../con4net/con4netglobals.h \
     ../con4net/indexservicelist.h \
     ../con4core/settings.h \
     ../con4net/networkgame.h \
-    ../con4net/networkgamelist.h \
-    ../con4net/ngltreeitem.h \
     ../con4net/serverendpoint.h \
     ../con4net/messages.h \
     ../con4net/message.h \
     ../con4net/endpoint.h \
     ../con4net/clientendpoint.h \
-    gamehost.h
+    gamehost.h \
+    indexservicetablemodel.h \
+    ../con4net/netopponent.h \
+    ../con4net/netinitiatorhelper.h \
+    ../con4net/netinitiator.h \
+    networkgameitemmodel.h \
+    ngltreeitem.h \
+    ../con4net/processingqueue.h
 
 FORMS    += mainwindow.ui \
     addindexserverdialog.ui \

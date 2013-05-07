@@ -1,5 +1,5 @@
 /*
- * indexservicetablemodel.h
+ * networkgameitemmodel.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,29 +25,42 @@
  * THE SOFTWARE.
  */
 
-#ifndef INDEXSERVICETABLEMODEL_H
-#define INDEXSERVICETABLEMODEL_H
+#ifndef NETWORKGAMEITEMMODEL_H
+#define NETWORKGAMEITEMMODEL_H
 
-#include <QAbstractTableModel>
-#include "indexservicelist.h"
+#include <QAbstractItemModel>
+#include "../con4net/indexservicelist.h"
 
-class IndexServiceTableModel : public QAbstractTableModel
+class NglTreeItem;
+
+class NetworkGameItemModel : public QAbstractItemModel
 {
 	Q_OBJECT
 
 public:
-	explicit IndexServiceTableModel(IndexServiceList &list,
-									QObject *parent = 0);
-	~IndexServiceTableModel();
+	explicit NetworkGameItemModel(IndexServiceList &list, QObject *parent = 0);
+	~NetworkGameItemModel() { delete _rootItem; }
 
-	int rowCount(const QModelIndex & parent) const;
+	QModelIndex index(int row, int column, const QModelIndex &parent) const;
+	QModelIndex parent(const QModelIndex &child) const;
+	int rowCount(const QModelIndex &parent) const;
 	int columnCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
 	QVariant headerData(int section, Qt::Orientation orientation,
 						int role) const;
 
+private slots:
+	void _refreshing() { beginResetModel(); }
+	void _refreshed();
+
 private:
+	NglTreeItem *_getItem(const QModelIndex &index) const;
+
+	const static int _colCountIdxSrv = 1;
+	const static int _colCountGame = 4;
+
 	IndexServiceList &_list;
+	NglTreeItem *_rootItem;
 };
 
-#endif // INDEXSERVICETABLEMODEL_H
+#endif // NETWORKGAMEITEMMODEL_H

@@ -139,7 +139,7 @@ public:
 
 	// Queries
 	bool full(BoardIndex &idx) const;
-	bool connected(QVector<BoardIndex> &wVals) const;
+	bool connected(QVector<BoardIndex> &vals) const;
 
 	// Data access
 	FieldValue get(BoardIndex idx) const;

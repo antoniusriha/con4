@@ -27,98 +27,12 @@
 
 #include "netinitiator.h"
 #include "messages.h"
-
-class IndexServiceWrapper : public QObject
-{
-	Q_OBJECT
-
-public:
-	enum State { NotRegistered, Registered, Sealed, Unregistered };
-
-	IndexServiceWrapper(IndexService &service, NetworkGame &game)
-		: _service(service), _game(game), _state(NotRegistered),
-		  _regReq(game), _sealReq(game), _unregReq(game)
-	{
-		connect(&_regReq, SIGNAL(finished(Request*)),
-				this, SLOT(_registerGameFinished(Request*)));
-		connect(&_sealReq, SIGNAL(finished(Request*)),
-				this, SLOT(_sealGameFinished(Request*)));
-		connect(&_unregReq, SIGNAL(finished(Request*)),
-				this, SLOT(_unregisterGameFinished(Request*)));
-	}
-
-	IndexService *service() const { return &_service; }
-	State state() const { return _state; }
-
-	NetworkGameRequest *regRequest() const { return &_regReq; }
-	NetworkGameRequest *sealRequest() const { return &_sealReq; }
-	NetworkGameRequest *unregRequest() const { return &_unregReq; }
-
-	void registerGame() { _service.registerGame(_regReq); }
-	void sealGame()	{ _service.sealGame(_sealReq); }
-	void unregisterGame() { _service.unregisterGame(_unregReq); }
-
-signals:
-	void registerGameFinished(IndexServiceWrapper *wrapper);
-	void sealGameFinished(IndexServiceWrapper *wrapper);
-	void unregisterGameFinished(IndexServiceWrapper *wrapper);
-
-private slots:
-	void _registerGameFinished(Request *request)
-	{
-		if (request->success()) _state = Registered;
-		emit registerGameFinished(this);
-	}
-
-	void _sealGameFinished(Request *request)
-	{
-		if (request->success()) _state = Sealed;
-		emit sealGameFinished(this);
-	}
-
-	void _unregisterGameFinished(Request *request)
-	{
-		if (request->success()) _state = Unregistered;
-		emit unregisterGameFinished(this);
-	}
-
-private:
-	IndexService &_service;
-	NetworkGame &_game;
-	State _state;
-	NetworkGameRequest _regReq, _sealReq, _unregReq;
-};
+#include "netinitiatorhelper.h"
 
 NetInitiator::NetInitiator(NetInitiatorConf conf, QObject *parent)
-	: QObject(parent), _list(*conf.indexServiceList()),
-	  _game(conf.networkGameConf()), _wrappers(), _endpoint(10000, this)
-{
-	connect(&_list, SIGNAL(deleting(IndexService*)),
-			this, SLOT(_indexServiceDeleting(IndexService*)));
-	for (int i = 0; i < _list.size(); i++)
-		_wrappers.append(new IndexServiceWrapper(*_list.at(i), _game));
-}
-
-void NetInitiator::_indexServiceDeleting(IndexService *service)
-{
-	for (int i = 0; i < _wrappers.size(); i++) {
-		if (_wrappers.at(i)->service() == service) {
-			IndexServiceWrapper *wrapper = _wrappers.takeAt(i);
-			wrapper->unregisterGame();
-			delete wrapper;
-			return;
-		}
-	}
-
-	if (_wrappers.size() == 0)
-		_game.abort(Player1, "All index services have been removed.");
-}
-
-NetInitiator::~NetInitiator()
-{
-	for (int i = 0; i < _wrappers.size(); i++)
-		delete _wrappers.takeFirst();
-}
+	: QObject(parent), _game(conf.networkGameConf()),
+	  _manager(new IndexServiceManager(*conf.indexServiceList(), _game, this)),
+	  _endpoint(10000, this) {}
 
 bool NetInitiator::startService(QString *errMsg)
 {
@@ -132,47 +46,37 @@ bool NetInitiator::startService(QString *errMsg)
 
 void NetInitiator::registerGame()
 {
-	for (int i = 0; i < _wrappers.size(); i++) {
-		IndexServiceWrapper *wrapper = _wrappers.at(i);
-		connect(wrapper, SIGNAL(registerGameFinished(IndexServiceWrapper*)),
-				this, SLOT(_registerGameFinished(IndexServiceWrapper*)));
-		wrapper->registerGame();
-	}
-}
 
-void NetInitiator::_registerGameFinished(IndexServiceWrapper *wrapper)
-{
-	if (wrapper->regRequest()->success())
-}
-
-void NetInitiator::_sealGameFinished(IndexServiceWrapper *wrapper)
-{
-}
-
-void NetInitiator::_unregisterGameFinished(IndexServiceWrapper *wrapper)
-{
 }
 
 void NetInitiator::acceptJoinRequest()
 {
 	// seal game
-	for (int i = 0; i < _indexServices.size(); i++)
-		_indexServices.at(i)->sealGame(*game());
+	// TODO
 
 	// join success
-	_endpoint.send(Messages::joinGameSuccess(Messages::V2));
+	SendRequest *req = new SendRequest(Messages::joinGameSuccess(Messages::V2));
+	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+	_endpoint.send(*req);
 
 	// start game
-	game()->start();
-	if (game()->curPlayer() == Player2)
-		_endpoint.send(Messages::startGame());
+	_game.start();
+	if (_game.curPlayer() == Player2) {
+		SendRequest *startReq = new SendRequest(Messages::startGame());
+		connect(startReq, SIGNAL(finished(Request*)),
+				startReq, SLOT(deleteLater()));
+		_endpoint.send(*startReq);
+	}
 }
 
 void NetInitiator::rejectJoinRequest(QString reason)
 {
-	_endpoint.send(Messages::joinGameFailed(reason));
+	SendRequest *req = new SendRequest(Messages::joinGameFailed(reason));
+	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+	_endpoint.send(*req);
 }
 
+/*
 void NetInitiator::_set(FieldValue player, int width, int depth)
 {
 	if (player == Player1) {
@@ -242,3 +146,4 @@ void NetInitiator::_messageReceived(Message msg)
 
 	}
 }
+*/

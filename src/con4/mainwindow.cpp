@@ -29,14 +29,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "indexserversview.h"
+#include "networkgameitemmodel.h"
 
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
-	  _application(Application::instance()), _currentGame(0), _oppService(0),
-	  _initService(0),
-	  _networkGames(new NetworkGameList(_application.indexServices(), this))
+	  _application(Application::instance()),
+	  _indexServiceList(*_application.indexServices())
 {
 	ui->setupUi(this);
 	_player1Color = QColor(Qt::red);
@@ -57,9 +57,9 @@ MainWindow::MainWindow(QWidget *parent)
 		ui->btnJoin->setEnabled(false);
 	}
 
-	ui->tvJoinGames->setModel(_networkGames);
-
-	_localGame = new Game(ui->boardConf->dims());
+	NetworkGameItemModel *model =
+			new NetworkGameItemModel(_indexServiceList, this);
+	ui->tvJoinGames->setModel(model);
 
 	connect(ui->pageGame, SIGNAL(close()), this, SLOT(closeGame()));
 
@@ -84,7 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {
 	delete ui;
-	delete _localGame;
 }
 
 void MainWindow::gameTypeSelectionChanged () {
@@ -97,13 +96,13 @@ void MainWindow::gameTypeSelectionChanged () {
 }
 
 void MainWindow::viewIndexServersClicked () {
-	IndexServersView dlg (_application.indexServices(), this);
+	IndexServersView dlg (*_application.indexServices(), this);
 	dlg.exec ();
 }
 
 void MainWindow::startClicked () {
 
-
+/*
 	_currentGame = _localGame;
 	_localGame->setWidth(ui->boardConf->boardWidth());
 	_localGame->setHeight(ui->boardConf->boardHeight());
@@ -122,10 +121,12 @@ void MainWindow::startClicked () {
 	ui->stackAppView->setCurrentWidget (gameWidget);
 	gameWidget->setGameTitle("Local game");
 	_localGame->start();
+	*/
 }
 
 void MainWindow::createNetworkGameClicked()
 {
+	/*
 	QHostAddress ipAddress (ui->txtIpAddress->text());
 	_oppService = new OpponentService(ui->networkBoardConf->boardWidth(),
 									  ui->networkBoardConf->boardHeight(),
@@ -159,10 +160,12 @@ void MainWindow::createNetworkGameClicked()
 	gameWidget->setPlayer2Color(_player2Color);
 	ui->stackAppView->setCurrentWidget(gameWidget);
 	gameWidget->setGameTitle("Locally initialized network game");
+	*/
 }
 
 void MainWindow::joinClicked()
 {
+	/*
 	QItemSelectionModel *selModel = ui->tvJoinGames->selectionModel();
 	if (!selModel->hasSelection()) return;
 
@@ -190,13 +193,14 @@ void MainWindow::joinClicked()
 	gameWidget->setPlayer2Color(_player2Color);
 	ui->stackAppView->setCurrentWidget(gameWidget);
 	gameWidget->setGameTitle("Remotely initialized network game");
+	*/
 }
 
 void MainWindow::refreshClicked()
 {
-	_networkGames->refresh();
+	_indexServiceList.refresh();
 	ui->tvJoinGames->expandAll();
-	ui->lblStatus->setText(_networkGames->refreshLog());
+	ui->lblStatus->setText(_indexServiceList.refreshLog());
 }
 
 void MainWindow::player1Clicked()
@@ -219,6 +223,7 @@ void MainWindow::player2Clicked()
 
 void MainWindow::closeGame()
 {
+	/*
 	if (_currentGame == _localGame) {
 		delete _localGame;
 		_localGame = new Game(4, ui->boardConf->boardWidth(),
@@ -235,6 +240,7 @@ void MainWindow::closeGame()
 	}
 
 	ui->stackAppView->setCurrentWidget(ui->pageGameConf);
+	*/
 }
 
 void MainWindow::indexServerCountChanged()
@@ -249,6 +255,7 @@ void MainWindow::indexServerCountChanged()
 
 void MainWindow::joinGame(QString playerName)
 {
+	/*
 	QString text = QString("%1 would like to join the game. Accept?")
 			.arg(playerName);
 
@@ -259,6 +266,7 @@ void MainWindow::joinGame(QString playerName)
 		ui->pageGame->setPlayer2Name(playerName);
 	} else _oppService->rejectJoinRequest(
 				"The server user doesn't want to play with you.");
+				*/
 }
 
 // from: http://stackoverflow.com/questions/282938/show-result-of-color-

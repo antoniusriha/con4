@@ -30,34 +30,12 @@
 NglTreeItem::NglTreeItem(const QVector<QVariant> &data, NglTreeItem *parent)
 	: _itemData(data), _parentItem(parent) {}
 
-NglTreeItem::~NglTreeItem() { qDeleteAll(_childItems); }
-
-NglTreeItem *NglTreeItem::child(int number)
-{
-	return _childItems.value(number);
-}
-
-int NglTreeItem::childCount() const
-{
-	return _childItems.count();
-}
-
 int NglTreeItem::childNumber() const
 {
 	if (_parentItem)
 		return _parentItem->_childItems.indexOf(
 					const_cast<NglTreeItem *>(this));
 	return 0;
-}
-
-int NglTreeItem::columnCount() const
-{
-	return _itemData.count();
-}
-
-QVariant NglTreeItem::data(int column) const
-{
-	return _itemData.value(column);
 }
 
 bool NglTreeItem::insertChildren(int position, int count, int columns)
@@ -85,11 +63,6 @@ bool NglTreeItem::insertColumns(int position, int columns)
 		child->insertColumns(position, columns);
 
 	return true;
-}
-
-NglTreeItem *NglTreeItem::parent()
-{
-	return _parentItem;
 }
 
 bool NglTreeItem::removeChildren(int position, int count)

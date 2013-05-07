@@ -1,5 +1,5 @@
 /*
- * addindexserverdialog.h
+ * ngltreeitem.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,30 +25,34 @@
  * THE SOFTWARE.
  */
 
-#ifndef ADDINDEXSERVERDIALOG_H
-#define ADDINDEXSERVERDIALOG_H
+#ifndef NGLTREEITEM_H
+#define NGLTREEITEM_H
 
-#include <QDialog>
-#include "../con4net/indexservicelist.h"
+#include <QVector>
+#include <QVariant>
 
-namespace Ui {
-class AddIndexServerDialog;
-}
-
-class AddIndexServerDialog : public QDialog
+class NglTreeItem
 {
-    Q_OBJECT
-
 public:
-	explicit AddIndexServerDialog(IndexServiceList &list, QWidget *parent = 0);
-    ~AddIndexServerDialog();
+	NglTreeItem(const QVector<QVariant> &data, NglTreeItem *parent = 0);
+	~NglTreeItem() { qDeleteAll(_childItems); }
+
+	NglTreeItem *child(int number) { return _childItems.value(number); }
+	int childCount() const { return _childItems.count(); }
+	int columnCount() const { return _itemData.count(); }
+	QVariant data(int column) const { return _itemData.value(column); }
+	bool insertChildren(int position, int count, int columns);
+	bool insertColumns(int position, int columns);
+	NglTreeItem *parent() { return _parentItem; }
+	bool removeChildren(int position, int count);
+	bool removeColumns(int position, int columns);
+	int childNumber() const;
+	bool setData(int column, const QVariant &value);
 
 private:
-    void done(int result);
-    bool _nameExists(QString name);
-
-    Ui::AddIndexServerDialog *ui;
-	IndexServiceList &_list;
+	QList<NglTreeItem *> _childItems;
+	QVector<QVariant> _itemData;
+	NglTreeItem *_parentItem;
 };
 
-#endif // ADDINDEXSERVERDIALOG_H
+#endif // NGLTREEITEM_H

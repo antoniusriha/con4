@@ -31,7 +31,6 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include "application.h"
-#include "../con4net/networkgamelist.h"
 
 namespace Ui {
 class MainWindow;
@@ -65,7 +64,7 @@ private:
 	Ui::MainWindow *ui;
 	Application &_application;
 	QColor _player1Color, _player2Color;
-	NetworkGameList *_networkGames;
+	IndexServiceList &_indexServiceList;
 };
 
 #endif // MAINWINDOW_H

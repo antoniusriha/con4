@@ -33,8 +33,9 @@ const QString IndexServiceList::IdxSrvAddrKey = "ip";
 const QString IndexServiceList::IdxSrvPortKey = "port";
 
 IndexServiceList::IndexServiceList(Settings *settings, QObject *parent)
-	: QAbstractTableModel(parent), _list(QList<IndexService *>()),
-	  _settings(settings), _keys(QList<QString>())
+	: QObject(parent), _list(QList<IndexService *>()), _settings(settings),
+	  _keys(QList<QString>()), _refreshLog(),
+	  _refreshCount(0), _refreshNumber(0)
 {
 	settings->registerKey(IdxSrvArrayKey);
 	settings->registerKey(IdxSrvNameKey);
@@ -70,11 +71,10 @@ void IndexServiceList::create(QHostAddress host, quint16 port, QString name)
 	conf.setPort(port);
 	IndexService *item = new IndexService(conf);
 	int index = _list.size();
-	beginInsertRows(QModelIndex(), index, index);
+	emit creating(item, index);
 	_list.append(item);
 	_updateSettings();
-	endInsertRows();
-	emit created(item);
+	emit created(item, index);
 }
 
 bool IndexServiceList::deleteItem(IndexService *item)
@@ -88,14 +88,33 @@ bool IndexServiceList::deleteAt(int index)
 {
 	if (index < 0 || index >= _list.size()) return false;
 	IndexService *item = _list.at(index);
-	beginRemoveRows(QModelIndex(), index, index);
-	emit deleting(item);
+	emit deleting(item, index);
 	_list.removeAt(index);
 	_updateSettings();
-	endRemoveRows();
-	delete item;
 	emit deletedAt(index);
+	delete item;
 	return true;
+}
+
+void IndexServiceList::refresh()
+{
+	emit refreshing();
+	_refreshLog = "";
+	_refreshCount = 0;
+	_refreshNumber = _list.size();
+	for (int i = 0; i < _refreshNumber; i++) {
+		Request *req = new Request();
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_refreshGameListFinished(Request*)));
+		_list.at(i)->refreshGameList(*req);
+	}
+}
+
+void IndexServiceList::_refreshGameListFinished(Request *req)
+{
+	if (!req->success()) _refreshLog.append(req->errorString() + "\n");
+	delete req;
+	if (++_refreshCount == _refreshNumber) emit refreshed();
 }
 
 void IndexServiceList::_updateSettings()

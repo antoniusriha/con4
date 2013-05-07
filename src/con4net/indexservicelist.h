@@ -28,11 +28,10 @@
 #ifndef INDEXSERVICELIST_H
 #define INDEXSERVICELIST_H
 
-#include <QAbstractTableModel>
 #include "../con4core/settings.h"
 #include "../con4net/indexservice.h"
 
-class IndexServiceList : public QAbstractTableModel
+class IndexServiceList : public QObject
 {
 	Q_OBJECT
 
@@ -52,10 +51,19 @@ public:
 	bool empty() const { return _list.size() == 0; }
 	int indexOf(IndexService *item) const { return _list.indexOf(item); }
 
+	void refresh();
+	QString refreshLog() const { return _refreshLog; }
+
 signals:
-	void created(IndexService *item);
-	void deleting(IndexService *item);
+	void creating(IndexService *item, int index);
+	void created(IndexService *item, int index);
+	void deleting(IndexService *item, int index);
 	void deletedAt(int index);
+	void refreshing();
+	void refreshed();
+
+private slots:
+	void _refreshGameListFinished(Request *req);
 
 private:
 	void _updateSettings();
@@ -63,6 +71,8 @@ private:
 	QList<IndexService *> _list;
 	Settings *_settings;
 	QList<QString> _keys;
+	QString _refreshLog;
+	int _refreshCount, _refreshNumber;
 };
 
 #endif // INDEXSERVICELIST_H

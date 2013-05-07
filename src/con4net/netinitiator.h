@@ -48,7 +48,7 @@ private:
 	NetworkGameConf _networkGameConf;
 };
 
-class IndexServiceWrapper;
+class IndexServiceManager;
 
 class NetInitiator : public QObject
 {
@@ -56,7 +56,6 @@ class NetInitiator : public QObject
 
 public:
 	NetInitiator(NetInitiatorConf conf, QObject *parent = 0);
-	~NetInitiator();
 
 	bool startService(QString *errMsg = 0);
 	void registerGame();
@@ -77,24 +76,19 @@ signals:
 	void abortGame(QString reason);
 
 private slots:
-	void _indexServiceDeleting(IndexService *service);
-	void _registerGameFinished(IndexServiceWrapper *wrapper);
-	void _sealGameFinished(IndexServiceWrapper *wrapper);
-	void _unregisterGameFinished(IndexServiceWrapper *wrapper);
-	void _messageReceived(Message msg);
-	void aborted(FieldValue requester, QString reason);
-	void finished(FieldValue winner);
-	void set(FieldValue player, Game::BoardIndex index);
-	void started(FieldValue startPlayer);
-	void undone(FieldValue player, Game::BoardIndex index);
+//	void _messageReceived(Message msg);
+//	void _aborted(FieldValue requester, QString reason);
+//	void _finished(FieldValue winner);
+//	void _set(FieldValue player, Game::BoardIndex index);
+//	void _started(FieldValue startPlayer);
+//	void _undone(FieldValue player, Game::BoardIndex index);
 
 private:
 	void _handleMsg(QStringList msgTokens);
 	bool _sendMsg(QString msg);
 
-	IndexServiceList &_list;
 	NetworkGame _game;
-	QList<IndexServiceWrapper *> _wrappers;
+	IndexServiceManager *_manager;
 	ServerEndpoint _endpoint;
 };
 
