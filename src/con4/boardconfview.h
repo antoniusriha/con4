@@ -1,5 +1,5 @@
 /*
- * networkgameview.h
+ * boardconfview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,39 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKGAMEVIEW_H
-#define NETWORKGAMEVIEW_H
+#ifndef BOARDCONFVIEW_H
+#define BOARDCONFVIEW_H
 
 #include <QWidget>
-#include <gamehost.h>
+#include "../con4core/game.h"
 
 namespace Ui {
-class NetworkGameView;
+class BoardConfView;
 }
 
-class NetworkGameView : public QWidget
+class BoardConfView : public QWidget
 {
 	Q_OBJECT
 
 public:
-	class InvalidOperationException : public std::logic_error
-	{
-	public:
-		explicit InvalidOperationException(QString what)
-			: logic_error(what.toStdString()) {}
-	};
+	explicit BoardConfView(QWidget *parent = 0);
+	~BoardConfView();
 
-	explicit NetworkGameView(QWidget *parent = 0);
-	~NetworkGameView();
+	Game::Dimensions dims() const { return _dims; }
 
-	bool isInitialized() const;
-	void initialize(IndexServiceList &list);
-
-	NetworkGameHostConf conf() const;
+signals:
+	void changed();
 
 private slots:
-	void _update();
+	void _threeDToggled(bool checked);
+	void _widthChanged(int value);
+	void _heightChanged(int value);
+	void _depthChanged(int value);
 
 private:
-	Ui::NetworkGameView *ui;
-	NetworkGameHostConf *_conf;
+	Game::Dimensions _dims;
+	int _prevWidth, _prevHeight, _prevDepth;
+	Ui::BoardConfView *ui;
 };
 
-#endif // NETWORKGAMEVIEW_H
+#endif // BOARDCONFVIEW_H

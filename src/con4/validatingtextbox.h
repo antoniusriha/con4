@@ -1,5 +1,5 @@
 /*
- * networkgameview.h
+ * validatingtextbox.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,48 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKGAMEVIEW_H
-#define NETWORKGAMEVIEW_H
+#ifndef VALIDATINGTEXTBOX_H
+#define VALIDATINGTEXTBOX_H
 
 #include <QWidget>
-#include <gamehost.h>
 
 namespace Ui {
-class NetworkGameView;
+class ValidatingTextBox;
 }
 
-class NetworkGameView : public QWidget
+class ValidatingTextBox : public QWidget
 {
 	Q_OBJECT
 
 public:
-	class InvalidOperationException : public std::logic_error
+	class Criterium
 	{
 	public:
-		explicit InvalidOperationException(QString what)
-			: logic_error(what.toStdString()) {}
+		virtual bool test(QString value) const = 0;
+		virtual QString errorString() const = 0;
 	};
 
-	explicit NetworkGameView(QWidget *parent = 0);
-	~NetworkGameView();
+	explicit ValidatingTextBox(QWidget *parent = 0);
+	~ValidatingTextBox();
 
-	bool isInitialized() const;
-	void initialize(IndexServiceList &list);
+	QString text() const;
+	void setText(QString value);
 
-	NetworkGameHostConf conf() const;
+	QString placeholderText() const;
+	void setPlaceholderText(QString value);
+
+	bool isValid() const;
+	QList<Criterium *> *criteria() { return &_criteria; }
+
+signals:
+	void changed();
 
 private slots:
-	void _update();
+	void _textChanged(QString);
 
 private:
-	Ui::NetworkGameView *ui;
-	NetworkGameHostConf *_conf;
+	Ui::ValidatingTextBox *ui;
+	QList<Criterium *> _criteria;
 };
 
-#endif // NETWORKGAMEVIEW_H
+#endif // VALIDATINGTEXTBOX_H

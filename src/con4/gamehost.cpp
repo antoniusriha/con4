@@ -66,6 +66,7 @@ GameHost *GameHost::CreateLocalGame(LocalGameHostConf conf, QObject *parent)
 	host->_window.setPlayer2Color(conf.player2Color());
 	host->_window.setPlayer1Name(conf.player1Name());
 	host->_window.setPlayer2Name(conf.player2Name());
+	host->_game->start();
 	return host;
 }
 
@@ -117,7 +118,8 @@ GameHost *GameHost::CreateNetworkGameWithAiPlayer(NetworkGameConf conf,
 {
 }
 
-GameHost *GameHost::JoinNetworkGame(JoinNetworkGameHostConf conf, QObject *parent)
+GameHost *GameHost::JoinNetworkGame(JoinNetworkGameHostConf conf,
+									QObject *parent)
 {
 }
 
@@ -128,4 +130,5 @@ GameHost *GameHost::JoinNetworkGameWithAiPlayer(JoinNetworkGameHostConf conf,
 
 GameHost::GameHost(QObject *parent) : QObject(parent), _window()
 {
+	_window.show();
 }

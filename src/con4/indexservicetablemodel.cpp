@@ -28,8 +28,17 @@
 #include "indexservicetablemodel.h"
 
 IndexServiceTableModel::IndexServiceTableModel(IndexServiceList &list,
-											   QObject *parent) :
-	QAbstractTableModel(parent), _list(list) {}
+											   QObject *parent)
+	: QAbstractTableModel(parent), _list(list)
+{
+	connect(&list, SIGNAL(creating(IndexService*,int)),
+			this, SLOT(_creating(IndexService*,int)));
+	connect(&list, SIGNAL(created(IndexService*,int)),
+			this, SLOT(_created(IndexService*,int)));
+	connect(&list, SIGNAL(deleting(IndexService*,int)),
+			this, SLOT(_deleting(IndexService*,int)));
+	connect(&list, SIGNAL(deletedAt(int)), this, SLOT(_deletedAt(int)));
+}
 
 int IndexServiceTableModel::rowCount(const QModelIndex &parent) const
 {
@@ -74,17 +83,11 @@ void IndexServiceTableModel::_creating(IndexService *, int index)
 	beginInsertRows(QModelIndex(), index, index);
 }
 
-void IndexServiceTableModel::_created(IndexService *, int)
-{
-	endInsertRows();
-}
+void IndexServiceTableModel::_created(IndexService *, int) { endInsertRows(); }
 
 void IndexServiceTableModel::_deleting(IndexService *, int index)
 {
 	beginRemoveRows(QModelIndex(), index, index);
 }
 
-void IndexServiceTableModel::_deletedAt(int index)
-{
-	endRemoveRows();
-}
+void IndexServiceTableModel::_deletedAt(int index) { endRemoveRows(); }

@@ -34,32 +34,20 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	  _application(Application::instance()),
 	  _indexServiceList(*_application.indexServices()),
-	  _localGameConf(), _netGameConf(_indexServiceList), _joinNetGameConf()
+	  _gameHosts(), _joinNetGameConf()
 {
 	ui->setupUi(this);
-	_setPlayerColor(_localGameConf.player1Color(), ui->btnPlayer1);
-	_setPlayerColor(_localGameConf.player2Color(), ui->btnPlayer2);
 
 	connect(&_indexServiceList, SIGNAL(created(IndexService*,int)),
 			this, SLOT(indexServerCountChanged()));
 	connect(&_indexServiceList, SIGNAL(deletedAt(int)),
 			this, SLOT(indexServerCountChanged()));
 
-	ui->txtGameName->setText(_netGameConf.name().string());
-	ui->txtPlayerName->setText(_netGameConf.initiatorName().string());
-	ui->txtIpAddress->setText(_netGameConf.ipAddress().toString());
-	ui->sbPort->setValue(_netGameConf.port());
+	ui->networkGameConfView->initialize(_indexServiceList);
 
-	_localGameConf.setDims(ui->boardConf->dims());
-	_netGameConf.setDims(ui->networkBoardConf->dims());
+//	_localGameConf.setDims(ui->boardConf->dims());
 
-	if (_indexServiceList.empty()) {
-		ui->gbNetworkPlayer->setEnabled(false);
-		ui->networkBoardConf->setEnabled(false);
-		ui->tvJoinGames->setEnabled(false);
-		ui->btnRefresh->setEnabled(false);
-		ui->btnJoin->setEnabled(false);
-	}
+	if (_indexServiceList.empty()) ui->networkGameConfView->setEnabled(false);
 
 	NetworkGameItemModel *model =
 			new NetworkGameItemModel(_indexServiceList, this);
@@ -80,31 +68,35 @@ MainWindow::MainWindow(QWidget *parent)
 	//	if (_ipAddress.isNull())
 	//		_ipAddress = QHostAddress(QHostAddress::LocalHost);
 
-	connect(ui->boardConf, SIGNAL(error(QString)),
-			ui->lblStatus, SLOT(setText(QString)));
-	connect(ui->networkBoardConf, SIGNAL(error(QString)),
-			ui->lblStatus, SLOT(setText(QString)));
+//	connect(ui->boardConf, SIGNAL(error(QString)),
+//			ui->lblStatus, SLOT(setText(QString)));
+//	connect(ui->networkBoardConf, SIGNAL(error(QString)),
+//			ui->lblStatus, SLOT(setText(QString)));
 }
 
-MainWindow::~MainWindow() {
-	delete ui;
+MainWindow::~MainWindow() { delete ui; }
+
+void MainWindow::gameTypeSelectionChanged()
+{
+	ui->lblStatus->setText("");
+	if (ui->rbNewGame->isChecked())
+		ui->stackGameType->setCurrentWidget(ui->pageNewGameSetup);
+	else if (ui->rbNewNetworkGame->isChecked())
+		ui->stackGameType->setCurrentWidget(ui->pageNewNetworkGameSetup);
+	else ui->stackGameType->setCurrentWidget(ui->pageJoinGameSetup);
 }
 
-void MainWindow::gameTypeSelectionChanged () {
-	ui->lblStatus->setText ("");
-	if (ui->rbNewGame->isChecked ())
-		ui->stackGameType->setCurrentWidget (ui->pageNewGameSetup);
-	else if (ui->rbNewNetworkGame->isChecked ())
-		ui->stackGameType->setCurrentWidget (ui->pageNewNetworkGameSetup);
-	else ui->stackGameType->setCurrentWidget (ui->pageJoinGameSetup);
+void MainWindow::viewIndexServersClicked ()
+{
+	IndexServersView dlg(*_application.indexServices(), this);
+	dlg.exec();
 }
 
-void MainWindow::viewIndexServersClicked () {
-	IndexServersView dlg (*_application.indexServices(), this);
-	dlg.exec ();
-}
-
-void MainWindow::startClicked () {
+void MainWindow::startClicked ()
+{
+	GameHost *gameHost = GameHost::CreateLocalGame(
+				ui->localGameConf->conf(), this);
+	_gameHosts.append(gameHost);
 
 /*
 	_currentGame = _localGame;
@@ -207,27 +199,6 @@ void MainWindow::refreshClicked()
 	ui->lblStatus->setText(_indexServiceList.refreshLog());
 }
 
-void MainWindow::player1Clicked()
-{
-	QColorDialog dlg;
-	QColor curColor = _netGameConf.player1Color();
-	dlg.setCurrentColor(curColor);
-	dlg.exec();
-	curColor = dlg.selectedColor();
-	_localGameConf.setPlayerColors(curColor, _localGameConf.player2Color());
-	_setPlayerColor(curColor, ui->btnPlayer1);
-}
-
-void MainWindow::player2Clicked()
-{
-	QColorDialog dlg;
-	QColor curColor = _netGameConf.player2Color();
-	dlg.setCurrentColor(curColor);
-	dlg.exec();
-	curColor = dlg.selectedColor();
-	_localGameConf.setPlayerColors(_localGameConf.player1Color(), curColor);
-	_setPlayerColor(curColor, ui->btnPlayer2);
-}
 
 void MainWindow::closeGame()
 {
@@ -254,8 +225,7 @@ void MainWindow::closeGame()
 void MainWindow::indexServerCountChanged()
 {
 	bool enable = !_application.indexServices()->empty();
-	ui->gbNetworkPlayer->setEnabled(enable);
-	ui->networkBoardConf->setEnabled(enable);
+	ui->networkGameConfView->setEnabled(enable);
 	ui->tvJoinGames->setEnabled(enable);
 	ui->btnRefresh->setEnabled(enable);
 	ui->btnJoin->setEnabled(enable);
@@ -275,27 +245,4 @@ void MainWindow::joinGame(QString playerName)
 	} else _oppService->rejectJoinRequest(
 				"The server user doesn't want to play with you.");
 				*/
-}
-
-// from: http://stackoverflow.com/questions/282938/show-result-of-color-
-// selection-in-qt
-void MainWindow::_setPlayerColor(QColor color, QPushButton *button)
-{
-	const QString style("QPushButton { background-color : %1; color : %2; }");
-	QColor idealTextColor = _getIdealTextColor(color);
-	button->setStyleSheet(style.arg(color.name()).arg(idealTextColor.name()));
-}
-
-//==============================================================================
-//  Nom : getIdealTextColor
-//! @return an ideal label color, based on the given background color.
-//! Based on http://www.codeproject.com/cs/media/IdealTextColor.asp
-//==============================================================================
-QColor MainWindow::_getIdealTextColor(const QColor& rBackgroundColor) const
-{
-	const int THRESHOLD = 105;
-	int BackgroundDelta = (rBackgroundColor.red() * 0.299) +
-			(rBackgroundColor.green() * 0.587) +
-			(rBackgroundColor.blue() * 0.114);
-	return QColor((255- BackgroundDelta < THRESHOLD) ? Qt::black : Qt::white);
 }

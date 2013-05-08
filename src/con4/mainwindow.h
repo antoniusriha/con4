@@ -52,22 +52,16 @@ private slots:
 	void createNetworkGameClicked();
 	void joinClicked();
 	void refreshClicked();
-	void player1Clicked();
-	void player2Clicked();
 	void closeGame();
 	void indexServerCountChanged();
 	void joinGame(QString playerName);
 
 private:
-	void _setPlayerColor(QColor color, QPushButton *button);
-	QColor _getIdealTextColor(const QColor &rBackgroundColor) const;
-
 	Ui::MainWindow *ui;
 	Application &_application;
 	IndexServiceList &_indexServiceList;
+	QList<GameHost *> _gameHosts;
 
-	LocalGameHostConf _localGameConf;
-	NetworkGameHostConf _netGameConf;
 	JoinNetworkGameHostConf _joinNetGameConf;
 };
 

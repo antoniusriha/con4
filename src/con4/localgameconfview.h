@@ -1,5 +1,5 @@
 /*
- * networkgameview.h
+ * localgameconfview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKGAMEVIEW_H
-#define NETWORKGAMEVIEW_H
+#ifndef LOCALGAMECONFVIEW_H
+#define LOCALGAMECONFVIEW_H
 
 #include <QWidget>
-#include <gamehost.h>
+#include "gamehost.h"
 
 namespace Ui {
-class NetworkGameView;
+class LocalGameConfView;
 }
 
-class NetworkGameView : public QWidget
+class LocalGameConfView : public QWidget
 {
 	Q_OBJECT
 
 public:
-	class InvalidOperationException : public std::logic_error
-	{
-	public:
-		explicit InvalidOperationException(QString what)
-			: logic_error(what.toStdString()) {}
-	};
+	explicit LocalGameConfView(QWidget *parent = 0);
+	~LocalGameConfView();
 
-	explicit NetworkGameView(QWidget *parent = 0);
-	~NetworkGameView();
-
-	bool isInitialized() const;
-	void initialize(IndexServiceList &list);
-
-	NetworkGameHostConf conf() const;
+	LocalGameHostConf conf() const { return _conf; }
 
 private slots:
 	void _update();
 
 private:
-	Ui::NetworkGameView *ui;
-	NetworkGameHostConf *_conf;
+	Ui::LocalGameConfView *ui;
+	LocalGameHostConf _conf;
 };
 
-#endif // NETWORKGAMEVIEW_H
+#endif // LOCALGAMECONFVIEW_H

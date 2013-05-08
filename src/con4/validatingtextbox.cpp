@@ -1,5 +1,5 @@
 /*
- * boardconf.cpp
+ * validatingtextbox.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,59 +25,52 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
-#include "boardconf.h"
-#include "ui_boardconf.h"
+#include "validatingtextbox.h"
+#include "ui_validatingtextbox.h"
 
-using namespace std;
-
-BoardConf::BoardConf(QWidget *parent) : QWidget(parent), _dims(),
-	_prevWidth(_dims.width()), _prevHeight(_dims.height()),
-	_prevDepth(_dims.depth()), ui(new Ui::BoardConf)
+ValidatingTextBox::ValidatingTextBox(QWidget *parent)
+	: QWidget(parent), ui(new Ui::ValidatingTextBox), _criteria()
 {
 	ui->setupUi(this);
-	ui->sbWidth->setValue(_dims.width());
-	ui->sbHeight->setValue(_dims.height());
-	ui->sbDepth->setValue(_dims.depth());
 }
 
-BoardConf::~BoardConf() { delete ui; }
-
-void BoardConf::chkBoard3dToggled(bool checked)
+ValidatingTextBox::~ValidatingTextBox()
 {
-	if (checked) _dims.setDepth(ui->sbDepth->value());
-	else _dims.setDepth(1);
+	delete ui;
+	qDeleteAll(_criteria);
 }
 
-void BoardConf::widthChanged(int value)
+QString ValidatingTextBox::text() const { return ui->lineEdit->text(); }
+
+void ValidatingTextBox::setText(QString value) { ui->lineEdit->setText(value); }
+
+QString ValidatingTextBox::placeholderText() const
 {
-	try {
-		_dims.setWidth(value);
-		_prevWidth = value;
-	} catch (logic_error &ex) {
-		emit error(ex.what());
-		ui->sbWidth->setValue(_prevWidth);
+	return ui->lineEdit->placeholderText();
+}
+
+void ValidatingTextBox::setPlaceholderText(QString value)
+{
+	ui->lineEdit->setPlaceholderText(value);
+}
+
+bool ValidatingTextBox::isValid() const
+{
+	Criterium *criterium;
+	QString text = ui->lineEdit->text();
+	for (int i = 0; i < _criteria.size(); i++) {
+		criterium = _criteria.at(i);
+		if (!criterium->test(text)) {
+			ui->errorLabel->setText(criterium->errorString());
+			return false;
+		}
 	}
+	ui->errorLabel->setText("");
+	return true;
 }
 
-void BoardConf::heightChanged(int value)
+void ValidatingTextBox::_textChanged(QString)
 {
-	try {
-		_dims.setHeight(value);
-		_prevHeight = value;
-	} catch (logic_error &ex) {
-		emit error(ex.what());
-		ui->sbHeight->setValue(_prevHeight);
-	}
-}
-
-void BoardConf::depthChanged(int value)
-{
-	try {
-		_dims.setDepth(value);
-		_prevDepth = value;
-	} catch (logic_error &ex) {
-		emit error(ex.what());
-		ui->sbDepth->setValue(_prevDepth);
-	}
+	isValid();
+	emit changed();
 }

@@ -1,5 +1,5 @@
 /*
- * boardconf.h
+ * ipaddresstextbox.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,39 +25,37 @@
  * THE SOFTWARE.
  */
 
-#ifndef BOARDCONF_H
-#define BOARDCONF_H
+#include <QGridLayout>
+#include <QHostAddress>
+#include "ipaddresstextbox.h"
 
-#include <QWidget>
-#include "../con4core/game.h"
-
-namespace Ui {
-class BoardConf;
-}
-
-class BoardConf : public QWidget
+class IpAddressCriterium : public ValidatingTextBox::Criterium
 {
-	Q_OBJECT
-	
-public:
-	explicit BoardConf(QWidget *parent = 0);
-	~BoardConf();
+	bool test(QString value) const
+	{
+		QHostAddress addr;
+		return addr.setAddress(value);
+	}
 
-	Game::Dimensions dims() const { return _dims; }
-
-signals:
-	void error(QString msg);
-
-private slots:
-	void chkBoard3dToggled(bool checked);
-	void widthChanged(int value);
-	void heightChanged(int value);
-	void depthChanged(int value);
-
-private:
-	Game::Dimensions _dims;
-	int _prevWidth, _prevHeight, _prevDepth;
-	Ui::BoardConf *ui;
+	QString errorString() const { return "Invalid ip address."; }
 };
 
-#endif // BOARDCONF_H
+IpAddressTextBox::IpAddressTextBox(QWidget *parent) : QWidget(parent)
+{
+	QGridLayout *layout = new QGridLayout(this);
+	layout->setMargin(0);
+	_validatingTextBox = new ValidatingTextBox(this);
+	_validatingTextBox->criteria()->append(new IpAddressCriterium());
+	layout->addWidget(_validatingTextBox);
+	connect(_validatingTextBox, SIGNAL(changed()), this, SIGNAL(changed()));
+}
+
+QString IpAddressTextBox::ipAddress() const
+{
+	return _validatingTextBox->text();
+}
+
+void IpAddressTextBox::setIpAddress(QString value)
+{
+	_validatingTextBox->setText(value);
+}

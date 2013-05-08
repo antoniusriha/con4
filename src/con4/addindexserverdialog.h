@@ -37,17 +37,18 @@ class AddIndexServerDialog;
 
 class AddIndexServerDialog : public QDialog
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 	explicit AddIndexServerDialog(IndexServiceList &list, QWidget *parent = 0);
-    ~AddIndexServerDialog();
+	~AddIndexServerDialog();
+
+private slots:
+	void accept();
+	void _update();
 
 private:
-    void done(int result);
-    bool _nameExists(QString name);
-
-    Ui::AddIndexServerDialog *ui;
+	Ui::AddIndexServerDialog *ui;
 	IndexServiceList &_list;
 };
 

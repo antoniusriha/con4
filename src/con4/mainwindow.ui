@@ -93,117 +93,21 @@
                 <number>0</number>
                </property>
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="pageNewGameSetup">
                 <layout class="QGridLayout" name="gridLayout_6">
                  <item row="0" column="2">
                   <widget class="QGroupBox" name="groupBox">
                    <property name="title">
-                    <string>Players</string>
+                    <string>Local game</string>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_8">
                     <property name="topMargin">
                      <number>20</number>
                     </property>
                     <item row="0" column="0">
-                     <widget class="QPushButton" name="btnPlayer1">
-                      <property name="text">
-                       <string>Player 1:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="1">
-                     <widget class="QComboBox" name="cbPlayer1">
-                      <item>
-                       <property name="text">
-                        <string>Humanoid</string>
-                       </property>
-                      </item>
-                     </widget>
-                    </item>
-                    <item row="0" column="2">
-                     <widget class="QLabel" name="lblDelay1">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="text">
-                       <string>Delay</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="3">
-                     <widget class="QSpinBox" name="sbDelay1">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="suffix">
-                       <string>ms</string>
-                      </property>
-                      <property name="maximum">
-                       <number>10000</number>
-                      </property>
-                      <property name="singleStep">
-                       <number>500</number>
-                      </property>
-                      <property name="value">
-                       <number>1000</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QPushButton" name="btnPlayer2">
-                      <property name="text">
-                       <string>Player 2:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="1">
-                     <widget class="QComboBox" name="cbPlayer2">
-                      <property name="sizeAdjustPolicy">
-                       <enum>QComboBox::AdjustToContents</enum>
-                      </property>
-                      <item>
-                       <property name="text">
-                        <string>Humanoid</string>
-                       </property>
-                      </item>
-                     </widget>
-                    </item>
-                    <item row="1" column="2">
-                     <widget class="QLabel" name="lblDelay2">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="text">
-                       <string>Delay</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="3">
-                     <widget class="QSpinBox" name="sbDelay2">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="suffix">
-                       <string>ms</string>
-                      </property>
-                      <property name="maximum">
-                       <number>10000</number>
-                      </property>
-                      <property name="singleStep">
-                       <number>500</number>
-                      </property>
-                      <property name="value">
-                       <number>1000</number>
-                      </property>
-                     </widget>
+                     <widget class="LocalGameConfView" name="localGameConf" native="true"/>
                     </item>
                    </layout>
                   </widget>
@@ -220,9 +124,6 @@
                     <string>Start</string>
                    </property>
                   </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="BoardConf" name="boardConf" native="true"/>
                  </item>
                  <item row="4" column="0" colspan="3">
                   <spacer name="verticalSpacer_2">
@@ -257,189 +158,58 @@
                  <bool>true</bool>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_7">
+                 <item row="2" column="0">
+                  <widget class="QPushButton" name="btnManageIndexServers">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Manage Index Servers...</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                  <item row="0" column="1">
                   <widget class="QGroupBox" name="gbNetworkPlayer">
                    <property name="enabled">
                     <bool>true</bool>
                    </property>
                    <property name="title">
-                    <string>Network player</string>
+                    <string>Network game</string>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_9">
                     <property name="topMargin">
                      <number>20</number>
                     </property>
                     <item row="0" column="0">
-                     <layout class="QFormLayout" name="formLayout">
-                      <property name="fieldGrowthPolicy">
-                       <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+                     <widget class="NetworkGameView" name="networkGameConfView" native="true">
+                      <zorder>verticalSpacer_3</zorder>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QPushButton" name="createGamePushButton">
+                      <property name="text">
+                       <string>Create game</string>
                       </property>
-                      <property name="labelAlignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                      <property name="horizontalSpacing">
-                       <number>6</number>
-                      </property>
-                      <item row="0" column="0">
-                       <widget class="QLabel" name="label">
-                        <property name="text">
-                         <string>Game name:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="1">
-                       <widget class="QLineEdit" name="txtGameName">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="minimumSize">
-                         <size>
-                          <width>200</width>
-                          <height>0</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="1" column="0">
-                       <widget class="QLabel" name="label_2">
-                        <property name="text">
-                         <string>Player name:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="1" column="1">
-                       <widget class="QLineEdit" name="txtPlayerName">
-                        <property name="minimumSize">
-                         <size>
-                          <width>200</width>
-                          <height>0</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="2" column="0">
-                       <widget class="QLabel" name="label_4">
-                        <property name="text">
-                         <string>Player type:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="4" column="0">
-                       <widget class="QLabel" name="label_3">
-                        <property name="text">
-                         <string>Port:</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="4" column="1">
-                       <widget class="QSpinBox" name="sbPort">
-                        <property name="minimum">
-                         <number>1025</number>
-                        </property>
-                        <property name="maximum">
-                         <number>65535</number>
-                        </property>
-                        <property name="value">
-                         <number>9999</number>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="5" column="1">
-                       <widget class="QPushButton" name="btnCreateGame">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="text">
-                         <string>Create game</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="2" column="1">
-                       <layout class="QHBoxLayout" name="horizontalLayout_3">
-                        <item>
-                         <widget class="QComboBox" name="cbPlayerType">
-                          <property name="sizeAdjustPolicy">
-                           <enum>QComboBox::AdjustToContents</enum>
-                          </property>
-                          <item>
-                           <property name="text">
-                            <string>Humanoid</string>
-                           </property>
-                          </item>
-                          <item>
-                           <property name="text">
-                            <string>Computer</string>
-                           </property>
-                          </item>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_2">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeType">
-                           <enum>QSizePolicy::Fixed</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>20</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QLabel" name="label_5">
-                          <property name="enabled">
-                           <bool>false</bool>
-                          </property>
-                          <property name="text">
-                           <string>Delay</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QSpinBox" name="sbDelayNetwork">
-                          <property name="enabled">
-                           <bool>false</bool>
-                          </property>
-                          <property name="suffix">
-                           <string>ms</string>
-                          </property>
-                          <property name="maximum">
-                           <number>10000</number>
-                          </property>
-                          <property name="singleStep">
-                           <number>500</number>
-                          </property>
-                          <property name="value">
-                           <number>1000</number>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item row="3" column="1">
-                       <widget class="QLineEdit" name="txtIpAddress"/>
-                      </item>
-                      <item row="3" column="0">
-                       <widget class="QLabel" name="label_6">
-                        <property name="text">
-                         <string>IP address:</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
+                     </widget>
                     </item>
                    </layout>
                   </widget>
@@ -456,38 +226,6 @@
                     </size>
                    </property>
                   </spacer>
-                 </item>
-                 <item row="0" column="2">
-                  <spacer name="horizontalSpacer_3">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="BoardConf" name="networkBoardConf" native="true"/>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QPushButton" name="btnManageIndexServers">
-                   <property name="enabled">
-                    <bool>true</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Manage Index Servers...</string>
-                   </property>
-                  </widget>
                  </item>
                 </layout>
                </widget>
@@ -624,9 +362,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>BoardConf</class>
+   <class>NetworkGameView</class>
    <extends>QWidget</extends>
-   <header>boardconf.h</header>
+   <header>networkgameview.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LocalGameConfView</class>
+   <extends>QWidget</extends>
+   <header>localgameconfview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -729,22 +473,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>btnCreateGame</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>createNetworkGameClicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>394</x>
-     <y>397</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>233</x>
-     <y>583</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>btnManageIndexServers</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
@@ -773,38 +501,6 @@
     <hint type="destinationlabel">
      <x>9</x>
      <y>30</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnPlayer2</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>player2Clicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>156</x>
-     <y>262</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>792</x>
-     <y>452</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnPlayer1</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>player1Clicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>156</x>
-     <y>229</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>791</x>
-     <y>380</y>
     </hint>
    </hints>
   </connection>

@@ -127,10 +127,10 @@ public:
 	BoardIndex index() const;
 	BoardIndex index(int wVal, int dVal, int hVal = 0) const;
 
-	FieldValue curPlayer() const { return _board.curPlayer(); }
-	FieldValue winner() const { return _finished ? _board.winner() : None; }
+	FieldValue curPlayer() const { return _board->curPlayer(); }
+	FieldValue winner() const { return _finished ? _board->winner() : None; }
 	bool isDraw() const { return _finished && winner() == None; }
-	Board board() const { return _board; }
+	Board board() const { return *_board; }
 	bool canUndo() const { return _hasStarted; }
 	bool hasStarted() const { return _hasStarted; }
 	bool finished() const { return _finished; }
@@ -161,7 +161,7 @@ signals:
 private:
 	int _disksSet, _totalDisks;
 	bool _hasStarted, _aborted, _finished;
-	Board _board;
+	Board *_board;
 };
 
 #endif // GAME_H

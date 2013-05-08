@@ -27,49 +27,38 @@
 
 #include "playerconfview.h"
 #include "ui_playerconfview.h"
-
-class NotEmptyCriterium : public PlayerConfView::NameCriterium
-{
-	bool testPlayerName(QString value) const { return !value.isEmpty(); }
-	QString errorString() const { return "Name must not be empty."; }
-};
+#include "textvalidationcriteria.h"
 
 PlayerConfView::PlayerConfView(QWidget *parent)
-	: QWidget(parent), ui(new Ui::PlayerConfView), _nameCriteria()
+	: QWidget(parent), ui(new Ui::PlayerConfView)
 {
 	ui->setupUi(this);
-	_nameCriteria.append(new NotEmptyCriterium());
+	ui->nameTextBox->criteria()->append(new NotEmptyCriterium());
+	ui->nameTextBox->setPlaceholderText("Player name");
+
+	connect(ui->nameTextBox, SIGNAL(changed()), this, SIGNAL(changed()));
 	connect(ui->colorButton, SIGNAL(changed()), this, SIGNAL(changed()));
 	connect(ui->moveDelaySpinButton, SIGNAL(valueChanged(int)),
 			this, SIGNAL(changed()));
 }
 
-PlayerConfView::~PlayerConfView()
-{
-	delete ui;
-	qDeleteAll(_nameCriteria);
-}
+PlayerConfView::~PlayerConfView() { delete ui; }
 
 bool PlayerConfView::isValid() const
 {
-	NameCriterium *criterium;
-	QString text = ui->nameLineEdit->text();
-	for (int i = 0; i < _nameCriteria.size(); i++) {
-		criterium = _nameCriteria.at(i);
-		if (!criterium->testPlayerName(text)) {
-			ui->errorLabel->setText(criterium->errorString());
-			return false;
-		}
-	}
-	ui->errorLabel->setText("");
-	return true;
+	return ui->nameTextBox->isValid();
 }
 
-QString PlayerConfView::name() const { return ui->nameLineEdit->text(); }
+QList<ValidatingTextBox::Criterium *> *PlayerConfView::nameCriteria()
+{
+	return ui->nameTextBox->criteria();
+}
+
+QString PlayerConfView::name() const { return ui->nameTextBox->text(); }
 
 void PlayerConfView::setName(QString value) const
 {
-	ui->nameLineEdit->setText(value);
+	ui->nameTextBox->setText(value);
 }
 
 QColor PlayerConfView::color() const { return ui->colorButton->color(); }
@@ -97,12 +86,6 @@ int PlayerConfView::moveDelay() const
 void PlayerConfView::setMoveDelay(int value)
 {
 	ui->moveDelaySpinButton->setValue(value);
-}
-
-void PlayerConfView::_nameEdited(QString)
-{
-	isValid();
-	emit changed();
 }
 
 void PlayerConfView::_playerTypeChanged(int selIndex)

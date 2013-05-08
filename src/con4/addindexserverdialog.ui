@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>194</width>
+    <height>124</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,10 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QFormLayout" name="formLayout">
+   <property name="labelAlignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
    <item row="0" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
@@ -30,9 +33,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="txtName"/>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
@@ -42,9 +42,6 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="txtIp"/>
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_3">
@@ -57,7 +54,13 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QSpinBox" name="sbPort">
+    <widget class="QSpinBox" name="portSpinBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="minimum">
       <number>1025</number>
      </property>
@@ -79,8 +82,28 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="1">
+    <widget class="ValidatingTextBox" name="serverNameTextBox" native="true"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="IpAddressTextBox" name="ipAddressTextBox" native="true"/>
+   </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ValidatingTextBox</class>
+   <extends>QWidget</extends>
+   <header>validatingtextbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IpAddressTextBox</class>
+   <extends>QWidget</extends>
+   <header>ipaddresstextbox.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
@@ -90,12 +113,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>184</x>
+     <y>114</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
-     <y>274</y>
+     <y>123</y>
     </hint>
    </hints>
   </connection>
@@ -106,12 +129,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>295</x>
-     <y>252</y>
+     <x>184</x>
+     <y>114</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>193</x>
+     <y>123</y>
     </hint>
    </hints>
   </connection>

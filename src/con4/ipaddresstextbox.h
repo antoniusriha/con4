@@ -1,5 +1,5 @@
 /*
- * networkgameview.h
+ * ipaddresstextbox.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,27 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKGAMEVIEW_H
-#define NETWORKGAMEVIEW_H
+#ifndef IPADDRESSTEXTBOX_H
+#define IPADDRESSTEXTBOX_H
 
-#include <QWidget>
-#include <gamehost.h>
+#include "validatingtextbox.h"
 
-namespace Ui {
-class NetworkGameView;
-}
-
-class NetworkGameView : public QWidget
+class IpAddressTextBox : public QWidget
 {
 	Q_OBJECT
-
 public:
-	class InvalidOperationException : public std::logic_error
-	{
-	public:
-		explicit InvalidOperationException(QString what)
-			: logic_error(what.toStdString()) {}
-	};
+	explicit IpAddressTextBox(QWidget *parent = 0);
 
-	explicit NetworkGameView(QWidget *parent = 0);
-	~NetworkGameView();
+	bool isValid() const { return _validatingTextBox->isValid(); }
 
-	bool isInitialized() const;
-	void initialize(IndexServiceList &list);
+	QString ipAddress() const;
+	void setIpAddress(QString value);
 
-	NetworkGameHostConf conf() const;
-
-private slots:
-	void _update();
+signals:
+	void changed();
 
 private:
-	Ui::NetworkGameView *ui;
-	NetworkGameHostConf *_conf;
+	ValidatingTextBox *_validatingTextBox;
 };
 
-#endif // NETWORKGAMEVIEW_H
+#endif // IPADDRESSTEXTBOX_H

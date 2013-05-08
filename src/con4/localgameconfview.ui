@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LocalGameConfView</class>
+ <widget class="QWidget" name="LocalGameConfView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>63</width>
+    <height>91</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <property name="labelAlignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="verticalSpacing">
+    <number>20</number>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Player 1:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="PlayerConfView" name="player1Conf" native="true"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Player 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="PlayerConfView" name="player2Conf" native="true"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Board:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="BoardConfView" name="boardConf" native="true"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlayerConfView</class>
+   <extends>QWidget</extends>
+   <header>playerconfview.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BoardConfView</class>
+   <extends>QWidget</extends>
+   <header>boardconfview.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -28,7 +28,7 @@
 #ifndef PLAYERCONFVIEW_H
 #define PLAYERCONFVIEW_H
 
-#include <QWidget>
+#include <validatingtextbox.h>
 
 namespace Ui {
 class PlayerConfView;
@@ -37,26 +37,18 @@ class PlayerConfView;
 class PlayerConfView : public QWidget
 {
 	Q_OBJECT
-	
+
 public:
 	enum PlayerType { Human, Computer };
-
-	class NameCriterium
-	{
-	public:
-		virtual bool testPlayerName(QString value) const = 0;
-		virtual QString errorString() const = 0;
-	};
 
 	explicit PlayerConfView(QWidget *parent = 0);
 	~PlayerConfView();
 
 	bool isValid() const;
+	QList<ValidatingTextBox::Criterium *> *nameCriteria();
 
 	QString name() const;
 	void setName(QString value) const;
-
-	QList<NameCriterium *> *nameCriteria() { return &_nameCriteria; }
 
 	QColor color() const;
 	void setColor(QColor value);
@@ -69,14 +61,12 @@ public:
 
 signals:
 	void changed();
-	
+
 private slots:
-	void _nameEdited(QString);
 	void _playerTypeChanged(int selIndex);
 
 private:
 	Ui::PlayerConfView *ui;
-	QList<NameCriterium *> _nameCriteria;
 };
 
 #endif // PLAYERCONFVIEW_H

@@ -6,24 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
-    <height>169</height>
+    <width>235</width>
+    <height>202</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="1" column="0">
     <layout class="QFormLayout" name="formLayout">
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::FieldsStayAtSizeHint</enum>
-     </property>
      <property name="labelAlignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
-     <property name="horizontalSpacing">
-      <number>6</number>
+     <property name="verticalSpacing">
+      <number>12</number>
      </property>
      <item row="0" column="0">
       <widget class="QLabel" name="gameNameLabel">
@@ -33,20 +30,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="gameNameLineEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
+      <widget class="ValidatingTextBox" name="gameNameTextBox" native="true"/>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="player1Label">
@@ -67,6 +51,12 @@
      </item>
      <item row="2" column="1">
       <widget class="ColorButton" name="player2ColorButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>Color</string>
        </property>
@@ -80,7 +70,7 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="ipAddressLineEdit"/>
+      <widget class="IpAddressTextBox" name="ipAddressTextBox" native="true"/>
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="portLabel">
@@ -105,6 +95,16 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Board:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="BoardConfView" name="boardConfView" native="true"/>
+     </item>
     </layout>
    </item>
   </layout>
@@ -121,42 +121,27 @@
    <extends>QPushButton</extends>
    <header>colorbutton.h</header>
   </customwidget>
+  <customwidget>
+   <class>ValidatingTextBox</class>
+   <extends>QWidget</extends>
+   <header>validatingtextbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IpAddressTextBox</class>
+   <extends>QWidget</extends>
+   <header>ipaddresstextbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BoardConfView</class>
+   <extends>QWidget</extends>
+   <header>boardconfview.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>portSpinButton</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>NetworkGameView</receiver>
-   <slot>portChanged(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>165</x>
-     <y>145</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>68</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>ipAddressLineEdit</sender>
-   <signal>textEdited(QString)</signal>
-   <receiver>NetworkGameView</receiver>
-   <slot>ipAddressEdited(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>252</x>
-     <y>118</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>203</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>portChanged(int)</slot>
   <slot>ipAddressEdited(QString)</slot>

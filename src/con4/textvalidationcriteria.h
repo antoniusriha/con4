@@ -1,5 +1,5 @@
 /*
- * networkgameview.h
+ * textvalidationcriteria.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,30 @@
  * THE SOFTWARE.
  */
 
-#ifndef NETWORKGAMEVIEW_H
-#define NETWORKGAMEVIEW_H
+#ifndef TEXTVALIDATIONCRITERIA_H
+#define TEXTVALIDATIONCRITERIA_H
 
-#include <QWidget>
-#include <gamehost.h>
+#include "validatingtextbox.h"
 
-namespace Ui {
-class NetworkGameView;
-}
-
-class NetworkGameView : public QWidget
+class NotEmptyCriterium : public ValidatingTextBox::Criterium
 {
-	Q_OBJECT
-
-public:
-	class InvalidOperationException : public std::logic_error
-	{
-	public:
-		explicit InvalidOperationException(QString what)
-			: logic_error(what.toStdString()) {}
-	};
-
-	explicit NetworkGameView(QWidget *parent = 0);
-	~NetworkGameView();
-
-	bool isInitialized() const;
-	void initialize(IndexServiceList &list);
-
-	NetworkGameHostConf conf() const;
-
-private slots:
-	void _update();
-
-private:
-	Ui::NetworkGameView *ui;
-	NetworkGameHostConf *_conf;
+	bool test(QString value) const { return !value.isEmpty(); }
+	QString errorString() const { return "Name must not be empty."; }
 };
 
-#endif // NETWORKGAMEVIEW_H
+class NoSemiColonCriterium : public ValidatingTextBox::Criterium
+{
+	bool test(QString value) const { return !value.contains(';'); }
+	QString errorString() const { return "Text must not contain semi-colons."; }
+};
+
+class NoNewLineCriterium : public ValidatingTextBox::Criterium
+{
+	bool test(QString value) const { return !value.contains('\n'); }
+	QString errorString() const
+	{
+		return "Text must consist of a single line.";
+	}
+};
+
+#endif // TEXTVALIDATIONCRITERIA_H

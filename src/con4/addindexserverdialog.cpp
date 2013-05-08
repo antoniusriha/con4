@@ -26,56 +26,58 @@
  */
 
 #include <QHostAddress>
-#include <QMessageBox>
+#include <QPushButton>
 #include "addindexserverdialog.h"
 #include "ui_addindexserverdialog.h"
+#include "textvalidationcriteria.h"
+
+class UniqueNameCriterium : public ValidatingTextBox::Criterium
+{
+public:
+	UniqueNameCriterium(IndexServiceList &list) : Criterium(), _list(list) {}
+
+private:
+	bool test(QString value) const
+	{
+		for (int i = 0; i < _list.size (); i++)
+			if (_list.at(i)->name() == value) return false;
+		return true;
+	}
+
+	QString errorString() const { return "The name exists already."; }
+
+	IndexServiceList &_list;
+};
 
 AddIndexServerDialog::AddIndexServerDialog(IndexServiceList &list,
-                                           QWidget *parent)
+										   QWidget *parent)
 	: QDialog(parent), ui(new Ui::AddIndexServerDialog), _list(list)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
+	ui->serverNameTextBox->criteria()->append(new NotEmptyCriterium());
+	ui->serverNameTextBox->criteria()->append(new NoSemiColonCriterium());
+	ui->serverNameTextBox->criteria()->append(new NoNewLineCriterium());
+	ui->serverNameTextBox->criteria()->append(new UniqueNameCriterium(list));
+
+	connect(ui->serverNameTextBox, SIGNAL(changed()), this, SLOT(_update()));
+	connect(ui->ipAddressTextBox, SIGNAL(changed()), this, SLOT(_update()));
+
+	_update();
 }
 
 AddIndexServerDialog::~AddIndexServerDialog() { delete ui; }
 
-void AddIndexServerDialog::done(int result)
+void AddIndexServerDialog::accept()
 {
-    if (QDialog::Accepted == result) {
-        int nErr = 0;
-        QString errMsg;
-
-        QHostAddress ip;
-        if (!ip.setAddress(ui->txtIp->text().trimmed())) {
-            nErr++;
-			errMsg.append("Error: Please specify a valid ip "
-						  "address (e.g.: 10.0.0.1)\n");
-        }
-
-        QString name = ui->txtName->text().trimmed();
-        if (name.isEmpty()) name = ip.toString();
-        if (_nameExists(name)) {
-            nErr++;
-			errMsg.append("Error: The specified name (or ip address, if no "
-						  "name was provided) exists already.\n")
-                  .append("Please choose another one.\n");
-        }
-
-        if (nErr > 0) {
-			QString finalErrMsg = QString("%1 error(s) occured:\n")
-					.arg(nErr).append(errMsg);
-            QMessageBox::critical(this, "Error", finalErrMsg);
-        } else {
-            quint16 port = (quint16)ui->sbPort->value();
-			_list.create(ip, port, name);
-            QDialog::done(result);
-        }
-    } else QDialog::done(result);
+	_list.create(QHostAddress(ui->ipAddressTextBox->ipAddress()),
+				 (quint16)ui->portSpinBox->value(),
+				 ui->serverNameTextBox->text());
+	QDialog::accept();
 }
 
-bool AddIndexServerDialog::_nameExists(QString name)
+void AddIndexServerDialog::_update()
 {
-	for (int i = 0; i < _list.size (); i++)
-		if (_list.at(i)->name() == name) return true;
-    return false;
+	bool enable = ui->serverNameTextBox->isValid() &&
+			ui->ipAddressTextBox->isValid();
+	ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enable);
 }

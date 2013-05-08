@@ -36,7 +36,7 @@ ColorButton::ColorButton(QWidget *parent) : QPushButton(parent)
 
 void ColorButton::setColor(QColor value)
 {
-	if (!value.isValid()) return;
+	if (!value.isValid() || value == _color) return;
 	_color = value;
 	emit changed();
 

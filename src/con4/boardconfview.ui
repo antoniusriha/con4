@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BoardConfView</class>
+ <widget class="QWidget" name="BoardConfView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>342</width>
+    <height>80</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <property name="labelAlignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item row="0" column="1">
+    <widget class="QCheckBox" name="threeDCheckBox">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Width/Height/Depth:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QSpinBox" name="widthSpinButton">
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>8</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="heightSpinButton">
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>8</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="depthSpinButton">
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>4</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLabel" name="errorLabel">
+     <property name="styleSheet">
+      <string notr="true">QLabel { color:red }</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>3D:</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>widthSpinButton</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>BoardConfView</receiver>
+   <slot>_widthChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>173</x>
+     <y>51</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>84</x>
+     <y>71</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>heightSpinButton</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>BoardConfView</receiver>
+   <slot>_heightChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>231</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>106</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>depthSpinButton</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>BoardConfView</receiver>
+   <slot>_depthChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>46</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>60</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>threeDCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>BoardConfView</receiver>
+   <slot>_threeDToggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>153</x>
+     <y>10</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>98</x>
+     <y>12</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>_threeDToggled(bool)</slot>
+  <slot>_widthChanged(int)</slot>
+  <slot>_heightChanged(int)</slot>
+  <slot>_depthChanged(int)</slot>
+ </slots>
+</ui>
