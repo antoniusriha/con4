@@ -321,7 +321,7 @@ void Endpoint::setSocket(QTcpSocket &value)
 {
 	if (_socket) delete _socket;
 	_socket = &value;
-	connect(_socket, SIGNAL(_readyRead()), this, SLOT(_readyRead()));
+	connect(_socket, SIGNAL(readyRead()), this, SLOT(_readyRead()));
 }
 
 void Endpoint::_readyRead()

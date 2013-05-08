@@ -41,7 +41,10 @@ SOURCES += main.cpp\
     ../con4net/netinitiator.cpp \
     networkgameitemmodel.cpp \
     ngltreeitem.cpp \
-    ../con4net/processingqueue.cpp
+    ../con4net/processingqueue.cpp \
+    networkgameview.cpp \
+    playerconfview.cpp \
+    colorbutton.cpp
 
 HEADERS  += mainwindow.h \
     addindexserverdialog.h \
@@ -72,10 +75,15 @@ HEADERS  += mainwindow.h \
     ../con4net/netinitiator.h \
     networkgameitemmodel.h \
     ngltreeitem.h \
-    ../con4net/processingqueue.h
+    ../con4net/processingqueue.h \
+    networkgameview.h \
+    playerconfview.h \
+    colorbutton.h
 
 FORMS    += mainwindow.ui \
     addindexserverdialog.ui \
     indexserversview.ui \
     settingsdialog.ui \
-    boardconf.ui
+    boardconf.ui \
+    networkgameview.ui \
+    playerconfview.ui

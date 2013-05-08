@@ -32,20 +32,16 @@
 #include "networkplayerservice.h"
 #include "indexservicelist.h"
 
-class NetInitiatorConf
+class NetInitiatorConf : public NetworkGameConf
 {
 public:
 	NetInitiatorConf(IndexServiceList &list)
-		: _list(list), _networkGameConf() {}
-
-	NetworkGameConf networkGameConf() const { return _networkGameConf; }
-	void setNetworkGameConf(NetworkGameConf value) { _networkGameConf = value; }
+		: NetworkGameConf(), _list(list) {}
 
 	IndexServiceList *indexServiceList() const { return &_list; }
 
 private:
 	IndexServiceList &_list;
-	NetworkGameConf _networkGameConf;
 };
 
 class IndexServiceManager;

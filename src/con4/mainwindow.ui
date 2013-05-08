@@ -93,7 +93,7 @@
                 <number>0</number>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>1</number>
                </property>
                <widget class="QWidget" name="pageNewGameSetup">
                 <layout class="QGridLayout" name="gridLayout_6">
@@ -639,8 +639,8 @@
    <slot>viewIndexServersClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>129</x>
-     <y>201</y>
+     <x>120</x>
+     <y>192</y>
     </hint>
     <hint type="destinationlabel">
      <x>246</x>
@@ -687,8 +687,8 @@
    <slot>startClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>114</x>
-     <y>191</y>
+     <x>383</x>
+     <y>292</y>
     </hint>
     <hint type="destinationlabel">
      <x>720</x>
@@ -703,8 +703,8 @@
    <slot>joinClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>129</x>
-     <y>201</y>
+     <x>118</x>
+     <y>187</y>
     </hint>
     <hint type="destinationlabel">
      <x>592</x>
@@ -719,8 +719,8 @@
    <slot>refreshClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>113</x>
-     <y>201</y>
+     <x>73</x>
+     <y>187</y>
     </hint>
     <hint type="destinationlabel">
      <x>69</x>
@@ -735,8 +735,8 @@
    <slot>createNetworkGameClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>427</x>
-     <y>364</y>
+     <x>394</x>
+     <y>397</y>
     </hint>
     <hint type="destinationlabel">
      <x>233</x>
@@ -751,8 +751,8 @@
    <slot>viewIndexServersClicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>213</x>
-     <y>457</y>
+     <x>150</x>
+     <y>472</y>
     </hint>
     <hint type="destinationlabel">
      <x>687</x>
@@ -783,8 +783,8 @@
    <slot>player2Clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>160</x>
-     <y>210</y>
+     <x>156</x>
+     <y>262</y>
     </hint>
     <hint type="destinationlabel">
      <x>792</x>
@@ -799,8 +799,8 @@
    <slot>player1Clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>160</x>
-     <y>210</y>
+     <x>156</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
      <x>791</x>

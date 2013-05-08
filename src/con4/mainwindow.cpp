@@ -25,31 +25,35 @@
  * THE SOFTWARE.
  */
 
-#include <stdexcept>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "indexserversview.h"
 #include "networkgameitemmodel.h"
 
-using namespace std;
-
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
 	  _application(Application::instance()),
-	  _indexServiceList(*_application.indexServices())
+	  _indexServiceList(*_application.indexServices()),
+	  _localGameConf(), _netGameConf(_indexServiceList), _joinNetGameConf()
 {
 	ui->setupUi(this);
-	_player1Color = QColor(Qt::red);
-	_player2Color = QColor(Qt::yellow);
-	_setPlayerColor(_player1Color, ui->btnPlayer1);
-	_setPlayerColor(_player2Color, ui->btnPlayer2);
+	_setPlayerColor(_localGameConf.player1Color(), ui->btnPlayer1);
+	_setPlayerColor(_localGameConf.player2Color(), ui->btnPlayer2);
 
-	connect(_application.indexServices(), SIGNAL(created(IndexService *)),
+	connect(&_indexServiceList, SIGNAL(created(IndexService*,int)),
 			this, SLOT(indexServerCountChanged()));
-	connect(_application.indexServices(), SIGNAL(deletedAt(int)),
+	connect(&_indexServiceList, SIGNAL(deletedAt(int)),
 			this, SLOT(indexServerCountChanged()));
 
-	if (_application.indexServices()->empty()) {
+	ui->txtGameName->setText(_netGameConf.name().string());
+	ui->txtPlayerName->setText(_netGameConf.initiatorName().string());
+	ui->txtIpAddress->setText(_netGameConf.ipAddress().toString());
+	ui->sbPort->setValue(_netGameConf.port());
+
+	_localGameConf.setDims(ui->boardConf->dims());
+	_netGameConf.setDims(ui->networkBoardConf->dims());
+
+	if (_indexServiceList.empty()) {
 		ui->gbNetworkPlayer->setEnabled(false);
 		ui->networkBoardConf->setEnabled(false);
 		ui->tvJoinGames->setEnabled(false);
@@ -206,19 +210,23 @@ void MainWindow::refreshClicked()
 void MainWindow::player1Clicked()
 {
 	QColorDialog dlg;
-	dlg.setCurrentColor(_player1Color);
+	QColor curColor = _netGameConf.player1Color();
+	dlg.setCurrentColor(curColor);
 	dlg.exec();
-	_player1Color = dlg.selectedColor();
-	_setPlayerColor(_player1Color, ui->btnPlayer1);
+	curColor = dlg.selectedColor();
+	_localGameConf.setPlayerColors(curColor, _localGameConf.player2Color());
+	_setPlayerColor(curColor, ui->btnPlayer1);
 }
 
 void MainWindow::player2Clicked()
 {
 	QColorDialog dlg;
-	dlg.setCurrentColor(_player2Color);
+	QColor curColor = _netGameConf.player2Color();
+	dlg.setCurrentColor(curColor);
 	dlg.exec();
-	_player2Color = dlg.selectedColor();
-	_setPlayerColor(_player2Color, ui->btnPlayer2);
+	curColor = dlg.selectedColor();
+	_localGameConf.setPlayerColors(_localGameConf.player1Color(), curColor);
+	_setPlayerColor(curColor, ui->btnPlayer2);
 }
 
 void MainWindow::closeGame()

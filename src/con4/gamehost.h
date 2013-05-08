@@ -70,33 +70,24 @@ private:
 	QString _player1Name, _player2Name;
 };
 
-class NetworkGameHostConf : public GameHostConf
+class NetworkGameHostConf : public GameHostConf, public NetInitiatorConf
 {
 public:
 	NetworkGameHostConf(IndexServiceList &list)
-		: GameHostConf(), _netInitiatorConf(list) {}
-
-	NetInitiatorConf netInitiatorConf() const { return _netInitiatorConf; }
-	void setNetInitiatorConf(NetInitiatorConf value);
-
-private:
-	NetInitiatorConf _netInitiatorConf;
+		: GameHostConf(), NetInitiatorConf(list) {}
 };
 
-class JoinNetworkGameHostConf : public GameHostConf
+class JoinNetworkGameHostConf : public GameHostConf, public NetworkGameConf
 {
 public:
-	JoinNetworkGameHostConf() : GameHostConf() { setPlayer2Name("Player2"); }
+	JoinNetworkGameHostConf()
+		: GameHostConf(), NetworkGameConf() { setPlayer2Name("Player2"); }
 
 	NetworkString player2Name() const { return _player2Name; }
 	void setPlayer2Name(NetworkString value) { _player2Name = value; }
 
-	NetworkGameConf networkGameConf() const { return _networkGameConf; }
-	void setNetworkGameConf(NetworkGameConf value) { _networkGameConf = value; }
-
 private:
 	NetworkString _player2Name;
-	NetworkGameConf _networkGameConf;
 };
 
 class GameHost : public QObject

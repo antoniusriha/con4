@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * colorbutton.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,50 +25,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef COLORBUTTON_H
+#define COLORBUTTON_H
 
-#include <QMainWindow>
 #include <QPushButton>
-#include "application.h"
-#include "gamehost.h"
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow
+class ColorButton : public QPushButton
 {
 	Q_OBJECT
-
 public:
-	explicit MainWindow(QWidget *parent = 0);
-	~MainWindow();
+	explicit ColorButton(QWidget *parent = 0);
 
+	QColor color() const { return _color; }
+	void setColor(QColor value);
+	
+signals:
+	void changed();
+	
 private slots:
-	void gameTypeSelectionChanged();
-	void viewIndexServersClicked();
-	void startClicked();
-	void createNetworkGameClicked();
-	void joinClicked();
-	void refreshClicked();
-	void player1Clicked();
-	void player2Clicked();
-	void closeGame();
-	void indexServerCountChanged();
-	void joinGame(QString playerName);
+	void _clicked();
 
 private:
-	void _setPlayerColor(QColor color, QPushButton *button);
-	QColor _getIdealTextColor(const QColor &rBackgroundColor) const;
-
-	Ui::MainWindow *ui;
-	Application &_application;
-	IndexServiceList &_indexServiceList;
-
-	LocalGameHostConf _localGameConf;
-	NetworkGameHostConf _netGameConf;
-	JoinNetworkGameHostConf _joinNetGameConf;
+	QColor _getIdealTextColor(const QColor& rBackgroundColor) const;
+	QColor _color;
 };
 
-#endif // MAINWINDOW_H
+#endif // COLORBUTTON_H

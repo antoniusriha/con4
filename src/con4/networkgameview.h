@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * networkgameview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,50 +25,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef NETWORKGAMEVIEW_H
+#define NETWORKGAMEVIEW_H
 
-#include <QMainWindow>
-#include <QPushButton>
-#include "application.h"
-#include "gamehost.h"
+#include <QWidget>
+#include <gamehost.h>
 
 namespace Ui {
-class MainWindow;
+class NetworkGameView;
 }
 
-class MainWindow : public QMainWindow
+class NetworkGameView : public QWidget
 {
 	Q_OBJECT
-
+	
 public:
-	explicit MainWindow(QWidget *parent = 0);
-	~MainWindow();
+	explicit NetworkGameView(QWidget *parent = 0);
+	~NetworkGameView();
 
-private slots:
-	void gameTypeSelectionChanged();
-	void viewIndexServersClicked();
-	void startClicked();
-	void createNetworkGameClicked();
-	void joinClicked();
-	void refreshClicked();
-	void player1Clicked();
-	void player2Clicked();
-	void closeGame();
-	void indexServerCountChanged();
-	void joinGame(QString playerName);
+	bool isInitialized() const;
+	void initialize(IndexServiceList &list);
 
+	NetworkGameHostConf conf() const { return *_conf; }
+	
 private:
-	void _setPlayerColor(QColor color, QPushButton *button);
-	QColor _getIdealTextColor(const QColor &rBackgroundColor) const;
-
-	Ui::MainWindow *ui;
-	Application &_application;
-	IndexServiceList &_indexServiceList;
-
-	LocalGameHostConf _localGameConf;
-	NetworkGameHostConf _netGameConf;
-	JoinNetworkGameHostConf _joinNetGameConf;
+	Ui::NetworkGameView *ui;
+	NetworkGameHostConf *_conf;
 };
 
-#endif // MAINWINDOW_H
+#endif // NETWORKGAMEVIEW_H

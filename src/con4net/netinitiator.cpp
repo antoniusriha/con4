@@ -30,7 +30,7 @@
 #include "netinitiatorhelper.h"
 
 NetInitiator::NetInitiator(NetInitiatorConf conf, QObject *parent)
-	: QObject(parent), _game(conf.networkGameConf()),
+	: QObject(parent), _game(conf),
 	  _manager(new IndexServiceManager(*conf.indexServiceList(), _game, this)),
 	  _endpoint(10000, this) {}
 

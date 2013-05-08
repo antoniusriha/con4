@@ -1,5 +1,5 @@
 /*
- * mainwindow.h
+ * playerconfview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,50 +25,58 @@
  * THE SOFTWARE.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef PLAYERCONFVIEW_H
+#define PLAYERCONFVIEW_H
 
-#include <QMainWindow>
-#include <QPushButton>
-#include "application.h"
-#include "gamehost.h"
+#include <QWidget>
 
 namespace Ui {
-class MainWindow;
+class PlayerConfView;
 }
 
-class MainWindow : public QMainWindow
+class PlayerConfView : public QWidget
 {
 	Q_OBJECT
-
+	
 public:
-	explicit MainWindow(QWidget *parent = 0);
-	~MainWindow();
+	enum PlayerType { Human, Computer };
 
+	class NameCriterium
+	{
+	public:
+		virtual bool testPlayerName(QString value) const = 0;
+		virtual QString errorString() const = 0;
+	};
+
+	explicit PlayerConfView(QWidget *parent = 0);
+	~PlayerConfView();
+
+	bool isValid() const;
+
+	QString name() const;
+	void setName(QString value) const;
+
+	QList<NameCriterium *> *nameCriteria() { return &_nameCriteria; }
+
+	QColor color() const;
+	void setColor(QColor value);
+
+	PlayerType playerType() const;
+	void setPlayerType(PlayerType type);
+
+	int moveDelay() const;
+	void setMoveDelay(int value);
+
+signals:
+	void changed();
+	
 private slots:
-	void gameTypeSelectionChanged();
-	void viewIndexServersClicked();
-	void startClicked();
-	void createNetworkGameClicked();
-	void joinClicked();
-	void refreshClicked();
-	void player1Clicked();
-	void player2Clicked();
-	void closeGame();
-	void indexServerCountChanged();
-	void joinGame(QString playerName);
+	void _nameEdited(QString);
+	void _playerTypeChanged(int selIndex);
 
 private:
-	void _setPlayerColor(QColor color, QPushButton *button);
-	QColor _getIdealTextColor(const QColor &rBackgroundColor) const;
-
-	Ui::MainWindow *ui;
-	Application &_application;
-	IndexServiceList &_indexServiceList;
-
-	LocalGameHostConf _localGameConf;
-	NetworkGameHostConf _netGameConf;
-	JoinNetworkGameHostConf _joinNetGameConf;
+	Ui::PlayerConfView *ui;
+	QList<NameCriterium *> _nameCriteria;
 };
 
-#endif // MAINWINDOW_H
+#endif // PLAYERCONFVIEW_H
