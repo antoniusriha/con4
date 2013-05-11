@@ -58,7 +58,8 @@ public:
 	QSize minimumSizeHint() const;
 	QSize sizeHint() const;
 
-	void startGame (Game *value, bool player1Enabled = true, bool player2Enabled = true);
+	void startGame (Game *value, bool player1Enabled = true,
+					bool player2Enabled = true);
 	void setGameTitle (QString value);
 	void setGameDescription (QString value);
 	void setPlayer1Name (QString value);
@@ -67,7 +68,7 @@ public:
 	void setPlayer2Color (QColor color);
 
 signals:
-	void close();
+	void closed();
 
 protected:
 	void initializeGL();
@@ -95,6 +96,7 @@ private:
 	QLabel *_lblStatus, *_lblTitle, *_lblDescription;
 	QPushButton *_btn;
 	QString _player1Name, _player2Name;
+	QColor _player1Color, _player2Color;
 	bool _player1Enabled, _player2Enabled;
 	int _xRot, _yRot, _zRot;
 	float _distance;

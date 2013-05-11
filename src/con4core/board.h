@@ -49,10 +49,10 @@ public:
 	Board(const Board &board, bool canUndo); // custom copy
 
 	// Data access & simple queries
-	int nDims() const { return dim3 () == 1 ? 2 : 3; }
-	int height() const { return *_array.shape (); }
-	int dim2() const { return *(_array.shape () + 1); }
-	int dim3() const { return *(_array.shape () + 2); }
+    int nDims() const { return dim3() == 1 ? 2 : 3; }
+    int height() const { return *_array.shape(); }
+    int dim2() const { return *(_array.shape() + 1); }
+    int dim3() const { return *(_array.shape() + 2); }
 	bool finished() const { return _finished; }
 	FieldValue curPlayer() const { return _curPlayer; }
 	FieldValue winner() const;

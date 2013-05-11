@@ -27,27 +27,27 @@
 
 #include "netinitiator.h"
 #include "messages.h"
-#include "netinitiatorhelper.h"
 
 NetInitiator::NetInitiator(NetInitiatorConf conf, QObject *parent)
 	: QObject(parent), _game(conf),
-	  _manager(new IndexServiceManager(*conf.indexServiceList(), _game, this)),
-	  _endpoint(10000, this) {}
-
-bool NetInitiator::startService(QString *errMsg)
+	  _manager(*conf.indexServiceList(), _game, this), _endpoint(10000, this)
 {
 	if (!_endpoint.listen(_game.port())) {
-		if (errMsg)
-			*errMsg = QString("Unable to listen on port %1.").arg(_game.port());
-		return false;
+		throw Exception(QString("Unable to listen on port %1.")
+						.arg(_game.port()));
 	}
-	return true;
+
+	connect(&_manager,
+			SIGNAL(registerGameFinished(bool,QList<ErroneousService>)),
+			this, SIGNAL(registerGameFinished(bool,QList<ErroneousService>)));
+	connect(&_manager, SIGNAL(sealGameFinished(bool,QList<ErroneousService>)),
+			this, SIGNAL(sealGameFinished(bool,QList<ErroneousService>)));
+	connect(&_manager,
+			SIGNAL(unregisterGameFinished(bool,QList<ErroneousService>)),
+			this, SIGNAL(unregisterGameFinished(bool,QList<ErroneousService>)));
 }
 
-void NetInitiator::registerGame()
-{
-
-}
+void NetInitiator::registerGame() { _manager.registerGame(); }
 
 void NetInitiator::acceptJoinRequest()
 {

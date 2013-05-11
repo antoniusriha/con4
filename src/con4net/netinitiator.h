@@ -29,8 +29,7 @@
 #define OPPONENTSERVICE_H
 
 #include "serverendpoint.h"
-#include "networkplayerservice.h"
-#include "indexservicelist.h"
+#include "indexservicemanager.h"
 
 class NetInitiatorConf : public NetworkGameConf
 {
@@ -44,16 +43,21 @@ private:
 	IndexServiceList &_list;
 };
 
-class IndexServiceManager;
-
 class NetInitiator : public QObject
 {
 	Q_OBJECT
 
 public:
+	class Exception : public std::runtime_error
+	{
+	public:
+		explicit Exception(QString what) : runtime_error(what.toStdString()) {}
+	};
+
 	NetInitiator(NetInitiatorConf conf, QObject *parent = 0);
 
-	bool startService(QString *errMsg = 0);
+	NetworkGame *game() { return &_game; }
+
 	void registerGame();
 
 	void acceptJoinRequest();
@@ -66,7 +70,11 @@ public:
 	void abortGame(QString reason) const;
 
 signals:
-	void registerGameFinished(bool success, QString failReason);
+	void registerGameFinished(bool success,
+							  QList<ErroneousService> errServices);
+	void sealGameFinished(bool success, QList<ErroneousService> errServices);
+	void unregisterGameFinished(bool success,
+								QList<ErroneousService> errServices);
 	void joinGame(QString playerName);
 	void move(int fieldIndex);
 	void abortGame(QString reason);
@@ -84,7 +92,7 @@ private:
 	bool _sendMsg(QString msg);
 
 	NetworkGame _game;
-	IndexServiceManager *_manager;
+	IndexServiceManager _manager;
 	ServerEndpoint _endpoint;
 };
 

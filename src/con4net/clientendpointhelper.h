@@ -1,5 +1,5 @@
 /*
- * clientendpoint.cpp
+ * clientendpointhelper.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,18 +25,33 @@
  * THE SOFTWARE.
  */
 
+#ifndef CLIENTENDPOINTHELPER_H
+#define CLIENTENDPOINTHELPER_H
+
 #include "clientendpoint.h"
-#include "clientendpointhelper.h"
 
-ClientEndpoint::ClientEndpoint(QHostAddress ipAddress, quint16 port,
-							   int timeout, QObject *parent) :
-	Endpoint(timeout, parent), _ipAddress(ipAddress), _port(port)
+class ConnectUnit : public ProcessingUnit
 {
-	setSocket(*new QTcpSocket());
-}
+	Q_OBJECT
 
-void ClientEndpoint::connectToServer(Request &request)
-{
-	ConnectUnit *unit = new ConnectUnit(socket(), _ipAddress, _port, &request);
-	queue()->add(unit);
-}
+public:
+	ConnectUnit(QTcpSocket *socket, QHostAddress ipAddress, quint16 port,
+				Request *req, QObject *parent = 0);
+
+protected:
+	void process();
+
+private slots:
+	void _error();
+	void _connected();
+
+private:
+	void _cleanup();
+
+	QTcpSocket *_socket;
+	QHostAddress _ipAddress;
+	quint16 _port;
+	Request *_req;
+};
+
+#endif // CLIENTENDPOINTHELPER_H

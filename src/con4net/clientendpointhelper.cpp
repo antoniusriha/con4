@@ -1,5 +1,5 @@
 /*
- * clientendpoint.cpp
+ * clientendpointhelper.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,18 +25,37 @@
  * THE SOFTWARE.
  */
 
-#include "clientendpoint.h"
 #include "clientendpointhelper.h"
 
-ClientEndpoint::ClientEndpoint(QHostAddress ipAddress, quint16 port,
-							   int timeout, QObject *parent) :
-	Endpoint(timeout, parent), _ipAddress(ipAddress), _port(port)
+ConnectUnit::ConnectUnit(QTcpSocket *socket, QHostAddress ipAddress,
+						 quint16 port, Request *req, QObject *parent)
+	: ProcessingUnit(parent), _socket(socket), _ipAddress(ipAddress),
+	  _port(port), _req(req) {}
+
+void ConnectUnit::process()
 {
-	setSocket(*new QTcpSocket());
+	connect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+			this, SLOT(_error()));
+	connect(_socket, SIGNAL(connected()), this, SLOT(_connected()));
+	_socket->connectToHost(_ipAddress, _port);
 }
 
-void ClientEndpoint::connectToServer(Request &request)
+void ConnectUnit::_error()
 {
-	ConnectUnit *unit = new ConnectUnit(socket(), _ipAddress, _port, &request);
-	queue()->add(unit);
+	_req->endRequest(false, _socket->errorString());
+	_cleanup();
+}
+
+void ConnectUnit::_connected()
+{
+	_req->endRequest(true);
+	_cleanup();
+}
+
+void ConnectUnit::_cleanup()
+{
+	disconnect(_socket, SIGNAL(connected()), this, SLOT(_connected()));
+	disconnect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
+			   this, SLOT(_error()));
+	emit finished(this);
 }

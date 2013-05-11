@@ -66,6 +66,7 @@ GameHost *GameHost::CreateLocalGame(LocalGameHostConf conf, QObject *parent)
 	host->_window.setPlayer2Color(conf.player2Color());
 	host->_window.setPlayer1Name(conf.player1Name());
 	host->_window.setPlayer2Name(conf.player2Name());
+	host->_window.startGame(host->_game);
 	host->_game->start();
 	return host;
 }
@@ -73,6 +74,17 @@ GameHost *GameHost::CreateLocalGame(LocalGameHostConf conf, QObject *parent)
 GameHost *GameHost::CreateNetworkGame(NetworkGameHostConf conf, QObject *parent)
 {
 	GameHost *host = new GameHost(parent);
+	NetInitiator *init = new NetInitiator(conf, host);
+	host->_init = init;
+	host->_window.setPlayer1Color(conf.player1Color());
+	host->_window.setPlayer2Color(conf.player2Color());
+	host->_window.setPlayer1Name(conf.initiatorName().string());
+
+	connect(init, SIGNAL(registerGameFinished(bool,QList<ErroneousService>)),
+			host, SLOT(_registerGameFinished(bool,QList<ErroneousService>)));
+	init->registerGame();
+	return host;
+
 
 	/*
 
@@ -131,4 +143,13 @@ GameHost *GameHost::JoinNetworkGameWithAiPlayer(JoinNetworkGameHostConf conf,
 GameHost::GameHost(QObject *parent) : QObject(parent), _window()
 {
 	_window.show();
+	connect(&_window, SIGNAL(closed()), this, SLOT(_windowClosed()));
+}
+
+void GameHost::_windowClosed() { emit quit(this); }
+
+void GameHost::_registerGameFinished(bool success,
+									 QList<ErroneousService> errServices)
+{
+	if (success) _window.startGame(_init->game(), true, false);
 }

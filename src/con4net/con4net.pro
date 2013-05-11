@@ -30,7 +30,10 @@ SOURCES += main.cpp \
 	indexservicelist.cpp \
     netinitiator.cpp \
     netopponent.cpp \
-    netinitiatorhelper.cpp \
+    indexservicehelper.cpp \
+    clientendpointhelper.cpp \
+    endpointhelper.cpp \
+    indexservicemanager.cpp
 
 HEADERS += \
 	../con4core/game.h \
@@ -47,4 +50,7 @@ HEADERS += \
 	indexservicelist.h \
     netinitiator.h \
     netopponent.h \
-    netinitiatorhelper.h
+    indexservicehelper.h \
+    clientendpointhelper.h \
+    endpointhelper.h \
+    indexservicemanager.h

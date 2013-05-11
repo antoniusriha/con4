@@ -156,6 +156,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>threeDCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>depthSpinButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>44</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>_threeDToggled(bool)</slot>

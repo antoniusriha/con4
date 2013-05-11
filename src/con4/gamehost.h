@@ -105,12 +105,20 @@ public:
 	static GameHost *JoinNetworkGameWithAiPlayer(JoinNetworkGameHostConf conf,
 												 QObject *parent = 0);
 
-private:
-	explicit GameHost(QObject *parent = 0);
+signals:
+	void quit(GameHost *sender);
+
+private slots:
+	void _windowClosed();
+	void _registerGameFinished(bool success,
+							   QList<ErroneousService> errServices);
 	
 private:
+	explicit GameHost(QObject *parent = 0);
+
 	Game *_game;
-	Player *_player1, *_player2;
+	NetInitiator *_init;
+	NetOpponent *_opp;
 	GLWidget _window;
 };
 

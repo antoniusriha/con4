@@ -153,6 +153,7 @@ bool Grid::moveCursorLeft()
 
 bool Grid::setDisk()
 {
+	if (_game->finished() || _game->aborted()) return false;
 	Game::BoardIndex idx = _game->index(_wCursor, _dCursor);
 	bool success = _game->set(idx);
 	if (_game->finished()) _game->connected(_conIdcs);

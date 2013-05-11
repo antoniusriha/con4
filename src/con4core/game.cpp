@@ -90,19 +90,19 @@ Game::BoardIndex::BoardIndex(const Game &game, int wVal, int hVal, int dVal)
 
 void Game::BoardIndex::setWVal(int value)
 {
-	if (value < 0 && value >= _game->_board->dim2()) throw Exception();
+	if (value < 0 && value >= _game->_board.dim2()) throw Exception();
 	_wVal = value;
 }
 
 void Game::BoardIndex::setHVal(int value)
 {
-	if (value < 0 && value >= _game->_board->height()) throw Exception();
+	if (value < 0 && value >= _game->_board.height()) throw Exception();
 	_hVal = value;
 }
 
 void Game::BoardIndex::setDVal(int value)
 {
-	if (value < 0 && value >= _game->_board->dim3()) throw Exception();
+	if (value < 0 && value >= _game->_board.dim3()) throw Exception();
 	_dVal = value;
 }
 
@@ -110,27 +110,24 @@ const char *Game::InvalidIndexException::_what =
 		"Invalid index. Create a valid index with Game::index()";
 
 Game::Game(Dimensions dims, QObject *parent) : QObject(parent), _disksSet(0),
-	_totalDisks(0), _hasStarted(false), _aborted(false), _finished(false),
-	_board(0)
+    _totalDisks(0), _hasStarted(false), _aborted(false), _finished(false),
+    _board(dims.nConnect(), dims.height(), dims.width(), dims.depth())
 {
 	setDims(dims);
 }
 
-Game::~Game() { delete _board; }
-
 Game::Dimensions Game::dims() const
 {
-	return Dimensions(_board->nConnect(), _board->dim2(),
-					  _board->height(), _board->dim3());
+	return Dimensions(_board.nConnect(), _board.dim2(),
+					  _board.height(), _board.dim3());
 }
 
 void Game::setDims(Dimensions dims)
 {
 	if (_hasStarted) throw InvalidOperationException(
 				"Cannot set dimensions when game has already started.");
-	if (_board) delete _board;
-	_board = new Board(dims.nConnect(), dims.height(),
-					   dims.width(), dims.depth(), None);
+	_board = Board(dims.nConnect(), dims.height(),
+				   dims.width(), dims.depth(), None);
 }
 
 Game::BoardIndex Game::index() const
@@ -148,27 +145,27 @@ bool Game::full(BoardIndex &idx) const
 	if (idx.game() != this) throw InvalidIndexException();
 
 	int hVal;
-	bool full = _board->full(idx.wVal(), idx.dVal(), hVal);
+	bool full = _board.full(idx.wVal(), idx.dVal(), hVal);
 	idx.setHVal(hVal);
 	return full;
 }
 
 bool Game::connected(QVector<BoardIndex> &vals) const
 {
-	int nCon = _board->nConnect();
+	int nCon = _board.nConnect();
 	int wVals[nCon], hVals[nCon], dVals[nCon];
-	if (!_board->connected(hVals, wVals, dVals)) return false;
+	if (!_board.connected(hVals, wVals, dVals)) return false;
 
 	vals = QVector<BoardIndex>(nCon);
 	for (int i = 0; i < nCon; i++)
-		vals[i] = index(wVals[i], hVals[i], dVals[i]);
+		vals[i] = index(wVals[i], dVals[i], hVals[i]);
 	return true;
 }
 
 FieldValue Game::get(BoardIndex idx) const
 {
 	if (idx.game() != this) throw InvalidIndexException();
-	return _board->get(idx.hVal(), idx.wVal(), idx.dVal());
+	return _board.get(idx.hVal(), idx.wVal(), idx.dVal());
 }
 
 bool Game::set(BoardIndex &idx)
@@ -185,13 +182,13 @@ bool Game::set(BoardIndex &idx)
 				"Cannot set, since game has been aborted.");
 
 	int hVal;
-	if (_board->set(idx.wVal(), idx.dVal(), hVal)) {
+	if (_board.set(idx.wVal(), idx.dVal(), hVal)) {
 		idx.setHVal(hVal);
 		FieldValue player = curPlayer() == Player1 ? Player2 : Player1;
 		_disksSet++;
 		emit set(player, idx);
 
-		if (_board->finished()) {
+		if (_board.finished()) {
 			_finished = true;
 			emit finished(player);
 		} else if (_disksSet == _totalDisks) {
@@ -212,7 +209,7 @@ bool Game::undo(BoardIndex &idx)
 				"Cannot undo, since game has been aborted.");
 
 	int wVal, hVal, dVal;
-	if (_board->undo(hVal, wVal, dVal)) {
+	if (_board.undo(hVal, wVal, dVal)) {
 		idx = index(wVal, dVal, hVal);
 		_finished = false;
 		_disksSet--;
@@ -234,10 +231,9 @@ void Game::start(FieldValue startPlayer)
 				"Cannot start, since game has been aborted.");
 
 	if (startPlayer == None) startPlayer = (FieldValue)(rand() % 2 + 1);
-	if (_board) delete _board;
-	_board = new Board(_board->nConnect(), _board->height(), _board->dim2(),
-					   _board->dim3(), startPlayer, true);
-	_totalDisks = _board->height() * _board->dim2() * _board->dim3();
+	_board = Board(_board.nConnect(), _board.height(), _board.dim2(),
+				   _board.dim3(), startPlayer, true);
+	_totalDisks = _board.height() * _board.dim2() * _board.dim3();
 	_hasStarted = true;
 	emit started(startPlayer);
 }

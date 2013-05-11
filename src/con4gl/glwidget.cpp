@@ -64,7 +64,8 @@ GLWidget::GLWidget(QWidget *parent)
 	_lblDescription->setStyleSheet(lblStyle);
 	gridLayout->addWidget(_lblDescription, 1, 0);
 
-	QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding,
+										  QSizePolicy::Expanding);
 	gridLayout->addItem(spacer, 2, 1);
 
 	_lblStatus = new QLabel(this);
@@ -97,19 +98,20 @@ void GLWidget::startGame(Game *value, bool player1Enabled, bool player2Enabled)
 
 	_game = value;
 	connect(value, SIGNAL(started(FieldValue)), this, SLOT(started()));
-	connect(value, SIGNAL(finished(FieldValue)), this, SLOT(finished(FieldValue)));
-	connect(value, SIGNAL(set(FieldValue,int,int)), this, SLOT(set()));
+	connect(value, SIGNAL(finished(FieldValue)),
+			this, SLOT(finished(FieldValue)));
+	connect(value, SIGNAL(set(FieldValue,Game::BoardIndex)), this, SLOT(set()));
 	_btn->setText("Abort game");
 	_lblTitle->setText("");
 	_lblDescription->setText("");
 	_lblStatus->setText("Waiting for start signal...");
-	_player1Name = "Player 1";
-	_player2Name = "Player 2";
 	_player1Enabled = player1Enabled;
 	_player2Enabled = player2Enabled;
 
 	_grid = new Grid(value);
 	_grid->setColsDistance(0.5);
+	_grid->setPlayerColor(Player1, _player1Color);
+	_grid->setPlayerColor(Player2, _player2Color);
 	updateGL();
 }
 
@@ -135,12 +137,12 @@ void GLWidget::setPlayer2Name(QString value)
 
 void GLWidget::setPlayer1Color(QColor color)
 {
-	if (_grid) _grid->setPlayerColor(Player1, color);
+	_player1Color = color;
 }
 
 void GLWidget::setPlayer2Color(QColor color)
 {
-	if (_grid) _grid->setPlayerColor(Player2, color);
+	_player2Color = color;
 }
 
 static void qNormalizeAngle(int &angle)
@@ -289,18 +291,22 @@ void GLWidget::finished(FieldValue winner)
 {
 	QString w = winner == Player1 ? _player1Name : _player2Name;
 	_lblStatus->setText("Winner: " + w);
-	_btn->setText("Return to main menu");
+	_btn->setText("End game");
 }
 
 void GLWidget::btnClicked()
 {
 	if (!_game->finished()) {
-		if (QMessageBox::question(this, "Game abort", "Do you really want to abort the game?",
-								  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::No) return;
+		if (QMessageBox::question(this, "Game abort",
+								  "Do you really want to abort the game?",
+								  QMessageBox::Yes | QMessageBox::No,
+								  QMessageBox::Yes) == QMessageBox::No) return;
 		_game->abort(None, "User abort");
 	}
-	disconnect(_game, SIGNAL(finished(FieldValue)), this, SLOT(finished(FieldValue)));
-	emit close();
+	disconnect(_game, SIGNAL(finished(FieldValue)),
+			   this, SLOT(finished(FieldValue)));
+	close();
+	emit closed();
 }
 
 void GLWidget::set()

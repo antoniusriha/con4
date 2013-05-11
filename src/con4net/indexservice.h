@@ -63,14 +63,19 @@ private:
 	quint16 _port;
 };
 
+class IndexService;
+
 class NetworkGameRequest : public Request
 {
 public:
-	NetworkGameRequest(NetworkGame &game, QObject *parent = 0);
+	NetworkGameRequest(NetworkGame &game, IndexService &indexService,
+					   QObject *parent = 0);
 	NetworkGame *game() const { return &_game; }
+	IndexService *indexService() const { return &_indexService; }
 
 private:
 	NetworkGame &_game;
+	IndexService &_indexService;
 };
 
 class RequestGameListUnit;

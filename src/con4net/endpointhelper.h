@@ -1,5 +1,5 @@
 /*
- * processingqueue.h
+ * endpointhelper.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,42 +25,85 @@
  * THE SOFTWARE.
  */
 
-#ifndef PROCESSINGQUEUE_H
-#define PROCESSINGQUEUE_H
+#ifndef ENDPOINTHELPER_H
+#define ENDPOINTHELPER_H
 
-#include <QQueue>
-#include <QObject>
+#include <QTimer>
+#include "endpoint.h"
 
-class ProcessingUnit : public QObject
+class ReceiveUnit : public ProcessingUnit
 {
 	Q_OBJECT
 
 public:
-	virtual void process() = 0;
-
-signals:
-	void finished(ProcessingUnit *unit);
-
-protected:
-	explicit ProcessingUnit(QObject *parent = 0);
-};
-
-class ProcessingQueue : public QObject
-{
-	Q_OBJECT
-
-public:
-	explicit ProcessingQueue(QObject *parent = 0);
-
-	void add(ProcessingUnit *unit);
-	void process();
-
-private slots:
-	void _processingFinished(ProcessingUnit *unit);
+	ReceiveUnit(Endpoint *endpoint, Message msg, QObject *parent = 0);
 
 private:
-	bool _processing;
-	QQueue<ProcessingUnit *> _queue;
+	void process();
+
+	Endpoint *_endpoint;
+	Message _msg;
 };
 
-#endif // PROCESSINGQUEUE_H
+class SendUnit : public ProcessingUnit
+{
+	Q_OBJECT
+
+public:
+	SendUnit(Endpoint *endpoint, SendRequest *req, QObject *parent = 0);
+
+private slots:
+	void _bytesWritten(qint64 bytes);
+	void _error();
+
+private:
+	void process();
+
+	Endpoint *_endpoint;
+	SendRequest *_req;
+	int _nBytes;
+};
+
+class SendAndReceiveUnit : public ProcessingUnit
+{
+	Q_OBJECT
+
+public:
+	SendAndReceiveUnit(Endpoint *endpoint, SendAndReceiveRequest *req,
+					   QObject *parent = 0);
+
+private slots:
+	void _bytesWritten(qint64 bytes);
+	void _readyRead();
+	void _error();
+	void _timeout();
+
+private:
+	void process();
+
+	Endpoint *_endpoint;
+	SendAndReceiveRequest *_req;
+	QTimer _timer;
+	int _nBytes;
+	bool _waitingForEndReceive;
+};
+
+class DisconnectUnit : public ProcessingUnit
+{
+	Q_OBJECT
+
+public:
+	DisconnectUnit(Endpoint *endpoint, Request *req, QObject *parent = 0);
+
+private slots:
+	void _disconnected();
+	void _error();
+
+private:
+	void process();
+
+	Endpoint *_endpoint;
+	Request *_req;
+};
+
+#endif // ENDPOINTHELPER_H

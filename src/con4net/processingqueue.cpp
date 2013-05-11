@@ -40,16 +40,16 @@ void ProcessingQueue::add(ProcessingUnit *unit)
 
 void ProcessingQueue::process()
 {
-	if (_processing) return;
+	if (_processing || _queue.isEmpty()) return;
 	_processing = true;
 
 	ProcessingUnit *unit = _queue.dequeue();
 	connect(unit, SIGNAL(finished(ProcessingUnit *)),
-			this, SLOT(processingFinished(ProcessingUnit *)));
+			this, SLOT(_processingFinished(ProcessingUnit *)));
 	unit->process();
 }
 
-void ProcessingQueue::processingFinished(ProcessingUnit *unit)
+void ProcessingQueue::_processingFinished(ProcessingUnit *unit)
 {
 	delete unit;
 	_processing = false;

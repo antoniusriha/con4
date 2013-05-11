@@ -38,7 +38,6 @@ SOURCES += main.cpp\
 	gamehost.cpp \
 	indexservicetablemodel.cpp \
 	../con4net/netopponent.cpp \
-	../con4net/netinitiatorhelper.cpp \
 	../con4net/netinitiator.cpp \
 	networkgameitemmodel.cpp \
 	ngltreeitem.cpp \
@@ -49,7 +48,11 @@ SOURCES += main.cpp\
 	validatingtextbox.cpp \
 	ipaddresstextbox.cpp \
     boardconfview.cpp \
-    localgameconfview.cpp
+    localgameconfview.cpp \
+    ../con4net/indexservicehelper.cpp \
+    ../con4net/clientendpointhelper.cpp \
+    ../con4net/endpointhelper.cpp \
+    ../con4net/indexservicemanager.cpp
 
 HEADERS  += mainwindow.h \
 	addindexserverdialog.h \
@@ -75,7 +78,6 @@ HEADERS  += mainwindow.h \
 	gamehost.h \
 	indexservicetablemodel.h \
 	../con4net/netopponent.h \
-	../con4net/netinitiatorhelper.h \
 	../con4net/netinitiator.h \
 	networkgameitemmodel.h \
 	ngltreeitem.h \
@@ -87,7 +89,11 @@ HEADERS  += mainwindow.h \
 	ipaddresstextbox.h \
 	textvalidationcriteria.h \
     boardconfview.h \
-    localgameconfview.h
+    localgameconfview.h \
+    ../con4net/indexservicehelper.h \
+    ../con4net/clientendpointhelper.h \
+    ../con4net/endpointhelper.h \
+    ../con4net/indexservicemanager.h
 
 FORMS    += mainwindow.ui \
 	addindexserverdialog.ui \

@@ -39,8 +39,6 @@ NetOpponent::NetOpponent(NetworkGameConf conf, QObject *parent)
 
 	connect(&_endpoint, SIGNAL(messageReceived(Message)),
 			this, SLOT(_msgReceived(Message)));
-	connect(&_endpoint, SIGNAL(connectToServerFinished(bool,QString)),
-			this, SLOT(connectToServerFinished(bool, QString)));
 
 	setPlayerName("Player2");
 }

@@ -52,7 +52,8 @@ private slots:
 	void createNetworkGameClicked();
 	void joinClicked();
 	void refreshClicked();
-	void closeGame();
+	void _refreshed();
+	void _quitGame(GameHost *sender);
 	void indexServerCountChanged();
 	void joinGame(QString playerName);
 
