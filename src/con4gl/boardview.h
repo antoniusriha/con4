@@ -1,5 +1,5 @@
 /*
- * grid.h
+ * boardview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,60 +25,55 @@
  * THE SOFTWARE.
  */
 
-#ifndef GRID_H
-#define GRID_H
+#ifndef BOARDVIEW_H
+#define BOARDVIEW_H
 
-#include <QColor>
-#include <GL/glu.h>
+#include <QGLWidget>
 #include "boardconf.h"
+#include "grid.h"
+#include "disks.h"
 #include "../con4core/game.h"
 
-class Grid : public QObject
+namespace Ui {
+class BoardView;
+}
+
+class BoardView : public QGLWidget
 {
 	Q_OBJECT
-
+	
 public:
-    Grid(const Game::Dimensions &dims, const BoardConf &conf,
-         QObject *parent = 0);
-	~Grid();
+    explicit BoardView(QWidget *parent = 0);
+    ~BoardView();
 
-	void draw() const;
+    QSize minimumSizeHint() const { return QSize(800, 600); }
+    QSize sizeHint() const { return QSize(1024, 768); }
 
-	QColor playerColor (FieldValue player) const {
-		if (player == None) return QColor::Invalid;
-		if (player == Player1) return _player1Color;
-		else return _player2Color;
-	}
+    BoardConf *conf() { return &_conf; }
 
-	float colsDistance () const { return _colsDistance; }
+    Game::Dimensions dims() const;
+    void setDims(Game::Dimensions value);
 
-	void setPlayerColor(FieldValue player, QColor color);
-	void setColsDistance (float value) { _colsDistance = value; }
-
-	bool moveCursorUp();
-	bool moveCursorDown();
-	bool moveCursorRight();
-	bool moveCursorLeft();
-	bool setDisk();
-	void endGame();
-
+    const Game *game() const { return _game; }
+    void setGame(Game *value);
+	
 private:
-	void _toColorVec(QColor c, float colorVec[]);
-	void _drawBoardBottom(float width, float depth) const;
-	void _drawCylinders() const;
+    void initializeGL();
+    void paintGL();
+    void resizeGL(int width, int height);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
+    void keyPressEvent(QKeyEvent *event);
 
-	QColor _player1Color, _player2Color;
-	float _bottomColor[4], _player1Colorf[4], _player2Colorf[4],
-		  _player1WinColor[4], _player2WinColor[4];
-	QVector<Game::BoardIndex> _conIdcs;
-	float _colsDistance, _boardBaseHeight, _sphereRadius;
-	int _wCursor, _dCursor;
-	Game *_game;
+    void _setWidgetsVisible(bool value);
 
-    GLUquadricObj *_quadric;
-
-    const Game::Dimensions &_dims;
-    const BoardConf &_conf;
+    Ui::BoardView *ui;
+    BoardConf _conf;
+    Game::Dimensions _dims;
+    Game *_game;
+    Grid _grid;
+    Disks *_disks;
 };
 
-#endif // GRID_H
+#endif // BOARDVIEW_H

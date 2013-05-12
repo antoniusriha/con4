@@ -65,6 +65,9 @@ public:
 
 		int nDims() const { return _depth == 1 ? 2 : 3; }
 
+        bool operator ==(const Dimensions &other);
+        bool operator !=(const Dimensions &other) { return !(*this == other); }
+
 	private:
 		void _init(int nConnect, int width, int height, int depth);
 
@@ -130,7 +133,7 @@ public:
 	FieldValue curPlayer() const { return _board.curPlayer(); }
 	FieldValue winner() const { return _finished ? _board.winner() : None; }
 	bool isDraw() const { return _finished && winner() == None; }
-	Board board() const { return _board; }
+	const Board *board() const { return &_board; }
 	bool canUndo() const { return _hasStarted; }
 	bool hasStarted() const { return _hasStarted; }
 	bool finished() const { return _finished; }

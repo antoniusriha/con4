@@ -97,7 +97,7 @@ QVariant NetworkGameItemModel::headerData(int section,
 
 void NetworkGameItemModel::_refreshed()
 {
-	QList<const NetworkGame *> games;
+	QList<NetworkGame *> games;
 
 	_rootItem->removeChildren(0, _rootItem->childCount());
 	for (int i = 0; i < _list.size(); i++) {

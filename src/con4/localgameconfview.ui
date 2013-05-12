@@ -6,52 +6,87 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>63</width>
-    <height>91</height>
+    <width>99</width>
+    <height>165</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QFormLayout" name="formLayout">
-   <property name="labelAlignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-   <property name="verticalSpacing">
-    <number>20</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
    <property name="margin">
     <number>0</number>
    </property>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Player 1:</string>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Players</string>
      </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="topMargin">
+       <number>27</number>
+      </property>
+      <item row="2" column="1">
+       <widget class="PlayerConfView" name="player2Conf" native="true"/>
+      </item>
+      <item row="0" column="0" alignment="Qt::AlignRight|Qt::AlignTop">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Player 1:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="PlayerConfView" name="player1Conf" native="true"/>
+      </item>
+      <item row="2" column="0" alignment="Qt::AlignRight|Qt::AlignTop">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Player 2:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="PlayerConfView" name="player1Conf" native="true"/>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Player 2:</string>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Board</string>
      </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="BoardConfView" name="boardConf" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="PlayerConfView" name="player2Conf" native="true"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Board:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="BoardConfView" name="boardConf" native="true"/>
    </item>
   </layout>
  </widget>

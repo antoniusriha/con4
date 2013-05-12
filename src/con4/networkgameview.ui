@@ -6,116 +6,170 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>235</width>
-    <height>202</height>
+    <width>241</width>
+    <height>345</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
-    <layout class="QFormLayout" name="formLayout">
-     <property name="labelAlignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Game name</string>
      </property>
-     <property name="verticalSpacing">
-      <number>12</number>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <property name="topMargin">
+       <number>27</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="ValidatingTextBox" name="gameNameTextBox" native="true"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>Players</string>
      </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="gameNameLabel">
-       <property name="text">
-        <string>Game name:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="ValidatingTextBox" name="gameNameTextBox" native="true"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="player1Label">
-       <property name="text">
-        <string>Player 1 (Initiator):</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="PlayerConfView" name="player1Conf" native="true"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="player2Label">
-       <property name="text">
-        <string>Player 2:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="ColorButton" name="player2ColorButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Color</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="ipAddressLabel">
-       <property name="text">
-        <string>IP address:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="IpAddressTextBox" name="ipAddressTextBox" native="true"/>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="portLabel">
-       <property name="text">
-        <string>Port:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QSpinBox" name="portSpinButton">
-       <property name="minimum">
-        <number>1025</number>
-       </property>
-       <property name="maximum">
-        <number>65535</number>
-       </property>
-       <property name="value">
-        <number>9999</number>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Board:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="BoardConfView" name="boardConfView" native="true"/>
-     </item>
-    </layout>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <property name="topMargin">
+       <number>27</number>
+      </property>
+      <item row="2" column="1">
+       <widget class="ColorButton" name="player2ColorButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Color</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="PlayerConfView" name="player1Conf" native="true"/>
+      </item>
+      <item row="2" column="0" alignment="Qt::AlignRight|Qt::AlignTop">
+       <widget class="QLabel" name="player2Label">
+        <property name="text">
+         <string>Player 2:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" alignment="Qt::AlignRight|Qt::AlignTop">
+       <widget class="QLabel" name="player1Label">
+        <property name="text">
+         <string>Player 1 (Initiator):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+     <zorder>player1Label</zorder>
+     <zorder>player1Conf</zorder>
+     <zorder>player2Label</zorder>
+     <zorder>player2ColorButton</zorder>
+     <zorder>player2ColorButton</zorder>
+     <zorder>line</zorder>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Network address and port</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <property name="topMargin">
+       <number>27</number>
+      </property>
+      <item row="1" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Port:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>IP Address:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="IpAddressTextBox" name="ipAddressTextBox" native="true"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="portSpinButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimum">
+         <number>1025</number>
+        </property>
+        <property name="maximum">
+         <number>65535</number>
+        </property>
+        <property name="value">
+         <number>9999</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" rowspan="2">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Board</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0" alignment="Qt::AlignLeft|Qt::AlignTop">
+       <widget class="BoardConfView" name="boardConfView" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>PlayerConfView</class>
-   <extends>QWidget</extends>
-   <header>playerconfview.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>ColorButton</class>
    <extends>QPushButton</extends>
@@ -125,6 +179,12 @@
    <class>ValidatingTextBox</class>
    <extends>QWidget</extends>
    <header>validatingtextbox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PlayerConfView</class>
+   <extends>QWidget</extends>
+   <header>playerconfview.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

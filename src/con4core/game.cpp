@@ -64,7 +64,15 @@ void Game::Dimensions::setDepth(int value)
 	if (value != 1 && (value < _nConnect || value > MaxDim))
 		throw Exception("depth must be 1 (for 2D) or greater or equal "
 						"than nConnect and lower than MaxDim (for 3D).");
-	_depth = value;
+    _depth = value;
+}
+
+bool Game::Dimensions::operator ==(const Game::Dimensions &other)
+{
+    return _nConnect == other._nConnect &&
+           _width == other._width &&
+           _height == other._height &&
+           _depth == other._depth;
 }
 
 void Game::Dimensions::_init(int nConnect, int width, int height, int depth)

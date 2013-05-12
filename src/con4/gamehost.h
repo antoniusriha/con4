@@ -77,17 +77,22 @@ public:
 		: GameHostConf(), NetInitiatorConf(list) {}
 };
 
-class JoinNetworkGameHostConf : public GameHostConf, public NetworkGameConf
+class JoinNetworkGameHostConf : public GameHostConf
 {
 public:
-	JoinNetworkGameHostConf()
-		: GameHostConf(), NetworkGameConf() { setPlayer2Name("Player2"); }
+	JoinNetworkGameHostConf();
+
+	bool isValid() const { return _opp; }
 
 	NetworkString player2Name() const { return _player2Name; }
 	void setPlayer2Name(NetworkString value) { _player2Name = value; }
 
+	NetOpponent *opponent() const { return _opp; }
+	void setOpponent(NetOpponent &value) { _opp = &value; }
+
 private:
 	NetworkString _player2Name;
+	NetOpponent *_opp;
 };
 
 class GameHost : public QObject
@@ -108,18 +113,52 @@ public:
 signals:
 	void quit(GameHost *sender);
 
+protected:
+	explicit GameHost(GameHostConf conf, QObject *parent = 0);
+
+	GLWidget _window;
+
 private slots:
 	void _windowClosed();
+};
+
+class LocalGameHost : public GameHost
+{
+	Q_OBJECT
+
+public:
+	explicit LocalGameHost(LocalGameHostConf conf, QObject *parent = 0);
+
+private:
+	Game _game;
+};
+
+class NetworkGameHost : public GameHost
+{
+	Q_OBJECT
+
+public:
+	explicit NetworkGameHost(NetworkGameHostConf conf, QObject *parent = 0);
+
+private slots:
 	void _registerGameFinished(bool success,
 							   QList<ErroneousService> errServices);
-	
 private:
-	explicit GameHost(QObject *parent = 0);
+	NetInitiator _init;
+};
 
-	Game *_game;
-	NetInitiator *_init;
-	NetOpponent *_opp;
-	GLWidget _window;
+class JoinGameHost : public GameHost
+{
+	Q_OBJECT
+
+public:
+	explicit JoinGameHost(JoinNetworkGameHostConf conf, QObject *parent = 0);
+
+private slots:
+	void _joinGameFinished(bool success, QString errString);
+
+private:
+	NetOpponent &_opp;
 };
 
 #endif // GAMEHOST_H

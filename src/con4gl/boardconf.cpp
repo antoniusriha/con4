@@ -1,5 +1,5 @@
 /*
- * ipaddresstextbox.cpp
+ * boardconf.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,38 +25,23 @@
  * THE SOFTWARE.
  */
 
-#include <QGridLayout>
-#include <QHostAddress>
-#include "ipaddresstextbox.h"
+#include "boardconf.h"
 
-class IpAddressCriterium : public ValidatingTextBox::Criterium
+QColor BoardConf::_getColor(const float color[]) const
 {
-	bool test(QString value) const
-	{
-		QHostAddress addr;
-		return addr.setAddress(value);
-	}
-
-	QString errorString() const { return "Invalid ip address."; }
-};
-
-IpAddressTextBox::IpAddressTextBox(QWidget *parent) : QWidget(parent)
-{
-	this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	QGridLayout *layout = new QGridLayout(this);
-	layout->setMargin(0);
-	_validatingTextBox = new ValidatingTextBox(this);
-	_validatingTextBox->criteria()->append(new IpAddressCriterium());
-	layout->addWidget(_validatingTextBox);
-	connect(_validatingTextBox, SIGNAL(changed()), this, SIGNAL(changed()));
+    return QColor(color[0], color[1], color[2], color[3]);
 }
 
-QString IpAddressTextBox::ipAddress() const
+void BoardConf::_setColor(QColor value, float field[])
 {
-	return _validatingTextBox->text();
+    if (value.redF() == field[0] && value.greenF() == field[1] &&
+        value.blueF() == field[2] && value.alphaF() == field[3]) return;
+    field[0] = value.redF();
+    field[1] = value.greenF();
+    field[2] = value.blueF();
+    field[3] = value.alphaF();
+    emit changed();
 }
 
-void IpAddressTextBox::setIpAddress(QString value)
-{
-	_validatingTextBox->setText(value);
-}
+BoardConf::BoardConf(QObject *parent) : QObject(parent), _background(),
+    _boardBase(), _cylinders(), _player1Color(), _player2Color() {}

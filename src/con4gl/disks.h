@@ -1,5 +1,5 @@
 /*
- * ipaddresstextbox.cpp
+ * disks.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,38 +25,36 @@
  * THE SOFTWARE.
  */
 
-#include <QGridLayout>
-#include <QHostAddress>
-#include "ipaddresstextbox.h"
+#ifndef DISKS_H
+#define DISKS_H
 
-class IpAddressCriterium : public ValidatingTextBox::Criterium
+#include <QObject>
+#include "boardconf.h"
+
+class Disks : public QObject
 {
-	bool test(QString value) const
-	{
-		QHostAddress addr;
-		return addr.setAddress(value);
-	}
-
-	QString errorString() const { return "Invalid ip address."; }
+	Q_OBJECT
+public:
+    explicit Disks(BoardConf &conf, QObject *parent = 0);
+	
+    virtual void draw() const = 0;
+	
+private:
+    BoardConf &_conf;
 };
 
-IpAddressTextBox::IpAddressTextBox(QWidget *parent) : QWidget(parent)
+class RunningGameDisks : public Disks
 {
-	this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	QGridLayout *layout = new QGridLayout(this);
-	layout->setMargin(0);
-	_validatingTextBox = new ValidatingTextBox(this);
-	_validatingTextBox->criteria()->append(new IpAddressCriterium());
-	layout->addWidget(_validatingTextBox);
-	connect(_validatingTextBox, SIGNAL(changed()), this, SIGNAL(changed()));
-}
+	Q_OBJECT
+public:
 
-QString IpAddressTextBox::ipAddress() const
-{
-	return _validatingTextBox->text();
-}
+};
 
-void IpAddressTextBox::setIpAddress(QString value)
+class FinishedGameDisks : public Disks
 {
-	_validatingTextBox->setText(value);
-}
+	Q_OBJECT
+public:
+
+};
+
+#endif // DISKS_H

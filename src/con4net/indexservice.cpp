@@ -69,9 +69,9 @@ IndexService::~IndexService()
 		delete _opps.takeFirst();
 }
 
-QList<const NetworkGame *> IndexService::games() const
+QList<NetworkGame *> IndexService::games()
 {
-	QList<const NetworkGame *> games;
+	QList<NetworkGame *> games;
 	for (int i = 0; i < _opps.size(); i++)
 		games.append(_opps.at(i)->game());
 	return games;

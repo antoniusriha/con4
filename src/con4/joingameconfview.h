@@ -1,5 +1,5 @@
 /*
- * glelement.h
+ * joingameconfview.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,21 +25,48 @@
  * THE SOFTWARE.
  */
 
-#ifndef GLELEMENT_H
-#define GLELEMENT_H
+#ifndef JOINGAMECONFVIEW_H
+#define JOINGAMECONFVIEW_H
 
-#include <QObject>
-#include <QColor>
+#include <QWidget>
+#include "gamehost.h"
 
-class GLElement : public QObject
+namespace Ui {
+class JoinGameConfView;
+}
+
+class JoinGameConfView : public QWidget
 {
-public:
-	GLElement(QObject *parent);
-	virtual ~GLElement();
-	virtual void draw() const = 0;
+	Q_OBJECT
 
-protected:
-	void toColorVec(QColor c, float colorVec[]);
+public:
+	class InvalidOperationException : public std::logic_error
+	{
+	public:
+		explicit InvalidOperationException(QString what)
+			: logic_error(what.toStdString()) {}
+	};
+
+	explicit JoinGameConfView(QWidget *parent = 0);
+	~JoinGameConfView();
+
+	bool isInitialized() const { return _list; }
+	void initialize(IndexServiceList &list);
+
+signals:
+	void joinClicked(JoinNetworkGameHostConf conf);
+
+private slots:
+	void _update();
+	void _refreshClicked();
+	void _refreshed();
+	void _manageIndexServersClicked();
+	void _joinClicked();
+
+private:
+	Ui::JoinGameConfView *ui;
+	JoinNetworkGameHostConf _conf;
+	IndexServiceList *_list;
 };
 
-#endif // GLELEMENT_H
+#endif // JOINGAMECONFVIEW_H

@@ -29,7 +29,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QPushButton>
 #include "application.h"
 #include "gamehost.h"
 
@@ -50,12 +49,10 @@ private slots:
 	void viewIndexServersClicked();
 	void startClicked();
 	void createNetworkGameClicked();
-	void joinClicked();
-	void refreshClicked();
-	void _refreshed();
+	void _joinClicked(JoinNetworkGameHostConf conf);
+	void _update();
 	void _quitGame(GameHost *sender);
-	void indexServerCountChanged();
-	void joinGame(QString playerName);
+//	void joinGame(QString playerName);
 
 private:
 	Ui::MainWindow *ui;

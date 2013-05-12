@@ -49,7 +49,8 @@ Message Messages::registerSuccess(QUuid guid)
 
 bool Messages::parseRegisterSuccess(Message msg, QUuid &guid)
 {
-	if (msg.header().string() != "register_success" ||
+	if (msg.header().string() != "register_success" &&
+		msg.header().string() != "register_game_success" ||
 		msg.params()->size() < 1) return false;
 	guid = QUuid(msg.params()->at(0).string());
 	return !guid.isNull();
@@ -62,7 +63,8 @@ Message Messages::registerFailed(NetworkString reason)
 
 bool Messages::parseRegisterFailed(Message msg, NetworkString &reason)
 {
-	return parseFailed(msg, "register_failed", reason);
+	return parseFailed(msg, "register_failed", reason) ||
+		   parseFailed(msg, "register_game_failed", reason);
 }
 
 Message Messages::unregisterGame(QUuid guid)
@@ -303,7 +305,8 @@ Message Messages::movedFailed(NetworkString reason)
 
 bool Messages::parseMovedFailed(Message msg, NetworkString &reason)
 {
-	return parseFailed(msg, "moved_failed", reason);
+	return parseFailed(msg, "moved_failed", reason) ||
+		   parseFailed(msg, "move_failed", reason);
 }
 
 Message Messages::endGame(FieldState winner)

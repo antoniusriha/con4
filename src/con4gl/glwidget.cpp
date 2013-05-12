@@ -44,6 +44,14 @@
 #define GL_MULTISAMPLE  0x809D
 #endif
 
+static void qNormalizeAngle(int &angle)
+{
+	while (angle < 0)
+		angle += 360 * 16;
+	while (angle > 360 * 16)
+		angle -= 360 * 16;
+}
+
 GLWidget::GLWidget(QWidget *parent)
 	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
 {
@@ -108,7 +116,7 @@ void GLWidget::startGame(Game *value, bool player1Enabled, bool player2Enabled)
 	_player1Enabled = player1Enabled;
 	_player2Enabled = player2Enabled;
 
-	_grid = new Grid(value);
+//	_grid = new Grid(value);
 	_grid->setColsDistance(0.5);
 	_grid->setPlayerColor(Player1, _player1Color);
 	_grid->setPlayerColor(Player2, _player2Color);
@@ -145,44 +153,10 @@ void GLWidget::setPlayer2Color(QColor color)
 	_player2Color = color;
 }
 
-static void qNormalizeAngle(int &angle)
-{
-	while (angle < 0)
-		angle += 360 * 16;
-	while (angle > 360 * 16)
-		angle -= 360 * 16;
-}
-
-void GLWidget::_setXRotation(int angle)
-{
-	qNormalizeAngle(angle);
-	if (angle != _xRot) {
-		_xRot = angle;
-		updateGL();
-	}
-}
-
-void GLWidget::_setYRotation(int angle)
-{
-	qNormalizeAngle(angle);
-	if (angle != _yRot) {
-		_yRot = angle;
-		updateGL();
-	}
-}
-
-void GLWidget::_setZRotation(int angle)
-{
-	qNormalizeAngle(angle);
-	if (angle != _zRot) {
-		_zRot = angle;
-		updateGL();
-	}
-}
-
 void GLWidget::initializeGL()
 {
-	qglClearColor(QColor(Qt::black));
+	// color: outer space black
+	qglClearColor(QColor(65, 74, 76, 200));
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -320,6 +294,33 @@ void GLWidget::started()
 {
 	_lblStatus->setText("");
 	updateGL();
+}
+
+void GLWidget::_setXRotation(int angle)
+{
+	qNormalizeAngle(angle);
+	if (angle != _xRot) {
+		_xRot = angle;
+		updateGL();
+	}
+}
+
+void GLWidget::_setYRotation(int angle)
+{
+	qNormalizeAngle(angle);
+	if (angle != _yRot) {
+		_yRot = angle;
+		updateGL();
+	}
+}
+
+void GLWidget::_setZRotation(int angle)
+{
+	qNormalizeAngle(angle);
+	if (angle != _zRot) {
+		_zRot = angle;
+		updateGL();
+	}
 }
 
 bool GLWidget::_isCurPlayerEnabled()

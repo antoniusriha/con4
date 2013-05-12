@@ -1,5 +1,5 @@
 /*
- * glelement.cpp
+ * disks.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,23 +25,8 @@
  * THE SOFTWARE.
  */
 
-#include "glelement.h"
+#include "disks.h"
 
-GLElement::GLElement(QObject *parent) : QObject(parent) {}
-
-GLElement::~GLElement() {}
-
-void GLElement::draw() const
+Disks::Disks(BoardConf &conf, QObject *parent) : QObject(parent), _conf(conf)
 {
-	const QObjectList &kids = children();
-	for (int i = 0; i < kids.size(); i++)
-		static_cast<GLElement *> (kids.at(i))->draw();
-}
-
-void GLElement::toColorVec(QColor c, float colorVec[])
-{
-	colorVec[0] = c.redF();
-	colorVec[1] = c.greenF();
-	colorVec[2] = c.blueF();
-	colorVec[3] = c.alphaF();
 }

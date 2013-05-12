@@ -27,20 +27,20 @@
 
 #include "grid.h"
 
-Grid::Grid(Game *game, QObject *parent)
-	: GLElement(parent), _game (game), _dims(game->dims())
+Grid::Grid(const Game::Dimensions &dims, const BoardConf &conf, QObject *parent)
+    : QObject(parent), _dims(dims), _conf(conf)
 {
-	setPlayerColor(Player1, QColor(Qt::red));
-	setPlayerColor(Player2, QColor(Qt::yellow));
-	toColorVec(QColor(Qt::lightGray), _bottomColor);
+    //	setPlayerColor(Player1, QColor(Qt::red));
+    //	setPlayerColor(Player2, QColor(Qt::yellow));
+    //	_toColorVec(QColor(Qt::lightGray), _bottomColor);
 
-	_sphereRadius = 0.1;
-	_boardBaseHeight = 0.1;
+    //	_sphereRadius = 0.1;
+    //	_boardBaseHeight = 0.1;
 
-	_wCursor = 0;
-	_dCursor = 0;
+    //	_wCursor = 0;
+    //	_dCursor = 0;
 
-	_quadric = gluNewQuadric();
+    //	_quadric = gluNewQuadric();
 }
 
 Grid::~Grid() { gluDeleteQuadric(_quadric); }
@@ -114,12 +114,12 @@ void Grid::setPlayerColor(FieldValue player, QColor color)
 	if (player == None) return;
 	if (player == Player1) {
 		_player1Color = color;
-		toColorVec(color, _player1Colorf);
-		toColorVec(color.lighter(175), _player1WinColor);
+		_toColorVec(color, _player1Colorf);
+		_toColorVec(color.lighter(175), _player1WinColor);
 	} else {
 		_player2Color = color;
-		toColorVec(color, _player2Colorf);
-		toColorVec(color.lighter(175), _player2WinColor);
+		_toColorVec(color, _player2Colorf);
+		_toColorVec(color.lighter(175), _player2WinColor);
 	}
 }
 
@@ -158,6 +158,14 @@ bool Grid::setDisk()
 	bool success = _game->set(idx);
 	if (_game->finished()) _game->connected(_conIdcs);
 	return success;
+}
+
+void Grid::_toColorVec(QColor c, float colorVec[])
+{
+	colorVec[0] = c.redF();
+	colorVec[1] = c.greenF();
+	colorVec[2] = c.blueF();
+	colorVec[3] = c.alphaF();
 }
 
 void Grid::_drawBoardBottom(float width, float depth) const
@@ -227,5 +235,5 @@ void Grid::_drawCylinders() const
 	glTranslatef(-_colsDistance / 2,
 				 -_colsDistance * _dims.depth() - _colsDistance / 2,
 				 -_boardBaseHeight);
-	glRotatef(90.0, 1.0, 0.0, 0.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
 }

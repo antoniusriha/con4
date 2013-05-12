@@ -56,7 +56,7 @@ public:
 	NetOpponent(NetworkGameConf conf, QObject *parent = 0);
 	~NetOpponent();
 
-	const NetworkGame *game() const { return &_game; }
+	NetworkGame *game() { return &_game; }
 
 	NetworkString playerName() const { return _playerName; }
 	void setPlayerName(NetworkString value);

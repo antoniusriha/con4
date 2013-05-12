@@ -30,6 +30,7 @@
 
 ColorButton::ColorButton(QWidget *parent) : QPushButton(parent)
 {
+	setText("Color");
 	connect(this, SIGNAL(clicked()), this, SLOT(_clicked()));
 	setColor(QColor(Qt::black));
 }

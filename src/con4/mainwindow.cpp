@@ -28,8 +28,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "indexserversview.h"
-#include "networkgameitemmodel.h"
-#include "textvalidationcriteria.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
@@ -40,19 +38,15 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->setupUi(this);
 
 	connect(&_indexServiceList, SIGNAL(created(IndexService*,int)),
-			this, SLOT(indexServerCountChanged()));
-	connect(&_indexServiceList, SIGNAL(deletedAt(int)),
-			this, SLOT(indexServerCountChanged()));
+			this, SLOT(_update()));
+	connect(&_indexServiceList, SIGNAL(deletedAt(int)), this, SLOT(_update()));
 
 	ui->networkGameConfView->initialize(_indexServiceList);
+	ui->joinGameConf->initialize(_indexServiceList);
 
 //	_localGameConf.setDims(ui->boardConf->dims());
 
 	if (_indexServiceList.empty()) ui->networkGameConfView->setEnabled(false);
-
-	NetworkGameItemModel *model =
-			new NetworkGameItemModel(_indexServiceList, this);
-	ui->tvJoinGames->setModel(model);
 
 //	connect(ui->pageGame, SIGNAL(closing()), this, SLOT(_quitGame()));
 
@@ -74,12 +68,8 @@ MainWindow::MainWindow(QWidget *parent)
 //	connect(ui->networkBoardConf, SIGNAL(error(QString)),
 //			ui->lblStatus, SLOT(setText(QString)));
 
-	connect(&_indexServiceList, SIGNAL(refreshed()), this, SLOT(_refreshed()));
-
-	ui->joinplayerConf->setName("Player 2");
-	ui->joinplayerConf->setColor(QColor(Qt::yellow));
-	ui->joinplayerConf->nameCriteria()->append(new NoSemiColonCriterium());
-	ui->joinplayerConf->nameCriteria()->append(new NoNewLineCriterium());
+	connect(ui->joinGameConf, SIGNAL(joinClicked(JoinNetworkGameHostConf)),
+			this, SLOT(_joinClicked(JoinNetworkGameHostConf)));
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -87,16 +77,21 @@ MainWindow::~MainWindow() { delete ui; }
 void MainWindow::gameTypeSelectionChanged()
 {
 	ui->lblStatus->setText("");
-	if (ui->rbNewGame->isChecked())
+	if (ui->rbNewGame->isChecked()) {
+		ui->gbSetupGame->setTitle("Setup new local game");
 		ui->stackGameType->setCurrentWidget(ui->pageNewGameSetup);
-	else if (ui->rbNewNetworkGame->isChecked())
+	} else if (ui->rbNewNetworkGame->isChecked()) {
+		ui->gbSetupGame->setTitle("Setup new network game");
 		ui->stackGameType->setCurrentWidget(ui->pageNewNetworkGameSetup);
-	else ui->stackGameType->setCurrentWidget(ui->pageJoinGameSetup);
+	} else if (ui->rbNetworkGame->isChecked()) {
+		ui->gbSetupGame->setTitle("Join a network game");
+		ui->stackGameType->setCurrentWidget(ui->pageJoinGameSetup);
+	}
 }
 
 void MainWindow::viewIndexServersClicked ()
 {
-	IndexServersView dlg(*_application.indexServices(), this);
+	IndexServersView dlg(_indexServiceList, this);
 	dlg.exec();
 }
 
@@ -118,58 +113,17 @@ void MainWindow::createNetworkGameClicked()
 	_gameHosts.append(gameHost);
 }
 
-void MainWindow::joinClicked()
+void MainWindow::_joinClicked(JoinNetworkGameHostConf conf)
 {
-	QItemSelectionModel *selModel = ui->tvJoinGames->selectionModel();
-	if (!selModel->hasSelection()) return;
-
-	QModelIndex index = selModel->selectedRows().at(0);
-	QModelIndex parent = index.parent();
-	if (parent == QModelIndex()) return;
-
-	//	JoinNetworkGameHostConf conf;
-
-	//	NetOpponent *opp = _indexServiceList.at(parent.row());
-
-	//	GameHost *gameHost = GameHost::JoinNetworkGame();
-
-	/*
-
-
-	NetworkGame *game = _application.indexServices()->at(
-				parent.row())->games()->at(index.row());
-
-	_initService = new InitiatorService(game);
-
-	QString errMsg;
-	if (!_initService->join(errMsg)) {
-		QMessageBox::critical(this, "Join game error", errMsg);
-		delete _initService;
-		return;
-	}
-
-	_currentGame = game;
-	GLWidget *gameWidget = ui->pageGame;
-	gameWidget->startGame(_currentGame, false, true);
-	gameWidget->setPlayer2Name("My name");
-	gameWidget->setPlayer1Color(_player1Color);
-	gameWidget->setPlayer2Color(_player2Color);
-	ui->stackAppView->setCurrentWidget(gameWidget);
-	gameWidget->setGameTitle("Remotely initialized network game");
-	*/
+	GameHost *gameHost = GameHost::JoinNetworkGame(conf, this);
+	connect(gameHost, SIGNAL(quit(GameHost*)),
+			this, SLOT(_quitGame(GameHost*)));
+	_gameHosts.append(gameHost);
 }
 
-void MainWindow::refreshClicked()
+void MainWindow::_update()
 {
-	ui->btnRefresh->setEnabled(false);
-	_indexServiceList.refresh();
-}
-
-void MainWindow::_refreshed()
-{
-	ui->tvJoinGames->expandAll();
-	ui->lblStatus->setText(_indexServiceList.refreshLog());
-	ui->btnRefresh->setEnabled(true);
+	ui->networkGameConfView->setEnabled(!_indexServiceList.empty());
 }
 
 void MainWindow::_quitGame(GameHost *sender)
@@ -178,17 +132,10 @@ void MainWindow::_quitGame(GameHost *sender)
 	delete sender;
 }
 
-void MainWindow::indexServerCountChanged()
-{
-	bool enable = !_application.indexServices()->empty();
-	ui->networkGameConfView->setEnabled(enable);
-	ui->tvJoinGames->setEnabled(enable);
-	ui->btnRefresh->setEnabled(enable);
-	ui->btnJoin->setEnabled(enable);
-}
 
-void MainWindow::joinGame(QString playerName)
-{
+
+//void MainWindow::joinGame(QString playerName)
+//{
 	/*
 	QString text = QString("%1 would like to join the game. Accept?")
 			.arg(playerName);
@@ -201,4 +148,4 @@ void MainWindow::joinGame(QString playerName)
 	} else _oppService->rejectJoinRequest(
 				"The server user doesn't want to play with you.");
 				*/
-}
+//}

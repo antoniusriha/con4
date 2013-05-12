@@ -14,16 +14,21 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     glwidget.cpp \
-    glelement.cpp \
     grid.cpp \
     ../con4core/game.cpp \
-    ../con4core/board.cpp
+    ../con4core/board.cpp \
+    disks.cpp \
+    boardconf.cpp \
+    boardview.cpp
 
 HEADERS  += \
     glwidget.h \
-    glelement.h \
     grid.h \
     ../con4core/game.h \
-    ../con4core/board.h
+    ../con4core/board.h \
+    disks.h \
+    boardconf.h \
+    boardview.h
 
-FORMS    +=
+FORMS    += \
+    boardview.ui

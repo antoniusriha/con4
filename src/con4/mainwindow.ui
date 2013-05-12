@@ -14,10 +14,10 @@
    <string>Connect 4</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QGroupBox { 
-     border: 2px solid gray; 
-     border-radius: 3px; 
- } </string>
+   <string notr="true">QGroupBox {
+     border: 2px solid gray;
+     border-radius: 3px;
+ }</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -97,7 +97,23 @@
                </property>
                <widget class="QWidget" name="pageNewGameSetup">
                 <layout class="QGridLayout" name="gridLayout_6">
-                 <item row="3" column="0" alignment="Qt::AlignRight">
+                 <item row="4" column="0">
+                  <spacer name="verticalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="LocalGameConfView" name="localGameConf" native="true"/>
+                 </item>
+                 <item row="3" column="0">
                   <widget class="QPushButton" name="btnStart">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -110,7 +126,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="1" rowspan="5">
+                 <item row="2" column="1" rowspan="3">
                   <spacer name="horizontalSpacer_4">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -123,21 +139,6 @@
                    </property>
                   </spacer>
                  </item>
-                 <item row="0" column="0">
-                  <widget class="QGroupBox" name="groupBox">
-                   <property name="title">
-                    <string>Local game</string>
-                   </property>
-                   <layout class="QGridLayout" name="gridLayout_8">
-                    <property name="topMargin">
-                     <number>20</number>
-                    </property>
-                    <item row="0" column="0">
-                     <widget class="LocalGameConfView" name="localGameConf" native="true"/>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
                 </layout>
                </widget>
                <widget class="QWidget" name="pageNewNetworkGameSetup">
@@ -145,7 +146,23 @@
                  <bool>true</bool>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_7">
-                 <item row="2" column="0">
+                 <item row="1" column="0">
+                  <widget class="QPushButton" name="createGamePushButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Create game</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="0">
+                  <widget class="NetworkGameView" name="networkGameConfView" native="true"/>
+                 </item>
+                 <item row="1" column="2">
                   <widget class="QPushButton" name="btnManageIndexServers">
                    <property name="enabled">
                     <bool>true</bool>
@@ -161,7 +178,20 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="2">
+                 <item row="1" column="1">
+                  <spacer name="horizontalSpacer_5">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="0" column="1" colspan="2">
                   <spacer name="horizontalSpacer_3">
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
@@ -174,132 +204,12 @@
                    </property>
                   </spacer>
                  </item>
-                 <item row="0" column="1">
-                  <widget class="QGroupBox" name="gbNetworkPlayer">
-                   <property name="enabled">
-                    <bool>true</bool>
-                   </property>
-                   <property name="title">
-                    <string>Network game</string>
-                   </property>
-                   <layout class="QGridLayout" name="gridLayout_9">
-                    <property name="topMargin">
-                     <number>20</number>
-                    </property>
-                    <item row="0" column="0">
-                     <widget class="NetworkGameView" name="networkGameConfView" native="true"/>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QPushButton" name="createGamePushButton">
-                      <property name="text">
-                       <string>Create game</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item row="1" column="0" colspan="2">
-                  <spacer name="verticalSpacer_3">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                 </layout>
                </widget>
                <widget class="QWidget" name="pageJoinGameSetup">
                 <layout class="QGridLayout" name="gridLayout_5">
-                 <item row="1" column="0">
-                  <widget class="QGroupBox" name="groupBox_2">
-                   <property name="title">
-                    <string>Player configuration</string>
-                   </property>
-                   <layout class="QGridLayout" name="gridLayout_10">
-                    <property name="topMargin">
-                     <number>20</number>
-                    </property>
-                    <item row="0" column="0">
-                     <widget class="PlayerConfView" name="joinplayerConf" native="true"/>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <spacer name="horizontalSpacer_2">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item row="0" column="0" colspan="2">
-                  <layout class="QVBoxLayout" name="verticalLayoutJoin">
-                   <item>
-                    <widget class="QTreeView" name="tvJoinGames"/>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout">
-                     <item>
-                      <widget class="QPushButton" name="btnRefresh">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>Refresh</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="btnManageIndexServersJoin">
-                       <property name="text">
-                        <string>Manage Index Servers...</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <spacer name="horizontalSpacer">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="btnJoin">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>Join</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
+                 <item row="0" column="0">
+                  <widget class="JoinGameConfView" name="joinGameConf" native="true"/>
                  </item>
                 </layout>
                </widget>
@@ -387,30 +297,14 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>PlayerConfView</class>
+   <class>JoinGameConfView</class>
    <extends>QWidget</extends>
-   <header>playerconfview.h</header>
+   <header>joingameconfview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>btnManageIndexServersJoin</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>viewIndexServersClicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>150</x>
-     <y>442</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>246</x>
-     <y>559</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>rbNewGame</sender>
    <signal>toggled(bool)</signal>
@@ -451,42 +345,10 @@
    <hints>
     <hint type="sourcelabel">
      <x>114</x>
-     <y>192</y>
+     <y>369</y>
     </hint>
     <hint type="destinationlabel">
      <x>720</x>
-     <y>560</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnJoin</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>joinClicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>755</x>
-     <y>407</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>592</x>
-     <y>559</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnRefresh</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>refreshClicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>105</x>
-     <y>407</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>69</x>
      <y>560</y>
     </hint>
    </hints>

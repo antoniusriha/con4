@@ -10,3 +10,6 @@ Makefile
 /src/con4gl/con4gl
 /src/con4net/con4net
 /src/con4net-build-desktop-Qt_4_8_1_in_Pfad__System__Debug/con4net
+/src/con4core-build-desktop-Qt_4_8_1_in_Pfad__System__Debug/con4core
+/src/con4core-build-desktop-Qt_4_8_1_in_Pfad__System__Release/con4core
+/src/con4gl-build-desktop-Qt_4_8_1_in_Pfad__System__Debug/con4gl
