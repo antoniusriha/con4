@@ -28,8 +28,8 @@
 #ifndef BOARDCONF_H
 #define BOARDCONF_H
 
-#include <QObject>
 #include <QColor>
+#include "../con4core/game.h"
 
 class BoardConf : public QObject
 {
@@ -38,6 +38,10 @@ public:
     const static float sphereRadius = 0.1, boardBaseHeight = 0.1;
 
     explicit BoardConf(QObject *parent = 0);
+
+    Game::Dimensions dims() const { return _dims; }
+    void setDims(Game::Dimensions value) { _set<Game::Dimensions>(value,
+                                                                  _dims); }
 	
 	float colsDistance() const { return _colsDistance; }
     void setColsDistance(float value) { _set<float>(value, _colsDistance); }
@@ -96,6 +100,7 @@ private:
     QColor _getColor(const float color[]) const;
     void _setColor(QColor value, float field[]);
 
+    Game::Dimensions _dims;
 	float _colsDistance;
     float _background[4], _boardBase[4], _cylinders[4],
         _player1Color[4], _player2Color[4];

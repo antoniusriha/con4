@@ -27,6 +27,7 @@
 
 #include "disks.h"
 
-Disks::Disks(BoardConf &conf, QObject *parent) : QObject(parent), _conf(conf)
+Disks::Disks(BoardConf &conf, Game::BoardIndex cursor, QObject *parent)
+    : QObject(parent), _conf(conf), _cursor(cursor)
 {
 }

@@ -28,7 +28,7 @@
 #ifndef BOARDVIEW_H
 #define BOARDVIEW_H
 
-#include <QGLWidget>
+#include <QtOpenGL>
 #include "boardconf.h"
 #include "grid.h"
 #include "disks.h"
@@ -51,9 +51,6 @@ public:
 
     BoardConf *conf() { return &_conf; }
 
-    Game::Dimensions dims() const;
-    void setDims(Game::Dimensions value);
-
     const Game *game() const { return _game; }
     void setGame(Game *value);
 	
@@ -67,6 +64,10 @@ private:
     void keyPressEvent(QKeyEvent *event);
 
     void _setWidgetsVisible(bool value);
+    void _setXRotation(int angle);
+    void _setYRotation(int angle);
+    void _setZRotation(int angle);
+    bool _isCurPlayerEnabled();
 
     Ui::BoardView *ui;
     BoardConf _conf;
@@ -74,6 +75,9 @@ private:
     Game *_game;
     Grid _grid;
     Disks *_disks;
+    float _distance;
+    int _xRot, _yRot, _zRot;
+    QPoint _lastPos;
 };
 
 #endif // BOARDVIEW_H

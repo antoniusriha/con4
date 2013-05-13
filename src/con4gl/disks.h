@@ -35,12 +35,17 @@ class Disks : public QObject
 {
 	Q_OBJECT
 public:
-    explicit Disks(BoardConf &conf, QObject *parent = 0);
+    explicit Disks(BoardConf &conf, Game::BoardIndex cursor,
+                   QObject *parent = 0);
 	
+    Game::BoardIndex cursor() const { return _cursor; }
+    void setCursor(Game::BoardIndex value) { _cursor = value; }
+
     virtual void draw() const = 0;
 	
 private:
     BoardConf &_conf;
+    Game::BoardIndex _cursor;
 };
 
 class RunningGameDisks : public Disks
