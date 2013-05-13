@@ -37,36 +37,42 @@ NetInitiator::NetInitiator(NetInitiatorConf conf, QObject *parent)
 						.arg(_game.port()));
 	}
 
+	connect(&_endpoint, SIGNAL(messageReceived(Message)),
+			this, SLOT(_messageReceived(Message)));
+
 	connect(&_manager,
 			SIGNAL(registerGameFinished(bool,QList<ErroneousService>)),
-			this, SIGNAL(registerGameFinished(bool,QList<ErroneousService>)));
+			this, SLOT(_registerGameFinished(bool,QList<ErroneousService>)));
 	connect(&_manager, SIGNAL(sealGameFinished(bool,QList<ErroneousService>)),
-			this, SIGNAL(sealGameFinished(bool,QList<ErroneousService>)));
+			this, SLOT(_managerFinished(bool,QList<ErroneousService>)));
 	connect(&_manager,
 			SIGNAL(unregisterGameFinished(bool,QList<ErroneousService>)),
-			this, SIGNAL(unregisterGameFinished(bool,QList<ErroneousService>)));
+			this, SLOT(_managerFinished(bool,QList<ErroneousService>)));
+
+	connect(&_game, SIGNAL(started(FieldValue)),
+			this, SLOT(_started(FieldValue)));
+	connect(&_game, SIGNAL(set(FieldValue,Game::BoardIndex)),
+			this, SLOT(_set(FieldValue,Game::BoardIndex)));
+	connect(&_game, SIGNAL(finished(FieldValue)),
+			this, SLOT(_finished(FieldValue)));
+	connect(&_game, SIGNAL(aborted(FieldValue,QString)),
+			this, SLOT(_aborted(FieldValue,QString)));
 }
 
 void NetInitiator::registerGame() { _manager.registerGame(); }
 
+void NetInitiator::_registerGameFinished(bool success,
+										 QList<ErroneousService> errServices)
+{
+	if (!success) emit error(_compileErrMsg(errServices));
+}
+
 void NetInitiator::acceptJoinRequest()
 {
-	// seal game
-	// TODO
-
-	// join success
 	SendRequest *req = new SendRequest(Messages::joinGameSuccess(Messages::V2));
-	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+	connect(req, SIGNAL(finished(Request*)),
+			this, SLOT(_joinSuccessFinished(Request*)));
 	_endpoint.send(*req);
-
-	// start game
-	_game.start();
-	if (_game.curPlayer() == Player2) {
-		SendRequest *startReq = new SendRequest(Messages::startGame());
-		connect(startReq, SIGNAL(finished(Request*)),
-				startReq, SLOT(deleteLater()));
-		_endpoint.send(*startReq);
-	}
 }
 
 void NetInitiator::rejectJoinRequest(QString reason)
@@ -74,76 +80,138 @@ void NetInitiator::rejectJoinRequest(QString reason)
 	SendRequest *req = new SendRequest(Messages::joinGameFailed(reason));
 	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
 	_endpoint.send(*req);
+	_disconnect();
 }
 
-/*
-void NetInitiator::_set(FieldValue player, int width, int depth)
+void NetInitiator::_joinSuccessFinished(Request *request)
+{
+	if (request->success()) _manager.sealGame();
+	else {
+		emit error(request->errorString());
+		_game.abort(Player1, request->errorString());
+	}
+	delete request;
+}
+
+void NetInitiator::_managerFinished(bool success,
+									QList<ErroneousService> errServices)
+{
+	if (success) _game.start();
+	else {
+		QString errMsg = _compileErrMsg(errServices);
+		emit error(errMsg);
+		_game.abort(Player1, errMsg);
+	}
+}
+
+void NetInitiator::_started(FieldValue startPlayer)
+{
+	if (startPlayer == Player2) {
+		SendRequest *req = new SendRequest(Messages::startGame(), this);
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_reqFinished(Request*)));
+		_endpoint.send(*req);
+	}
+}
+
+void NetInitiator::_set(FieldValue player, Game::BoardIndex index)
 {
 	if (player == Player1) {
-		Game::BoardIndex idx = game()->index(width, depth);
-		game()->full(idx);
+		Messages::Vector3 dims, vals;
+		dims.w = _game.dims().width();
+		dims.h = _game.dims().height();
+		dims.d = _game.dims().depth();
 
-		_endpoint.send(Messages::updateGameBoard(*game(), width,
-												 height, depth, player));
-		if (game()->finished()) {
-			if (game()->isDraw())
-				_endpoint.send(Messages::endGame(None));
-			else _endpoint.send(Messages::endGame(Player1));
-			_endpoint.disconnectFromHost();
-			for (int i = 0; i < _indexServices.size(); i++) {
-				QString errMsg;
-				_indexServices.at(i)->unregisterGame(*game(), errMsg);
-			}
-		}
+		vals.w = index.wVal();
+		vals.h = index.hVal();
+		vals.d = index.dVal();
+
+		Messages::FieldState state = Messages::Player1;
+
+		SendRequest *req = new SendRequest(
+					Messages::updateGameBoard(dims, vals, state), this);
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_reqFinished(Request*)));
+		_endpoint.send(*req);
 	}
 }
 
-void NetInitiator::_handleMsg(QStringList msgTokens)
+void NetInitiator::_finished(FieldValue winner)
 {
-	if (msgTokens.empty()) return;
-	QString header = msgTokens.at(0);
+	Messages::FieldState w = (Messages::FieldState)(int)winner;
+	SendRequest *req = new SendRequest(Messages::endGame(w), this);
+	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+	_endpoint.send(*req);
+	_manager.unregisterGame();
+	_disconnect();
+}
 
-	if (!game()->hasStarted()) {
-		// expect join request
-		if (header != "join_game") return;
-		if (msgTokens.size() < 4) return;
-		if (msgTokens.at(2) != game()->name()) return;
-		emit joinGame(msgTokens.at(1));
-	} else {
-		// expect: move, abort
-		if (header == "move") {
-			if (msgTokens.size() < 2) return;
-			int x = msgTokens.at(1).toInt();
-			div_t r = div(x, game()->width() * game()->height());
-			int xd = r.quot;
-			r = div(r.rem, game()->width());
-			if (!game()->set(r.rem, xd))
-				_endpoint.send(Messages::movedFailed("Invalid move"));
-			else {
-				if (game()->finished()) {
-					if (game()->isDraw())
-						_endpoint.send(Messages::endGame(None));
-					else _endpoint.send(Messages::endGame(Player2));
-					_endpoint.disconnectFromHost();
-					for (int i = 0; i < _indexServices.size(); i++) {
-						QString errMsg;
-						_indexServices.at(i)->unregisterGame(*game(), errMsg);
-					}
-				}
-			}
-		}
+void NetInitiator::_aborted(FieldValue requester, QString reason)
+{
+	if (requester == Player1) {
+		NetworkString r(reason.remove(Message::MsgEndChar)
+						.remove(Message::MsgSplitChar));
+		SendRequest *req = new SendRequest(Messages::abortGame(r), this);
+		connect(req, SIGNAL(finished(Request*)), this, SLOT(deleteLater()));
+		_endpoint.send(*req);
 	}
+	_manager.unregisterGame();
+	_disconnect();
 }
 
 void NetInitiator::_messageReceived(Message msg)
 {
-	if (!msg.isValid()) return;
-
-	if (!game()->hasStarted()) {
-		// expect join request
-//		if (!msg.header() ==)
+	if (!_game.hasStarted()) {
+		NetworkString playerName;
+		if (Messages::parseJoinGame(msg, playerName))
+			emit joinRequested(playerName.string());
 	} else {
-
+		Messages::Vector3 dims, index;
+		dims.w = _game.dims().width();
+		dims.h = _game.dims().height();
+		dims.d = _game.dims().depth();
+		if (_game.curPlayer() == Player2 &&
+			Messages::parseMove(msg, dims, index)) _handleMove(index);
 	}
 }
-*/
+
+void NetInitiator::_reqFinished(Request *request)
+{
+	if (!request->success()) {
+		emit error(request->errorString());
+		_game.abort(Player1, request->errorString());
+	}
+	delete request;
+}
+
+void NetInitiator::_handleMove(Messages::Vector3 index)
+{
+	Game::BoardIndex idx = _game.index(index.w, index.d);
+	if (!_game.set(idx)) {
+		SendRequest *req = new SendRequest(
+					Messages::movedFailed("Invalid move."), this);
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_reqFinished(Request*)));
+		_endpoint.send(*req);
+	}
+}
+
+void NetInitiator::_disconnect()
+{
+	Request *req = new Request(this);
+	connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
+	_endpoint.disconnectFromHost(*req);
+}
+
+QString NetInitiator::_compileErrMsg(QList<ErroneousService> errServices) const
+{
+	QString errMsg = "";
+	for (int i = 0; i < errServices.size(); i++) {
+		IndexService *svc = errServices.at(i).service;
+		errMsg += QString("Index server %1 (%2:%3) failure:"
+						  " %4\n").arg(svc->name())
+				.arg(svc->ipAddress().toString()).arg(svc->port())
+				.arg(errServices.at(i).errorString);
+	}
+	return errMsg;
+}

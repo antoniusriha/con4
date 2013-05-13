@@ -65,8 +65,8 @@ public:
 
 		int nDims() const { return _depth == 1 ? 2 : 3; }
 
-        bool operator ==(const Dimensions &other);
-        bool operator !=(const Dimensions &other) { return !(*this == other); }
+		bool operator ==(const Dimensions &other);
+		bool operator !=(const Dimensions &other) { return !(*this == other); }
 
 	private:
 		void _init(int nConnect, int width, int height, int depth);
@@ -77,14 +77,6 @@ public:
 	class BoardIndex
 	{
 	public:
-		class Exception : public std::out_of_range
-		{
-		public:
-			explicit Exception() : out_of_range(_what) {}
-		private:
-			const static char *_what;
-		};
-
 		BoardIndex();
 		BoardIndex(const Game &game, int wVal, int hVal, int dVal);
 
@@ -98,6 +90,9 @@ public:
 		void setWVal(int value);
 		void setHVal(int value);
 		void setDVal(int value);
+
+		bool operator ==(const BoardIndex &other);
+		bool operator !=(const BoardIndex &other) { return !(*this == other); }
 
 	private:
 		const Game *_game;
@@ -125,7 +120,7 @@ public:
 	virtual ~Game() {}
 
 	Dimensions dims() const;
-	void setDims(Dimensions dims);
+	bool setDims(Dimensions dims);
 
 	BoardIndex index() const;
 	BoardIndex index(int wVal, int dVal, int hVal = 0) const;

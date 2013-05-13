@@ -28,38 +28,34 @@
 #ifndef DISKS_H
 #define DISKS_H
 
-#include <QObject>
+#include <GL/glu.h>
 #include "boardconf.h"
 
 class Disks : public QObject
 {
 	Q_OBJECT
 public:
-    explicit Disks(BoardConf &conf, Game::BoardIndex cursor,
-                   QObject *parent = 0);
-	
-    Game::BoardIndex cursor() const { return _cursor; }
-    void setCursor(Game::BoardIndex value) { _cursor = value; }
+	explicit Disks(const BoardConf &conf, const Game &game,
+				   QObject *parent = 0);
+	~Disks() { gluDeleteQuadric(_quad); }
 
-    virtual void draw() const = 0;
-	
+	Game::BoardIndex cursor() const { return _cursor; }
+	void setCursor(Game::BoardIndex value) { _cursor = value; }
+
+	void draw() const;
+
+private slots:
+	void _update();
+
 private:
-    BoardConf &_conf;
-    Game::BoardIndex _cursor;
-};
+	void _drawDisks() const;
+	void _drawCursor() const;
 
-class RunningGameDisks : public Disks
-{
-	Q_OBJECT
-public:
-
-};
-
-class FinishedGameDisks : public Disks
-{
-	Q_OBJECT
-public:
-
+	const BoardConf &_conf;
+	const Game &_game;
+	Game::BoardIndex _cursor;
+	GLUquadric *_quad;
+	float _player1WinColor[4], _player2WinColor[4];
 };
 
 #endif // DISKS_H

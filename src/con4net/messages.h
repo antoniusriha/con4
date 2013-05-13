@@ -86,8 +86,7 @@ Message sealGameFailed(NetworkString reason);
 bool parseSealGameFailed(Message msg, NetworkString &reason);
 
 Message joinGame(NetworkString playerName, NetworkString gameName);
-bool parseJoinGame(Message msg, NetworkString &playerName,
-				   NetworkString &gameName);
+bool parseJoinGame(Message msg, NetworkString &playerName);
 
 Message joinGameSuccess(ProtocolVersion protocolVersion);
 bool parseJoinGameSuccess(Message msg, ProtocolVersion &protocolVersion);
@@ -99,7 +98,7 @@ Message startGame();
 bool parseStartGame(Message msg);
 
 Message move(Vector3 dims, Vector3 vals);
-bool parseMove(Message msg, Vector3 &dims, Vector3 &index);
+bool parseMove(Message msg, Vector3 dims, Vector3 &vals);
 
 enum FieldState { None, Player1, Player2 };
 struct Field { Vector3 index; FieldState state; };

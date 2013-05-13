@@ -64,15 +64,15 @@ void Game::Dimensions::setDepth(int value)
 	if (value != 1 && (value < _nConnect || value > MaxDim))
 		throw Exception("depth must be 1 (for 2D) or greater or equal "
 						"than nConnect and lower than MaxDim (for 3D).");
-    _depth = value;
+	_depth = value;
 }
 
 bool Game::Dimensions::operator ==(const Game::Dimensions &other)
 {
-    return _nConnect == other._nConnect &&
-           _width == other._width &&
-           _height == other._height &&
-           _depth == other._depth;
+	return _nConnect == other._nConnect &&
+		   _width == other._width &&
+		   _height == other._height &&
+		   _depth == other._depth;
 }
 
 void Game::Dimensions::_init(int nConnect, int width, int height, int depth)
@@ -82,9 +82,6 @@ void Game::Dimensions::_init(int nConnect, int width, int height, int depth)
 	setHeight(height);
 	setDepth(depth);
 }
-
-const char *Game::BoardIndex::Exception::_what =
-		"value is not within the valid range.";
 
 Game::BoardIndex::BoardIndex() : _game(0), _wVal(0), _hVal(0), _dVal(0) {}
 
@@ -98,28 +95,38 @@ Game::BoardIndex::BoardIndex(const Game &game, int wVal, int hVal, int dVal)
 
 void Game::BoardIndex::setWVal(int value)
 {
-	if (value < 0 && value >= _game->_board.dim2()) throw Exception();
+	if (value < 0) value = 0;
+	else if (value >= _game->_board.dim2()) value = _game->board()->dim2() - 1;
 	_wVal = value;
 }
 
 void Game::BoardIndex::setHVal(int value)
 {
-	if (value < 0 && value >= _game->_board.height()) throw Exception();
+	if (value < 0) value = 0;
+	else if (value >= _game->_board.height())
+		value = _game->board()->height() - 1;
 	_hVal = value;
 }
 
 void Game::BoardIndex::setDVal(int value)
 {
-	if (value < 0 && value >= _game->_board.dim3()) throw Exception();
+	if (value < 0) value = 0;
+	else if (value >= _game->_board.dim3()) value = _game->_board.dim3() - 1;
 	_dVal = value;
+}
+
+bool Game::BoardIndex::operator ==(const BoardIndex &other)
+{
+	return _game == other.game() && _wVal == other._wVal &&
+			_hVal == other._hVal && _dVal == other._dVal;
 }
 
 const char *Game::InvalidIndexException::_what =
 		"Invalid index. Create a valid index with Game::index()";
 
 Game::Game(Dimensions dims, QObject *parent) : QObject(parent), _disksSet(0),
-    _totalDisks(0), _hasStarted(false), _aborted(false), _finished(false),
-    _board(dims.nConnect(), dims.height(), dims.width(), dims.depth())
+	_totalDisks(0), _hasStarted(false), _aborted(false), _finished(false),
+	_board(dims.nConnect(), dims.height(), dims.width(), dims.depth())
 {
 	setDims(dims);
 }
@@ -130,10 +137,9 @@ Game::Dimensions Game::dims() const
 					  _board.height(), _board.dim3());
 }
 
-void Game::setDims(Dimensions dims)
+bool Game::setDims(Dimensions dims)
 {
-	if (_hasStarted) throw InvalidOperationException(
-				"Cannot set dimensions when game has already started.");
+	if (_hasStarted) return false;
 	_board = Board(dims.nConnect(), dims.height(),
 				   dims.width(), dims.depth(), None);
 }
@@ -179,15 +185,7 @@ FieldValue Game::get(BoardIndex idx) const
 bool Game::set(BoardIndex &idx)
 {
 	if (idx.game() != this) throw InvalidIndexException();
-	if (!_hasStarted)
-		throw InvalidOperationException(
-				"Cannot set, since game has not yet started.");
-	if (_finished)
-		throw InvalidOperationException(
-				"Cannot set, since game is already finished.");
-	if (_aborted)
-		throw InvalidOperationException(
-				"Cannot set, since game has been aborted.");
+	if (!_hasStarted || _finished || _aborted) return false;
 
 	int hVal;
 	if (_board.set(idx.wVal(), idx.dVal(), hVal)) {
@@ -209,13 +207,7 @@ bool Game::set(BoardIndex &idx)
 
 bool Game::undo(BoardIndex &idx)
 {
-	if (!_hasStarted)
-		throw InvalidOperationException(
-				"Cannot undo, since game has not yet started.");
-	if (_aborted)
-		throw InvalidOperationException(
-				"Cannot undo, since game has been aborted.");
-
+	if (!_hasStarted || _aborted) return false;
 	int wVal, hVal, dVal;
 	if (_board.undo(hVal, wVal, dVal)) {
 		idx = index(wVal, dVal, hVal);
@@ -228,16 +220,7 @@ bool Game::undo(BoardIndex &idx)
 
 void Game::start(FieldValue startPlayer)
 {
-	if (_hasStarted)
-		throw InvalidOperationException(
-				"Cannot start, since game has already started.");
-	if (_finished)
-		throw InvalidOperationException(
-				"Cannot start, since game is already finished.");
-	if (_aborted)
-		throw InvalidOperationException(
-				"Cannot start, since game has been aborted.");
-
+	if (_hasStarted || _finished || _aborted) return;
 	if (startPlayer == None) startPlayer = (FieldValue)(rand() % 2 + 1);
 	_board = Board(_board.nConnect(), _board.height(), _board.dim2(),
 				   _board.dim3(), startPlayer, true);
@@ -248,16 +231,7 @@ void Game::start(FieldValue startPlayer)
 
 void Game::abort(FieldValue requester, QString reason)
 {
-	if (!_hasStarted)
-		throw InvalidOperationException(
-				"Cannot abort, since game has not yet started.");
-	if (_finished)
-		throw InvalidOperationException(
-				"Cannot abort, since game is already finished.");
-	if (_aborted)
-		throw InvalidOperationException(
-				"Cannot abort, since game has already been aborted.");
-
+	if (_finished || _aborted) return;
 	_aborted = true;
 	emit aborted(requester, reason);
 }

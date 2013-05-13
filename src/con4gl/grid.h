@@ -31,54 +31,22 @@
 #include <QColor>
 #include <GL/glu.h>
 #include "boardconf.h"
-#include "../con4core/game.h"
 
 class Grid : public QObject
 {
 	Q_OBJECT
-
 public:
-    Grid(const Game::Dimensions &dims, const BoardConf &conf,
-         QObject *parent = 0);
+	Grid(const BoardConf &conf, QObject *parent = 0);
 	~Grid();
 
 	void draw() const;
 
-	QColor playerColor (FieldValue player) const {
-		if (player == None) return QColor::Invalid;
-		if (player == Player1) return _player1Color;
-		else return _player2Color;
-	}
-
-	float colsDistance () const { return _colsDistance; }
-
-	void setPlayerColor(FieldValue player, QColor color);
-	void setColsDistance (float value) { _colsDistance = value; }
-
-	bool moveCursorUp();
-	bool moveCursorDown();
-	bool moveCursorRight();
-	bool moveCursorLeft();
-	bool setDisk();
-	void endGame();
-
 private:
-	void _toColorVec(QColor c, float colorVec[]);
 	void _drawBoardBottom(float width, float depth) const;
-	void _drawCylinders() const;
+	void _drawCylinders(Game::Dimensions &dims) const;
 
-	QColor _player1Color, _player2Color;
-	float _bottomColor[4], _player1Colorf[4], _player2Colorf[4],
-		  _player1WinColor[4], _player2WinColor[4];
-	QVector<Game::BoardIndex> _conIdcs;
-	float _colsDistance, _boardBaseHeight, _sphereRadius;
-	int _wCursor, _dCursor;
-	Game *_game;
-
-    GLUquadricObj *_quadric;
-
-    const Game::Dimensions &_dims;
-    const BoardConf &_conf;
+	GLUquadricObj *_quad;
+	const BoardConf &_conf;
 };
 
 #endif // GRID_H

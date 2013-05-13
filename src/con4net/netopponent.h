@@ -75,7 +75,7 @@ private slots:
 	void _connectFinished(Request *request);
 	void _joinFinished(Request *request);
 	void _msgReceived(Message msg);
-	void _setFinished(Request *request);
+	void _moveFinished(Request *request);
 
 private:
 	void _handleSyncGameBoard(QList<Messages::Field> fields);

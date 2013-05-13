@@ -59,37 +59,43 @@ public:
 	NetworkGame *game() { return &_game; }
 
 	void registerGame();
-
 	void acceptJoinRequest();
 	void rejectJoinRequest(QString reason);
-	void startGame() const;
-	void synchronizeGameBoard(int **fieldNumberAndValue) const;
-	void updatedGameBoard(int fieldNumber, int value) const;
-	void moved_failed(QString reason) const;
-	void endGame(int result) const;
-	void abortGame(QString reason) const;
 
 signals:
-	void registerGameFinished(bool success,
-							  QList<ErroneousService> errServices);
-	void sealGameFinished(bool success, QList<ErroneousService> errServices);
-	void unregisterGameFinished(bool success,
-								QList<ErroneousService> errServices);
-	void joinGame(QString playerName);
-	void move(int fieldIndex);
-	void abortGame(QString reason);
+	void joinRequested(QString playerName);
+	void error(QString errorString);
+//	void registerGameFinished(bool success,
+//							  QList<ErroneousService> errServices);
+//	void unregisterGameFinished(bool success,
+//								QList<ErroneousService> errServices);
+//	void acceptJoinRequestFinished(bool success, QString errorString);
+//	void joinGame(QString playerName);
+//	void move(int fieldIndex);
+//	void abortGame(QString reason);
 
 private slots:
-//	void _messageReceived(Message msg);
-//	void _aborted(FieldValue requester, QString reason);
+	void _messageReceived(Message msg);
+	void _registerGameFinished(bool success,
+							   QList<ErroneousService> errServices);
+	void _managerFinished(bool success, QList<ErroneousService> errServices);
+	void _joinSuccessFinished(Request *request);
+	void _reqFinished(Request *request);
+	void _started(FieldValue startPlayer);
+	void _set(FieldValue player, Game::BoardIndex index);
+	void _finished(FieldValue winner);
+	void _aborted(FieldValue requester, QString reason);
+
+
 //	void _finished(FieldValue winner);
 //	void _set(FieldValue player, Game::BoardIndex index);
 //	void _started(FieldValue startPlayer);
 //	void _undone(FieldValue player, Game::BoardIndex index);
 
 private:
-	void _handleMsg(QStringList msgTokens);
-	bool _sendMsg(QString msg);
+	void _handleMove(Messages::Vector3 index);
+	void _disconnect();
+	QString _compileErrMsg(QList<ErroneousService> errServices) const;
 
 	NetworkGame _game;
 	IndexServiceManager _manager;

@@ -31,7 +31,7 @@
 #include <QColor>
 #include "../con4net/netinitiator.h"
 #include "../con4net/netopponent.h"
-#include "../con4gl/glwidget.h"
+#include "../con4gl/boardview.h"
 
 class GameHostConf
 {
@@ -116,7 +116,7 @@ signals:
 protected:
 	explicit GameHost(GameHostConf conf, QObject *parent = 0);
 
-	GLWidget _window;
+	BoardView _window;
 
 private slots:
 	void _windowClosed();
@@ -141,8 +141,9 @@ public:
 	explicit NetworkGameHost(NetworkGameHostConf conf, QObject *parent = 0);
 
 private slots:
-	void _registerGameFinished(bool success,
-							   QList<ErroneousService> errServices);
+	void _error(QString errorString);
+	void _joinRequested(QString playerName);
+
 private:
 	NetInitiator _init;
 };

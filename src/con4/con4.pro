@@ -19,7 +19,6 @@ SOURCES += main.cpp\
 	addindexserverdialog.cpp \
 	application.cpp \
 	indexserversview.cpp \
-	../con4gl/glwidget.cpp \
 	../con4gl/grid.cpp \
 	../con4core/game.cpp \
 	../con4core/board.cpp \
@@ -46,19 +45,21 @@ SOURCES += main.cpp\
 	colorbutton.cpp \
 	validatingtextbox.cpp \
 	ipaddresstextbox.cpp \
-    boardconfview.cpp \
-    localgameconfview.cpp \
-    ../con4net/indexservicehelper.cpp \
-    ../con4net/clientendpointhelper.cpp \
-    ../con4net/endpointhelper.cpp \
-    ../con4net/indexservicemanager.cpp \
-    joingameconfview.cpp
+	boardconfview.cpp \
+	localgameconfview.cpp \
+	../con4net/indexservicehelper.cpp \
+	../con4net/clientendpointhelper.cpp \
+	../con4net/endpointhelper.cpp \
+	../con4net/indexservicemanager.cpp \
+	joingameconfview.cpp \
+    ../con4gl/disks.cpp \
+    ../con4gl/boardview.cpp \
+    ../con4gl/boardconf.cpp
 
 HEADERS  += mainwindow.h \
 	addindexserverdialog.h \
 	application.h \
 	indexserversview.h \
-	../con4gl/glwidget.h \
 	../con4gl/grid.h \
 	../con4core/game.h \
 	../con4core/board.h \
@@ -87,13 +88,16 @@ HEADERS  += mainwindow.h \
 	validatingtextbox.h \
 	ipaddresstextbox.h \
 	textvalidationcriteria.h \
-    boardconfview.h \
-    localgameconfview.h \
-    ../con4net/indexservicehelper.h \
-    ../con4net/clientendpointhelper.h \
-    ../con4net/endpointhelper.h \
-    ../con4net/indexservicemanager.h \
-    joingameconfview.h
+	boardconfview.h \
+	localgameconfview.h \
+	../con4net/indexservicehelper.h \
+	../con4net/clientendpointhelper.h \
+	../con4net/endpointhelper.h \
+	../con4net/indexservicemanager.h \
+	joingameconfview.h \
+    ../con4gl/disks.h \
+    ../con4gl/boardview.h \
+    ../con4gl/boardconf.h
 
 FORMS    += mainwindow.ui \
 	addindexserverdialog.ui \
@@ -102,6 +106,7 @@ FORMS    += mainwindow.ui \
 	networkgameview.ui \
 	playerconfview.ui \
 	validatingtextbox.ui \
-    boardconfview.ui \
-    localgameconfview.ui \
-    joingameconfview.ui
+	boardconfview.ui \
+	localgameconfview.ui \
+	joingameconfview.ui \
+    ../con4gl/boardview.ui

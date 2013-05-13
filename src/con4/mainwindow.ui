@@ -260,7 +260,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="GLWidget" name="pageGame"/>
      </widget>
     </item>
    </layout>
@@ -278,12 +277,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>GLWidget</class>
-   <extends>QWidget</extends>
-   <header>../con4gl/glwidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>NetworkGameView</class>
    <extends>QWidget</extends>

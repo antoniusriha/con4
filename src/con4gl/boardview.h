@@ -41,43 +41,42 @@ class BoardView;
 class BoardView : public QGLWidget
 {
 	Q_OBJECT
-	
+
 public:
-    explicit BoardView(QWidget *parent = 0);
-    ~BoardView();
+	explicit BoardView(QWidget *parent = 0);
+	~BoardView();
 
-    QSize minimumSizeHint() const { return QSize(800, 600); }
-    QSize sizeHint() const { return QSize(1024, 768); }
+	BoardConf *conf() { return &_conf; }
 
-    BoardConf *conf() { return &_conf; }
+	const Game *game() const { return _game; }
+	void setGame(Game *value);
 
-    const Game *game() const { return _game; }
-    void setGame(Game *value);
-	
+private slots:
+	void _update();
+
 private:
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+	void initializeGL();
+	void paintGL();
+	void resizeGL(int width, int height);
+	void mousePressEvent(QMouseEvent *event);
+	void mouseMoveEvent(QMouseEvent *event);
+	void wheelEvent(QWheelEvent *event);
+	void keyPressEvent(QKeyEvent *event);
 
-    void _setWidgetsVisible(bool value);
-    void _setXRotation(int angle);
-    void _setYRotation(int angle);
-    void _setZRotation(int angle);
-    bool _isCurPlayerEnabled();
+	void _setWidgetsVisible(bool value);
+	void _setXRotation(int angle);
+	void _setYRotation(int angle);
+	void _setZRotation(int angle);
 
-    Ui::BoardView *ui;
-    BoardConf _conf;
-    Game::Dimensions _dims;
-    Game *_game;
-    Grid _grid;
-    Disks *_disks;
-    float _distance;
-    int _xRot, _yRot, _zRot;
-    QPoint _lastPos;
+	Ui::BoardView *ui;
+	BoardConf _conf;
+	Game::Dimensions _dims;
+	Game *_game;
+	Grid _grid;
+	Disks *_disks;
+	float _distance;
+	int _xRot, _yRot, _zRot;
+	QPoint _lastPos;
 };
 
 #endif // BOARDVIEW_H

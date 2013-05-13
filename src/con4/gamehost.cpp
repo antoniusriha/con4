@@ -90,10 +90,10 @@ GameHost *GameHost::JoinNetworkGameWithAiPlayer(JoinNetworkGameHostConf conf,
 GameHost::GameHost(GameHostConf conf, QObject *parent)
 	: QObject(parent), _window()
 {
-	_window.setPlayer1Color(conf.player1Color());
-	_window.setPlayer2Color(conf.player2Color());
+	_window.conf()->setPlayer1Color(conf.player1Color());
+	_window.conf()->setPlayer2Color(conf.player2Color());
 	_window.show();
-	connect(&_window, SIGNAL(closed()), this, SLOT(_windowClosed()));
+//	connect(&_window, SIGNAL(), this, SLOT(_windowClosed()));
 }
 
 void GameHost::_windowClosed() { emit quit(this); }
@@ -101,42 +101,44 @@ void GameHost::_windowClosed() { emit quit(this); }
 LocalGameHost::LocalGameHost(LocalGameHostConf conf, QObject *parent)
 	: GameHost(conf, parent), _game(conf.dims(), this)
 {
-	_window.setPlayer1Name(conf.player1Name());
-	_window.setPlayer2Name(conf.player2Name());
-	_window.startGame(&_game);
+	_window.conf()->setPlayer1Name(conf.player1Name());
+	_window.conf()->setPlayer2Name(conf.player2Name());
+	_window.setGame(&_game);
 	_game.start();
 }
 
 NetworkGameHost::NetworkGameHost(NetworkGameHostConf conf, QObject *parent)
 	: GameHost(conf, parent), _init(conf, this)
 {
-	_window.setPlayer1Name(conf.initiatorName().string());
-	connect(&_init, SIGNAL(registerGameFinished(bool,QList<ErroneousService>)),
-			this, SLOT(_registerGameFinished(bool,QList<ErroneousService>)));
+	_window.conf()->setPlayer2Enabled(false);
+	_window.conf()->setPlayer1Name(conf.initiatorName().string());
+	connect(&_init, SIGNAL(error(QString)), this, SLOT(_error(QString)));
+	connect(&_init, SIGNAL(joinRequested(QString)),
+			this, SLOT(_joinRequested(QString)));
 	_init.registerGame();
 }
 
-void NetworkGameHost::_registerGameFinished(bool success,
-											QList<ErroneousService> errServices)
+void NetworkGameHost::_error(QString errorString)
 {
-	if (success) _window.startGame(_init.game(), true, false);
-	else {
-		QString errMsg = "";
-		for (int i = 0; i < errServices.size(); i++) {
-			IndexService *svc = errServices.at(i).service;
-			errMsg += QString("Index server <em>%1</em> (%2:%3) failed: %4\n")
-					.arg(svc->name()).arg(svc->ipAddress().toString())
-					.arg(svc->port()).arg(errServices.at(i).errorString);
-		}
-		QMessageBox::critical(&_window, "Registration failure", errMsg);
-		_window.close();
-	}
+	QMessageBox::critical(&_window, "Error", errorString);
+}
+
+void NetworkGameHost::_joinRequested(QString playerName)
+{
+	int result = QMessageBox::question(&_window, "Join request",
+						  playerName + " would like to join the game. Accept?",
+						  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+	if ((QMessageBox::StandardButton)result == QMessageBox::Yes) {
+		_init.acceptJoinRequest();
+		_window.setGame(_init.game());
+	} else _init.rejectJoinRequest("User denied join request.");
 }
 
 JoinGameHost::JoinGameHost(JoinNetworkGameHostConf conf, QObject *parent)
 	: GameHost(conf, parent), _opp(*conf.opponent())
 {
-	_window.setPlayer2Name(conf.player2Name().string());
+	_window.conf()->setPlayer1Enabled(false);
+	_window.conf()->setPlayer2Name(conf.player2Name().string());
 	connect(&_opp, SIGNAL(joinGameFinished(bool,QString)),
 			this, SLOT(_joinGameFinished(bool,QString)));
 	_opp.connectToServer();
@@ -145,5 +147,5 @@ JoinGameHost::JoinGameHost(JoinNetworkGameHostConf conf, QObject *parent)
 
 void JoinGameHost::_joinGameFinished(bool success, QString errString)
 {
-	if (success) _window.startGame(_opp.game(), false, true);
+	if (success) _window.setGame(_opp.game());
 }

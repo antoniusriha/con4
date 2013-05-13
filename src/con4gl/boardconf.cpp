@@ -27,21 +27,41 @@
 
 #include "boardconf.h"
 
+
+void BoardConf::toColorVec(QColor color, float colorVec[])
+{
+	colorVec[0] = color.redF();
+	colorVec[1] = color.greenF();
+	colorVec[2] = color.blueF();
+	colorVec[3] = color.alphaF();
+}
+
+BoardConf::BoardConf(QObject *parent) : QObject(parent), _dims(),
+	_colsDistance(0.5), _player1Enabled(true), _player2Enabled(true),
+	_gameTitle(), _gameDescription(),
+	_player1Name("Player 1"), _player2Name("Player 2")
+{
+	setBackground(QColor(65, 74, 76, 200));
+	setBoardBase(QColor(Qt::lightGray));
+	setPlayer1Color(QColor(Qt::red));
+	setPlayer2Color(QColor(Qt::yellow));
+}
+
+bool BoardConf::isPlayerEnabled(FieldValue player) const
+{
+	return (player == Player1 && _player1Enabled) ||
+		   (player == Player2 && _player2Enabled);
+}
+
 QColor BoardConf::_getColor(const float color[]) const
 {
-    return QColor(color[0], color[1], color[2], color[3]);
+	return QColor::fromRgbF(color[0], color[1], color[2], color[3]);
 }
 
 void BoardConf::_setColor(QColor value, float field[])
 {
-    if (value.redF() == field[0] && value.greenF() == field[1] &&
-        value.blueF() == field[2] && value.alphaF() == field[3]) return;
-    field[0] = value.redF();
-    field[1] = value.greenF();
-    field[2] = value.blueF();
-    field[3] = value.alphaF();
-    emit changed();
+	if (value.redF() == field[0] && value.greenF() == field[1] &&
+		value.blueF() == field[2] && value.alphaF() == field[3]) return;
+	toColorVec(value, field);
+	emit changed();
 }
-
-BoardConf::BoardConf(QObject *parent) : QObject(parent), _background(),
-    _boardBase(), _cylinders(), _player1Color(), _player2Color() {}

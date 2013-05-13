@@ -35,77 +35,81 @@ class BoardConf : public QObject
 {
 	Q_OBJECT
 public:
-    const static float sphereRadius = 0.1, boardBaseHeight = 0.1;
+	static void toColorVec(QColor color, float colorVec[]);
 
-    explicit BoardConf(QObject *parent = 0);
+	const static float sphereRadius = 0.1, boardBaseHeight = 0.1;
 
-    Game::Dimensions dims() const { return _dims; }
-    void setDims(Game::Dimensions value) { _set<Game::Dimensions>(value,
-                                                                  _dims); }
-	
+	explicit BoardConf(QObject *parent = 0);
+
+	Game::Dimensions dims() const { return _dims; }
+	void setDims(Game::Dimensions value) { _set<Game::Dimensions>(value,
+																  _dims); }
+
 	float colsDistance() const { return _colsDistance; }
-    void setColsDistance(float value) { _set<float>(value, _colsDistance); }
-	
-    const float *backgroundF() const { return _background; }
-    QColor background() const { return _getColor(_background); }
-    void setBackground(QColor value) { _setColor(value, _background); }
+	void setColsDistance(float value) { _set<float>(value, _colsDistance); }
 
-    const float *boardBaseF() const { return _boardBase; }
-    QColor boardBase() const { return _getColor(_boardBase); }
-    void setBoardBase(QColor value) { _setColor(value, _boardBase); }
+	const float *backgroundF() const { return _background; }
+	QColor background() const { return _getColor(_background); }
+	void setBackground(QColor value) { _setColor(value, _background); }
 
-    const float *cylindersF() const { return _cylinders; }
-    QColor cylinders() const { return _getColor(_cylinders); }
-    void setCylinders(QColor value) { _setColor(value, _cylinders); }
+	const float *boardBaseF() const { return _boardBase; }
+	QColor boardBase() const { return _getColor(_boardBase); }
+	void setBoardBase(QColor value) { _setColor(value, _boardBase); }
 
-    const float *player1ColorF() const { return _player1Color; }
-    QColor player1Color() const { return _getColor(_player1Color); }
-    void setPlayer1Color(QColor value) { _setColor(value, _player1Color); }
+	const float *cylindersF() const { return _cylinders; }
+	QColor cylinders() const { return _getColor(_cylinders); }
+	void setCylinders(QColor value) { _setColor(value, _cylinders); }
 
-    const float *player2ColorF() const { return _player2Color; }
-    QColor player2Color() const { return _getColor(_player2Color); }
-    void setPlayer2Color(QColor value) { _setColor(value, _player2Color); }
+	const float *player1ColorF() const { return _player1Color; }
+	QColor player1Color() const { return _getColor(_player1Color); }
+	void setPlayer1Color(QColor value) { _setColor(value, _player1Color); }
 
-    bool player1Enabled() const { return _player1Enabled; }
-    void setPlayer1Enabled(bool value) { _set<bool>(value, _player1Enabled); }
+	const float *player2ColorF() const { return _player2Color; }
+	QColor player2Color() const { return _getColor(_player2Color); }
+	void setPlayer2Color(QColor value) { _setColor(value, _player2Color); }
 
-    bool player2Enabled() const { return _player2Enabled; }
-    void setPlayer2Enabled(bool value) { _set<bool>(value, _player2Enabled); }
+	bool player1Enabled() const { return _player1Enabled; }
+	void setPlayer1Enabled(bool value) { _set<bool>(value, _player1Enabled); }
 
-    QString gameTitle() const { return _gameTitle; }
-    void setGameTitle(QString value) { _set<QString>(value, _gameTitle); }
+	bool player2Enabled() const { return _player2Enabled; }
+	void setPlayer2Enabled(bool value) { _set<bool>(value, _player2Enabled); }
 
-    QString gameDescription() const { return _gameDescription; }
-    void setGameDescription(QString value) { _set<QString>(value,
-                                                           _gameDescription); }
+	QString gameTitle() const { return _gameTitle; }
+	void setGameTitle(QString value) { _set<QString>(value, _gameTitle); }
 
-    QString player1Name() const { return _player1Name; }
-    void setPlayer1Name(QString value) { _set<QString>(value, _player1Name); }
+	QString gameDescription() const { return _gameDescription; }
+	void setGameDescription(QString value) { _set<QString>(value,
+														   _gameDescription); }
 
-    QString player2Name() const { return _player2Name; }
-    void setPlayer2Name(QString value) { _set<QString>(value, _player2Name); }
+	QString player1Name() const { return _player1Name; }
+	void setPlayer1Name(QString value) { _set<QString>(value, _player1Name); }
+
+	QString player2Name() const { return _player2Name; }
+	void setPlayer2Name(QString value) { _set<QString>(value, _player2Name); }
+
+	bool isPlayerEnabled(FieldValue player) const;
 
 signals:
-    void changed();
+	void changed();
 
 private:
-    template <class T>
-    void _set(T value, T &field)
-    {
-        if (value == field) return;
-        field = value;
-        emit changed();
-    }
+	template <class T>
+	void _set(T value, T &field)
+	{
+		if (value == field) return;
+		field = value;
+		emit changed();
+	}
 
-    QColor _getColor(const float color[]) const;
-    void _setColor(QColor value, float field[]);
+	QColor _getColor(const float color[]) const;
+	void _setColor(QColor value, float field[]);
 
-    Game::Dimensions _dims;
+	Game::Dimensions _dims;
 	float _colsDistance;
-    float _background[4], _boardBase[4], _cylinders[4],
-        _player1Color[4], _player2Color[4];
-    bool _player1Enabled, _player2Enabled;
-    QString _gameTitle, _gameDescription, _player1Name, _player2Name;
+	float _background[4], _boardBase[4], _cylinders[4],
+		_player1Color[4], _player2Color[4];
+	bool _player1Enabled, _player2Enabled;
+	QString _gameTitle, _gameDescription, _player1Name, _player2Name;
 };
 
 #endif // BOARDCONF_H

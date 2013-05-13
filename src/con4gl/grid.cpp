@@ -27,213 +27,95 @@
 
 #include "grid.h"
 
-Grid::Grid(const Game::Dimensions &dims, const BoardConf &conf, QObject *parent)
-    : QObject(parent), _dims(dims), _conf(conf)
-{
-    //	setPlayerColor(Player1, QColor(Qt::red));
-    //	setPlayerColor(Player2, QColor(Qt::yellow));
-    //	_toColorVec(QColor(Qt::lightGray), _bottomColor);
+Grid::Grid(const BoardConf &conf, QObject *parent)
+	: QObject(parent), _conf(conf), _quad(gluNewQuadric()) {}
 
-    //	_sphereRadius = 0.1;
-    //	_boardBaseHeight = 0.1;
-
-    //	_wCursor = 0;
-    //	_dCursor = 0;
-
-    //	_quadric = gluNewQuadric();
-}
-
-Grid::~Grid() { gluDeleteQuadric(_quadric); }
+Grid::~Grid() { gluDeleteQuadric(_quad); }
 
 void Grid::draw() const
 {
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _bottomColor);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, _conf.boardBaseF());
+
+	Game::Dimensions dims = _conf.dims();
+	float colsDistance = _conf.colsDistance();
 
 	// center board
-	float boardWidth = _dims.width() * _colsDistance;
-	float boardDepth = _dims.depth() * _colsDistance;
+	float boardWidth = dims.width() * colsDistance;
+	float boardDepth = dims.depth() * colsDistance;
 	glTranslatef(-boardWidth / 2, 0, boardDepth / 2);
 	_drawBoardBottom(boardWidth, boardDepth);
-
-	_drawCylinders();
-
-	if (!_game->hasStarted()) return;
-
-	glTranslatef(_colsDistance / 2, _boardBaseHeight + _sphereRadius,
-				 -_colsDistance / 2);
-	for (int i = 0; i < _dims.height(); i++) {
-		for (int j = 0; j < _dims.depth(); j++) {
-			for (int k = 0; k < _dims.width(); k++) {
-				FieldValue field = _game->get(_game->index(k, j, i));
-				if (field != None) {
-					if (field == Player1)
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-									 _player1Colorf);
-					else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-									  _player2Colorf);
-					gluSphere(_quadric, _sphereRadius, 35, 35);
-				}
-				glTranslatef(_colsDistance, 0.0, 0.0);
-			}
-			glTranslatef(-_colsDistance * _dims.width(), 0.0, -_colsDistance);
-		}
-		glTranslatef(0.0, _sphereRadius * 2, _colsDistance * _dims.depth());
-	}
-
-	if (!_game->finished()) {
-		glTranslatef(_wCursor * _colsDistance, _sphereRadius / 2,
-					 -_dCursor * _colsDistance);
-		if (_game->curPlayer() == Player1)
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-						 _player1Colorf);
-		else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-						  _player2Colorf);
-		gluSphere(_quadric, _sphereRadius, 35, 35);
-	} else {
-		if (_game->winner() == Player1)
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-						 _player1WinColor);
-		else glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-						  _player2WinColor);
-		glTranslatef(0.0, -_dims.height() * _sphereRadius * 2, 0.0);
-		for (int i = 0; i < _dims.nConnect(); i++) {
-			Game::BoardIndex idx = _conIdcs.at(i);
-			glTranslatef(idx.wVal() * _colsDistance,
-						 idx.hVal() * _sphereRadius * 2,
-						 -idx.dVal() * _colsDistance);
-			gluSphere(_quadric, _sphereRadius * 1.001, 35, 35);
-			glTranslatef(-idx.wVal() * _colsDistance,
-						 -idx.hVal() * _sphereRadius * 2,
-						 idx.dVal() * _colsDistance);
-		}
-	}
-}
-
-void Grid::setPlayerColor(FieldValue player, QColor color)
-{
-	if (player == None) return;
-	if (player == Player1) {
-		_player1Color = color;
-		_toColorVec(color, _player1Colorf);
-		_toColorVec(color.lighter(175), _player1WinColor);
-	} else {
-		_player2Color = color;
-		_toColorVec(color, _player2Colorf);
-		_toColorVec(color.lighter(175), _player2WinColor);
-	}
-}
-
-bool Grid::moveCursorUp()
-{
-	if (_dCursor < _dims.depth() - 1) _dCursor++;
-	else return false;
-	return true;
-}
-
-bool Grid::moveCursorDown()
-{
-	if (_dCursor > 0) _dCursor--;
-	else return false;
-	return true;
-}
-
-bool Grid::moveCursorRight()
-{
-	if (_wCursor < _dims.width() - 1) _wCursor++;
-	else return false;
-	return true;
-}
-
-bool Grid::moveCursorLeft()
-{
-	if (_wCursor > 0) _wCursor--;
-	else return false;
-	return true;
-}
-
-bool Grid::setDisk()
-{
-	if (_game->finished() || _game->aborted()) return false;
-	Game::BoardIndex idx = _game->index(_wCursor, _dCursor);
-	bool success = _game->set(idx);
-	if (_game->finished()) _game->connected(_conIdcs);
-	return success;
-}
-
-void Grid::_toColorVec(QColor c, float colorVec[])
-{
-	colorVec[0] = c.redF();
-	colorVec[1] = c.greenF();
-	colorVec[2] = c.blueF();
-	colorVec[3] = c.alphaF();
+	_drawCylinders(dims);
 }
 
 void Grid::_drawBoardBottom(float width, float depth) const
 {
 	glBegin(GL_QUADS);
 
+	float boardBaseHeight = _conf.boardBaseHeight;
+
 	//Quad 1
 	glNormal3f(1.0f, 0.0f, 0.0f); //N1
-	glTexCoord2f(0.0f, 1.0f); glVertex3f( width, _boardBaseHeight,    0.0); //V2
-	glTexCoord2f(0.0f, 0.0f); glVertex3f( width,              0.0,    0.0); //V1
-	glTexCoord2f(1.0f, 0.0f); glVertex3f( width,              0.0, -depth); //V3
-	glTexCoord2f(1.0f, 1.0f); glVertex3f( width, _boardBaseHeight, -depth); //V4
+	glTexCoord2f(0.0f, 1.0f); glVertex3f( width, boardBaseHeight,    0.0); //V2
+	glTexCoord2f(0.0f, 0.0f); glVertex3f( width,             0.0,    0.0); //V1
+	glTexCoord2f(1.0f, 0.0f); glVertex3f( width,             0.0, -depth); //V3
+	glTexCoord2f(1.0f, 1.0f); glVertex3f( width, boardBaseHeight, -depth); //V4
 
 	//Quad 2
 	glNormal3f(0.0f, 0.0f, -1.0f); //N2
-	glTexCoord2f(0.0f, 1.0f); glVertex3f( width, _boardBaseHeight, -depth); //V4
-	glTexCoord2f(0.0f, 0.0f); glVertex3f( width,              0.0, -depth); //V3
-	glTexCoord2f(1.0f, 0.0f); glVertex3f(   0.0,              0.0, -depth); //V5
-	glTexCoord2f(1.0f, 1.0f); glVertex3f(   0.0, _boardBaseHeight, -depth); //V6
+	glTexCoord2f(0.0f, 1.0f); glVertex3f( width, boardBaseHeight, -depth); //V4
+	glTexCoord2f(0.0f, 0.0f); glVertex3f( width,             0.0, -depth); //V3
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(   0.0,             0.0, -depth); //V5
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(   0.0, boardBaseHeight, -depth); //V6
 
 	//Quad 3
 	glNormal3f(-1.0f, 0.0f, 0.0f); //N3
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0, _boardBaseHeight, -depth); //V6
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0,              0.0, -depth); //V5
-	glTexCoord2f(1.0f, 0.0f); glVertex3f(   0.0,              0.0,    0.0); //V7
-	glTexCoord2f(1.0f, 1.0f); glVertex3f(   0.0, _boardBaseHeight,    0.0); //V8
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0, boardBaseHeight, -depth); //V6
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0,             0.0, -depth); //V5
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(   0.0,             0.0,    0.0); //V7
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(   0.0, boardBaseHeight,    0.0); //V8
 
 	//Quad 4
 	glNormal3f(0.0f, 0.0f, 1.0f); //N4
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0, _boardBaseHeight,    0.0); //V8
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0,              0.0,    0.0); //V7
-	glTexCoord2f(1.0f, 0.0f); glVertex3f( width,              0.0,    0.0); //V1
-	glTexCoord2f(1.0f, 1.0f); glVertex3f( width, _boardBaseHeight,    0.0); //V2
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0, boardBaseHeight,    0.0); //V8
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0,             0.0,    0.0); //V7
+	glTexCoord2f(1.0f, 0.0f); glVertex3f( width,             0.0,    0.0); //V1
+	glTexCoord2f(1.0f, 1.0f); glVertex3f( width, boardBaseHeight,    0.0); //V2
 
 	//Quad 5
 	glNormal3f(0.0f, 1.0f, 0.0f); //N5
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0, _boardBaseHeight, -depth); //V6
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0, _boardBaseHeight,    0.0); //V8
-	glTexCoord2f(1.0f, 0.0f); glVertex3f( width, _boardBaseHeight,    0.0); //V2
-	glTexCoord2f(1.0f, 1.0f); glVertex3f( width, _boardBaseHeight, -depth); //V4
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0, boardBaseHeight, -depth); //V6
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0, boardBaseHeight,    0.0); //V8
+	glTexCoord2f(1.0f, 0.0f); glVertex3f( width, boardBaseHeight,    0.0); //V2
+	glTexCoord2f(1.0f, 1.0f); glVertex3f( width, boardBaseHeight, -depth); //V4
 
 	//Quad 6
 	glNormal3f(1.0f, -1.0f, 0.0f); //N6
-	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0,              0.0,    0.0); //V7
-	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0,              0.0, -depth); //V5
-	glTexCoord2f(1.0f, 0.0f); glVertex3f( width,              0.0, -depth); //V3
-	glTexCoord2f(1.0f, 1.0f); glVertex3f( width,              0.0,    0.0); //V1
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(   0.0,             0.0,    0.0); //V7
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(   0.0,             0.0, -depth); //V5
+	glTexCoord2f(1.0f, 0.0f); glVertex3f( width,             0.0, -depth); //V3
+	glTexCoord2f(1.0f, 1.0f); glVertex3f( width,             0.0,    0.0); //V1
 
 	glEnd();
 }
 
-void Grid::_drawCylinders() const
+void Grid::_drawCylinders(Game::Dimensions &dims) const
 {
-	float sphereDiameter = _sphereRadius * 2;
-	float height = sphereDiameter * _dims.height();
+	float sphereDiameter = _conf.sphereRadius * 2;
+	float height = sphereDiameter * dims.height();
+	float boardBaseHeight = _conf.boardBaseHeight;
+	float colsDist = _conf.colsDistance();
 
 	// rotate on x,z
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	glTranslatef(_colsDistance / 2, _colsDistance / 2, _boardBaseHeight);
-	for (int i = 0; i < _dims.depth(); i++) {
-		for (int j = 0; j < _dims.width(); j++) {
-			gluCylinder(_quadric, 0.01, 0.01, height, 15, 15);
-			glTranslatef(_colsDistance, 0.0, 0.0);
+	glTranslatef(colsDist / 2, colsDist / 2, boardBaseHeight);
+	for (int i = 0; i < dims.depth(); i++) {
+		for (int j = 0; j < dims.width(); j++) {
+			gluCylinder(_quad, 0.01, 0.01, height, 15, 15);
+			glTranslatef(colsDist, 0.0, 0.0);
 		}
-		glTranslatef(-_colsDistance * _dims.width(), _colsDistance, 0.0);
+		glTranslatef(-colsDist * dims.width(), colsDist, 0.0);
 	}
-	glTranslatef(-_colsDistance / 2,
-				 -_colsDistance * _dims.depth() - _colsDistance / 2,
-				 -_boardBaseHeight);
-    glRotatef(90.0, 1.0, 0.0, 0.0);
+	glTranslatef(-colsDist / 2, -colsDist * dims.depth() - colsDist / 2,
+				 -boardBaseHeight);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
 }

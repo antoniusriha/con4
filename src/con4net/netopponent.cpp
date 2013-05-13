@@ -111,34 +111,16 @@ void NetOpponent::_set(FieldValue player, Game::BoardIndex index)
 		vals.h = index.hVal();
 		vals.d = index.dVal();
 
-		SendAndReceiveRequest *req = new SendAndReceiveRequest(
-					Messages::move(dims, vals));
-		_endpoint.sendAndReceive(*req);
+		SendRequest *req = new SendRequest(Messages::move(dims, vals), this);
+		connect(req, SIGNAL(finished(Request*)),
+				this, SLOT(_moveFinished(Request*)));
+		_endpoint.send(*req);
 	}
 }
 
-void NetOpponent::_setFinished(Request *request)
+void NetOpponent::_moveFinished(Request *request)
 {
-	if (request->success()) {
-		SendAndReceiveRequest *req =
-				static_cast<SendAndReceiveRequest *>(request);
-		Message msg = req->msgReceived();
-
-		Messages::Vector3 dims, vals;
-		dims.w = game()->dims().width();
-		dims.h = game()->dims().height();
-		dims.d = game()->dims().depth();
-		QList<Messages::Field> fields;
-		Messages::FieldState state;
-		NetworkString reason;
-		if (Messages::parseSynchronizeGameBoard(msg, dims, fields))
-			_handleSyncGameBoard(fields);
-		else if (Messages::parseUpdateGameBoard(msg, dims, vals, state))
-			_handleUpdateGameBoard(vals, state);
-		else if (Messages::parseMovedFailed(msg, reason))
-			_abort(QString("Move failed: ").append(reason.string()));
-		else _abort(Messages::InvalidRespErr);
-	}
+	if (!request->success()) _abort("Failed to communicate with server.");
 	delete request;
 }
 
@@ -154,17 +136,17 @@ void NetOpponent::_msgReceived(Message msg)
 	}
 
 	Messages::FieldState state;
+	Messages::Vector3 dims, vals;
+	dims.w = game()->dims().width();
+	dims.h = game()->dims().height();
+	dims.d = game()->dims().depth();
+	QList<Messages::Field> fields;
 	if (!game()->hasStarted()) {
 		/*
 		  expecting:
 			- start signal
 			- sync board/update board
 		*/
-		Messages::Vector3 dims, vals;
-		dims.w = game()->dims().width();
-		dims.h = game()->dims().height();
-		dims.d = game()->dims().depth();
-		QList<Messages::Field> fields;
 		if (Messages::parseStartGame(msg)) _game.start(Player2);
 		else if (Messages::parseSynchronizeGameBoard(msg, dims, fields)) {
 			_game.start(Player1);
@@ -175,11 +157,16 @@ void NetOpponent::_msgReceived(Message msg)
 		}
 	} else {
 		if (Messages::parseEndGame(msg, state)) {
-			if (!game()->finished()) _abort("Invalid server message");
+			if (!game()->finished()) _abort(Messages::InvalidRespErr);
 			Request *req = new Request();
 			connect(req, SIGNAL(finished(Request*)), req, SLOT(deleteLater()));
 			_endpoint.disconnectFromHost(*req);
-		}
+		} else if (Messages::parseMovedFailed(msg, reason))
+			_abort(reason.string());
+		else if (Messages::parseSynchronizeGameBoard(msg, dims, fields))
+			_handleSyncGameBoard(fields);
+		else if (Messages::parseUpdateGameBoard(msg, dims, vals, state))
+			_handleUpdateGameBoard(vals, state);
 	}
 }
 
@@ -187,30 +174,25 @@ void NetOpponent::_handleSyncGameBoard(QList<Messages::Field> fields)
 {
 	Game::BoardIndex idxSet;
 	for (int i = 0; i < fields.size(); i++) {
-		try {
-			const Messages::Field field = fields.at(i);
-			Game::BoardIndex idx = game()->index(field.index.w, field.index.d,
-												 field.index.h);
-			if (game()->get(idx) == None) {
-				if (field.state == Messages::Player1) {
-					// fail if more than one field has been set, else prep set
-					if (idxSet.isValid()) {
-						_abort("Invalid game board synchronization");
-						return;
-					} else idxSet = idx;
-				} else if (field.state == Messages::Player2) {
+		const Messages::Field field = fields.at(i);
+		Game::BoardIndex idx = game()->index(field.index.w, field.index.d,
+											 field.index.h);
+		if (game()->get(idx) == None) {
+			if (field.state == Messages::Player1) {
+				// fail if more than one field has been set, else prep set
+				if (idxSet.isValid()) {
 					_abort("Invalid game board synchronization");
 					return;
-				}
-			} else {
-				if ((int)game()->get(idx) != (int)field.state) {
-					_abort("Invalid game board synchronization");
-					return;
-				}
+				} else idxSet = idx;
+			} else if (field.state == Messages::Player2) {
+				_abort("Invalid game board synchronization");
+				return;
 			}
-		} catch(Game::BoardIndex::Exception) {
-			_abort("Invalid game board synchronization");
-			return;
+		} else {
+			if ((int)game()->get(idx) != (int)field.state) {
+				_abort("Invalid game board synchronization");
+				return;
+			}
 		}
 	}
 
@@ -218,20 +200,16 @@ void NetOpponent::_handleSyncGameBoard(QList<Messages::Field> fields)
 }
 
 void NetOpponent::_handleUpdateGameBoard(Messages::Vector3 vals,
-											  Messages::FieldState state)
+										 Messages::FieldState state)
 {
-	try {
-		Game::BoardIndex idx = game()->index(vals.w, vals.d, vals.h);
-		if (game()->get(idx) == None) {
-			if (state == Messages::Player1) _game.set(idx);
-			else if (state == Messages::Player2)
-				_abort("Invalid game board update");
-		} else {
-			if ((int)_game.get(idx) != (int)state)
-				_abort("Invalid game board update");
-		}
-	} catch(Game::BoardIndex::Exception) {
-		_abort("Invalid game board update");
+	Game::BoardIndex idx = game()->index(vals.w, vals.d, vals.h);
+	if (game()->get(idx) == None) {
+		if (state == Messages::Player1) _game.set(idx);
+		else if (state == Messages::Player2)
+			_abort("Invalid game board update");
+	} else {
+		if ((int)_game.get(idx) != (int)state)
+			_abort("Invalid game board update");
 	}
 }
 

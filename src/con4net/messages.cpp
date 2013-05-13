@@ -27,6 +27,12 @@
 
 #include "messages.h"
 
+static QString toGuidString(QUuid guid)
+{
+	QString guidString = guid.toString();
+	return guidString.mid(1, guidString.size() - 2);
+}
+
 Message Messages::registerGame(GameData game)
 {
 	Message msg(NetworkString("register_game"));
@@ -70,28 +76,28 @@ bool Messages::parseRegisterFailed(Message msg, NetworkString &reason)
 Message Messages::unregisterGame(QUuid guid)
 {
 	Message msg(NetworkString("unregister_game"));
-	msg.params()->append(guid.toString());
+	msg.params()->append(toGuidString(guid));
 	return msg;
 }
 
 Message Messages::unregisterSuccess()
 {
-	return Message(NetworkString("unregister_success"));
+	return Message(NetworkString("unregister_game_success"));
 }
 
 bool Messages::parseUnregisterSuccess(Message msg)
 {
-	return msg.header().string() == "unregister_success";
+	return msg.header().string() == "unregister_game_success";
 }
 
 Message Messages::unregisterFailed(NetworkString reason)
 {
-	return failed("unregister_failed", reason);
+	return failed("unregister_game_failed", reason);
 }
 
 bool Messages::parseUnregisterFailed(Message msg, NetworkString &reason)
 {
-	return parseFailed(msg, "unregister_failed", reason);
+	return parseFailed(msg, "unregister_game_failed", reason);
 }
 
 Message Messages::requestGameList()
@@ -155,7 +161,7 @@ bool Messages::parseAnswerGameList(Message msg, QList<GameData> &gameData)
 Message Messages::sealGame(QUuid guid)
 {
 	Message msg(NetworkString("seal_game"));
-	msg.params()->append(guid.toString());
+	msg.params()->append(toGuidString(guid));
 	return msg;
 }
 
@@ -186,6 +192,14 @@ Message Messages::joinGame(NetworkString playerName, NetworkString gameName)
 	msg.params()->append(gameName);
 	msg.params()->append("V2");
 	return msg;
+}
+
+bool Messages::parseJoinGame(Message msg, NetworkString &playerName)
+{
+	if (msg.header().string() != "join_game" || msg.params()->size() < 1)
+		return false;
+	playerName = msg.params()->at(0);
+	return true;
 }
 
 Message Messages::joinGameSuccess(ProtocolVersion protocolVersion)
@@ -233,6 +247,16 @@ Message Messages::move(Vector3 dims, Vector3 vals)
 	Message msg(NetworkString("move"));
 	msg.params()->append(QString::number(toFieldNumber(dims, vals)));
 	return msg;
+}
+
+bool Messages::parseMove(Message msg, Vector3 dims, Vector3 &vals)
+{
+	if (msg.header().string() != "move" || msg.params()->size() < 1)
+		return false;
+	bool ok;
+	int fn = msg.params()->at(0).string().toInt(&ok);
+	if (!ok) return false;
+	return toVals(dims, fn, vals);
 }
 
 Message Messages::synchronizeGameBoard(Vector3 dims, QList<Field> fields)
@@ -322,7 +346,7 @@ bool Messages::parseEndGame(Message msg, FieldState &winner)
 		return false;
 
 	bool ok;
-	int fs = msg.params()->at(1).string().toInt(&ok);
+	int fs = msg.params()->at(0).string().toInt(&ok);
 	if (!ok || fs < 0 || fs > 2) return false;
 	winner = (FieldState)fs;
 	return true;

@@ -13,7 +13,6 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    glwidget.cpp \
     grid.cpp \
     ../con4core/game.cpp \
     ../con4core/board.cpp \
@@ -22,7 +21,6 @@ SOURCES += main.cpp \
     boardview.cpp
 
 HEADERS  += \
-    glwidget.h \
     grid.h \
     ../con4core/game.h \
     ../con4core/board.h \
