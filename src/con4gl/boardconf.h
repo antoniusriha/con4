@@ -35,7 +35,7 @@ class BoardConf : public QObject
 {
 	Q_OBJECT
 public:
-	static void toColorVec(QColor color, float colorVec[]);
+	static void toColorVec(QColor color, QVector<float> &colorVec);
 
 	const static float sphereRadius = 0.1, boardBaseHeight = 0.1;
 
@@ -48,23 +48,23 @@ public:
 	float colsDistance() const { return _colsDistance; }
 	void setColsDistance(float value) { _set<float>(value, _colsDistance); }
 
-	const float *backgroundF() const { return _background; }
+	const float *backgroundF() const { return _background.constData(); }
 	QColor background() const { return _getColor(_background); }
 	void setBackground(QColor value) { _setColor(value, _background); }
 
-	const float *boardBaseF() const { return _boardBase; }
+	const float *boardBaseF() const { return _boardBase.constData(); }
 	QColor boardBase() const { return _getColor(_boardBase); }
 	void setBoardBase(QColor value) { _setColor(value, _boardBase); }
 
-	const float *cylindersF() const { return _cylinders; }
+	const float *cylindersF() const { return _cylinders.constData(); }
 	QColor cylinders() const { return _getColor(_cylinders); }
 	void setCylinders(QColor value) { _setColor(value, _cylinders); }
 
-	const float *player1ColorF() const { return _player1Color; }
+	const float *player1ColorF() const { return _player1Color.constData(); }
 	QColor player1Color() const { return _getColor(_player1Color); }
 	void setPlayer1Color(QColor value) { _setColor(value, _player1Color); }
 
-	const float *player2ColorF() const { return _player2Color; }
+	const float *player2ColorF() const { return _player2Color.constData(); }
 	QColor player2Color() const { return _getColor(_player2Color); }
 	void setPlayer2Color(QColor value) { _setColor(value, _player2Color); }
 
@@ -101,13 +101,13 @@ private:
 		emit changed();
 	}
 
-	QColor _getColor(const float color[]) const;
-	void _setColor(QColor value, float field[]);
+	QColor _getColor(const QVector<float> color) const;
+	void _setColor(QColor value, QVector<float> &field);
 
 	Game::Dimensions _dims;
 	float _colsDistance;
-	float _background[4], _boardBase[4], _cylinders[4],
-		_player1Color[4], _player2Color[4];
+	QVector<float> _background, _boardBase, _cylinders,
+	_player1Color, _player2Color;
 	bool _player1Enabled, _player2Enabled;
 	QString _gameTitle, _gameDescription, _player1Name, _player2Name;
 };

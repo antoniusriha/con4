@@ -1,5 +1,5 @@
 /*
- * settingsdialog.cpp
+ * randomsetplayer.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,17 +25,40 @@
  * THE SOFTWARE.
  */
 
-#include "settingsdialog.h"
-#include "ui_settingsdialog.h"
+#ifndef RANDOMSETPLAYER_H
+#define RANDOMSETPLAYER_H
 
-SettingsDialog::SettingsDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::SettingsDialog)
-{
-	ui->setupUi(this);
-}
+#include <QTimer>
+#include "aiplayerinfo.h"
 
-SettingsDialog::~SettingsDialog()
+class RandomSetPlayer : public AiPlayer
 {
-	delete ui;
-}
+	Q_OBJECT
+public:
+	explicit RandomSetPlayer(Game &game, FieldValue player,
+							 QObject *parent = 0);
+
+	int delay() const { return _timer.interval(); }
+	void setDelay(int ms) { _timer.setInterval(ms); }
+
+private slots:
+	void _started(FieldValue startPlayer);
+	void _set(FieldValue player, Game::BoardIndex);
+	void _set();
+
+private:
+	Game &_game;
+	FieldValue _player;
+	QTimer _timer;
+};
+
+class RandomSetPlayerInfo : public AiPlayerInfo
+{
+public:
+	explicit RandomSetPlayerInfo(QObject *parent = 0);
+	QString name() const { return "Funky Fox"; }
+	RandomSetPlayer *create(Game &game, FieldValue player,
+							QObject *parent = 0) const;
+};
+
+#endif // RANDOMSETPLAYER_H

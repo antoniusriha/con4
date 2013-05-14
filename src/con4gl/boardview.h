@@ -51,6 +51,9 @@ public:
 	const Game *game() const { return _game; }
 	void setGame(Game *value);
 
+signals:
+	void closed();
+
 private slots:
 	void _update();
 
@@ -62,6 +65,7 @@ private:
 	void mouseMoveEvent(QMouseEvent *event);
 	void wheelEvent(QWheelEvent *event);
 	void keyPressEvent(QKeyEvent *event);
+	void closeEvent(QCloseEvent *event);
 
 	void _setWidgetsVisible(bool value);
 	void _setXRotation(int angle);

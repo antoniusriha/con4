@@ -30,6 +30,7 @@
 
 #include <QMainWindow>
 #include "application.h"
+#include "aiplayerinfo.h"
 #include "gamehost.h"
 
 namespace Ui {
@@ -39,7 +40,6 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
-
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
@@ -52,15 +52,14 @@ private slots:
 	void _joinClicked(JoinNetworkGameHostConf conf);
 	void _update();
 	void _quitGame(GameHost *sender);
-//	void joinGame(QString playerName);
 
 private:
-	Ui::MainWindow *ui;
-	Application &_application;
-	IndexServiceList &_indexServiceList;
-	QList<GameHost *> _gameHosts;
+	void closeEvent(QCloseEvent *event);
 
-	JoinNetworkGameHostConf _joinNetGameConf;
+	Ui::MainWindow *ui;
+	IndexServiceList &_indexServiceList;
+	QList<AiPlayerInfo *> _aiFactories;
+	QList<GameHost *> _gameHosts;
 };
 
 #endif // MAINWINDOW_H

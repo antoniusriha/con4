@@ -58,11 +58,6 @@
            <string>Humanoid</string>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>Computer</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item>
@@ -138,8 +133,8 @@
    <slot>_playerTypeChanged(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>125</x>
-     <y>89</y>
+     <x>183</x>
+     <y>69</y>
     </hint>
     <hint type="destinationlabel">
      <x>123</x>
@@ -147,9 +142,26 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>moveDelaySpinButton</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>PlayerConfView</receiver>
+   <slot>_delayChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>297</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>338</x>
+     <y>-2</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>_nameEdited(QString)</slot>
   <slot>_playerTypeChanged(int)</slot>
+  <slot>_delayChanged(int)</slot>
  </slots>
 </ui>

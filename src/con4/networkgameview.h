@@ -29,7 +29,8 @@
 #define NETWORKGAMEVIEW_H
 
 #include <QWidget>
-#include <gamehost.h>
+#include "gamehost.h"
+#include "aiplayerinfo.h"
 
 namespace Ui {
 class NetworkGameView;
@@ -51,7 +52,8 @@ public:
 	~NetworkGameView();
 
 	bool isInitialized() const;
-	void initialize(IndexServiceList &list);
+	void initialize(IndexServiceList &list,
+					QList<AiPlayerInfo *> &aiPlayerFactories);
 
 	NetworkGameHostConf conf() const;
 

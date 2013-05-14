@@ -30,7 +30,7 @@
 #include "textvalidationcriteria.h"
 
 PlayerConfView::PlayerConfView(QWidget *parent)
-	: QWidget(parent), ui(new Ui::PlayerConfView)
+	: QWidget(parent), ui(new Ui::PlayerConfView), _aiFactories(0)
 {
 	ui->setupUi(this);
 	ui->nameTextBox->criteria()->append(new NotEmptyCriterium());
@@ -43,6 +43,13 @@ PlayerConfView::PlayerConfView(QWidget *parent)
 }
 
 PlayerConfView::~PlayerConfView() { delete ui; }
+
+void PlayerConfView::initialize(QList<AiPlayerInfo *> &aiPlayerFactories)
+{
+	_aiFactories = &aiPlayerFactories;
+	for (int i = 0; i < aiPlayerFactories.size(); i++)
+		ui->playerTypeComboBox->addItem(aiPlayerFactories.at(i)->name());
+}
 
 bool PlayerConfView::isValid() const
 {
@@ -70,12 +77,33 @@ void PlayerConfView::setColor(QColor value)
 
 PlayerConfView::PlayerType PlayerConfView::playerType() const
 {
-	return (PlayerType)ui->playerTypeComboBox->currentIndex();
+	int curIdx = ui->playerTypeComboBox->currentIndex();
+	return curIdx < 1 ? Human : Computer;
 }
 
-void PlayerConfView::setPlayerType(PlayerType type)
+void PlayerConfView::setHumanPlayer()
 {
-	ui->playerTypeComboBox->setCurrentIndex((int)type);
+	ui->playerTypeComboBox->setCurrentIndex(0);
+}
+
+const QList<AiPlayerInfo *> *PlayerConfView::aiPlayerInfoList() const
+{
+	return _aiFactories;
+}
+
+AiPlayerInfo *PlayerConfView::aiPlayerInfo()
+{
+	int curIdx = ui->playerTypeComboBox->currentIndex();
+	if (curIdx < 1) return 0;
+	return _aiFactories->at(curIdx - 1);
+}
+
+bool PlayerConfView::setAiPlayerInfo(AiPlayerInfo &value)
+{
+	if (!_aiFactories->contains(&value)) return false;
+	int idx = _aiFactories->indexOf(&value) + 1;
+	ui->playerTypeComboBox->setCurrentIndex(idx);
+	return true;
 }
 
 int PlayerConfView::moveDelay() const
@@ -94,4 +122,10 @@ void PlayerConfView::_playerTypeChanged(int selIndex)
 	ui->moveDelayLabel->setEnabled(enable);
 	ui->moveDelaySpinButton->setEnabled(enable);
 	emit changed();
+}
+
+void PlayerConfView::_delayChanged(int value)
+{
+	AiPlayerInfo *info = aiPlayerInfo();
+	if (info) info->setDelay(value);
 }

@@ -55,8 +55,8 @@ Message Messages::registerSuccess(QUuid guid)
 
 bool Messages::parseRegisterSuccess(Message msg, QUuid &guid)
 {
-	if (msg.header().string() != "register_success" &&
-		msg.header().string() != "register_game_success" ||
+	if ((msg.header().string() != "register_success" &&
+		msg.header().string() != "register_game_success") ||
 		msg.params()->size() < 1) return false;
 	guid = QUuid(msg.params()->at(0).string());
 	return !guid.isNull();

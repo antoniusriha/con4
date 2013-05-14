@@ -45,8 +45,8 @@ private:
 	void _drawBoardBottom(float width, float depth) const;
 	void _drawCylinders(Game::Dimensions &dims) const;
 
-	GLUquadricObj *_quad;
 	const BoardConf &_conf;
+	GLUquadricObj *_quad;
 };
 
 #endif // GRID_H

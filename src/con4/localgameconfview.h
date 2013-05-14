@@ -30,6 +30,7 @@
 
 #include <QWidget>
 #include "gamehost.h"
+#include "aiplayerinfo.h"
 
 namespace Ui {
 class LocalGameConfView;
@@ -42,6 +43,9 @@ class LocalGameConfView : public QWidget
 public:
 	explicit LocalGameConfView(QWidget *parent = 0);
 	~LocalGameConfView();
+
+	void initialize(QList<AiPlayerInfo *> &aiPlayerFactories);
+	bool isInitialized() const;
 
 	LocalGameHostConf conf() const { return _conf; }
 

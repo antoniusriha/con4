@@ -40,7 +40,8 @@ void GameHostConf::setPlayerColors(QColor player1Color, QColor player2Color)
 	_player2Color = player2Color;
 }
 
-LocalGameHostConf::LocalGameHostConf() : GameHostConf(), _dims()
+LocalGameHostConf::LocalGameHostConf() : GameHostConf(), _dims(),
+	_player1AiInfo(0), _player2AiInfo(0)
 {
 	setPlayerNames("Player1", "Player2");
 }
@@ -58,8 +59,11 @@ void LocalGameHostConf::setPlayerNames(QString player1Name, QString player2Name)
 	_player2Name = player2Name;
 }
 
+NetworkGameHostConf::NetworkGameHostConf(IndexServiceList &list)
+	: GameHostConf(), NetInitiatorConf(list), _player1AiInfo(0) {}
+
 JoinNetworkGameHostConf::JoinNetworkGameHostConf()
-	: GameHostConf(), _opp(0) { setPlayer2Name("Player2"); }
+	: GameHostConf(), _opp(0), _player2AiInfo(0) { setPlayer2Name("Player2"); }
 
 GameHost *GameHost::CreateLocalGame(LocalGameHostConf conf, QObject *parent)
 {
@@ -71,20 +75,10 @@ GameHost *GameHost::CreateNetworkGame(NetworkGameHostConf conf, QObject *parent)
 	return new NetworkGameHost(conf, parent);
 }
 
-GameHost *GameHost::CreateNetworkGameWithAiPlayer(NetworkGameConf conf,
-												  QObject *parent)
-{
-}
-
 GameHost *GameHost::JoinNetworkGame(JoinNetworkGameHostConf conf,
 									QObject *parent)
 {
 	return new JoinGameHost(conf, parent);
-}
-
-GameHost *GameHost::JoinNetworkGameWithAiPlayer(JoinNetworkGameHostConf conf,
-												QObject *parent)
-{
 }
 
 GameHost::GameHost(GameHostConf conf, QObject *parent)
@@ -93,25 +87,45 @@ GameHost::GameHost(GameHostConf conf, QObject *parent)
 	_window.conf()->setPlayer1Color(conf.player1Color());
 	_window.conf()->setPlayer2Color(conf.player2Color());
 	_window.show();
-//	connect(&_window, SIGNAL(), this, SLOT(_windowClosed()));
+	connect(&_window, SIGNAL(closed()), this, SLOT(_windowClosed()));
 }
 
-void GameHost::_windowClosed() { emit quit(this); }
+void GameHost::_windowClosed() { emit gameOver(this); }
 
 LocalGameHost::LocalGameHost(LocalGameHostConf conf, QObject *parent)
-	: GameHost(conf, parent), _game(conf.dims(), this)
+	: GameHost(conf, parent), _game(conf.dims(), this), _player1(0), _player2(0)
 {
 	_window.conf()->setPlayer1Name(conf.player1Name());
 	_window.conf()->setPlayer2Name(conf.player2Name());
+
+	AiPlayerInfo *player1Info = conf.player1AiInfo();
+	if (player1Info) {
+		_player1 = player1Info->create(_game, Player1, this);
+		_window.conf()->setPlayer1Enabled(false);
+	}
+
+	AiPlayerInfo *player2Info = conf.player2AiInfo();
+	if (player2Info) {
+		_player2 = player2Info->create(_game, Player2, this);
+		_window.conf()->setPlayer2Enabled(false);
+	}
+
 	_window.setGame(&_game);
 	_game.start();
 }
 
 NetworkGameHost::NetworkGameHost(NetworkGameHostConf conf, QObject *parent)
-	: GameHost(conf, parent), _init(conf, this)
+	: GameHost(conf, parent), _init(conf, this), _player1(0)
 {
 	_window.conf()->setPlayer2Enabled(false);
 	_window.conf()->setPlayer1Name(conf.initiatorName().string());
+
+	AiPlayerInfo *player1Info = conf.player1AiInfo();
+	if (player1Info) {
+		_player1 = player1Info->create(*_init.game(), Player1, this);
+		_window.conf()->setPlayer1Enabled(false);
+	}
+
 	connect(&_init, SIGNAL(error(QString)), this, SLOT(_error(QString)));
 	connect(&_init, SIGNAL(joinRequested(QString)),
 			this, SLOT(_joinRequested(QString)));
@@ -139,13 +153,20 @@ JoinGameHost::JoinGameHost(JoinNetworkGameHostConf conf, QObject *parent)
 {
 	_window.conf()->setPlayer1Enabled(false);
 	_window.conf()->setPlayer2Name(conf.player2Name().string());
+
+	AiPlayerInfo *player2Info = conf.player2AiInfo();
+	if (player2Info) {
+		_player2 = player2Info->create(*_opp.game(), Player2, this);
+		_window.conf()->setPlayer2Enabled(false);
+	}
+
 	connect(&_opp, SIGNAL(joinGameFinished(bool,QString)),
 			this, SLOT(_joinGameFinished(bool,QString)));
 	_opp.connectToServer();
 	_opp.join();
 }
 
-void JoinGameHost::_joinGameFinished(bool success, QString errString)
+void JoinGameHost::_joinGameFinished(bool success, QString)
 {
 	if (success) _window.setGame(_opp.game());
 }

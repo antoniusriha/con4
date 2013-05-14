@@ -1,5 +1,5 @@
 /*
- * joingameconfview.h
+ * aiplayerfactory.cpp
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,50 +25,6 @@
  * THE SOFTWARE.
  */
 
-#ifndef JOINGAMECONFVIEW_H
-#define JOINGAMECONFVIEW_H
-
-#include <QWidget>
-#include "gamehost.h"
 #include "aiplayerinfo.h"
 
-namespace Ui {
-class JoinGameConfView;
-}
-
-class JoinGameConfView : public QWidget
-{
-	Q_OBJECT
-
-public:
-	class InvalidOperationException : public std::logic_error
-	{
-	public:
-		explicit InvalidOperationException(QString what)
-			: logic_error(what.toStdString()) {}
-	};
-
-	explicit JoinGameConfView(QWidget *parent = 0);
-	~JoinGameConfView();
-
-	bool isInitialized() const { return _list; }
-	void initialize(IndexServiceList &list,
-					QList<AiPlayerInfo *> &aiPlayerFactories);
-
-signals:
-	void joinClicked(JoinNetworkGameHostConf conf);
-
-private slots:
-	void _update();
-	void _refreshClicked();
-	void _refreshed();
-	void _manageIndexServersClicked();
-	void _joinClicked();
-
-private:
-	Ui::JoinGameConfView *ui;
-	JoinNetworkGameHostConf _conf;
-	IndexServiceList *_list;
-};
-
-#endif // JOINGAMECONFVIEW_H
+AiPlayerInfo::AiPlayerInfo(QObject *parent) : QObject(parent), _delay(1000) {}

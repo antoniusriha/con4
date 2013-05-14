@@ -90,4 +90,4 @@ void IndexServiceTableModel::_deleting(IndexService *, int index)
 	beginRemoveRows(QModelIndex(), index, index);
 }
 
-void IndexServiceTableModel::_deletedAt(int index) { endRemoveRows(); }
+void IndexServiceTableModel::_deletedAt(int) { endRemoveRows(); }

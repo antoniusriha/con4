@@ -28,25 +28,13 @@
 #ifndef AIPLAYER_H
 #define AIPLAYER_H
 
-#include "../con4core/player.h"
+#include "../con4core/game.h"
 
-class AIPlayer : public Player
+class AiPlayer : public QObject
 {
 	Q_OBJECT
-
 public:
-	AIPlayer(Game *game, QObject *parent = 0);
-
-	int getDelay() const { return _delay; }
-	void setDelay(int value) {
-        if (value < 0) value = 0;
-        else if (value > 10000) value = 10000;
-        _delay = value;
-    }
-
-private:
-    int _delay;
-	Game *_game;
+	explicit AiPlayer(Game &game, FieldValue player, QObject *parent = 0);
 };
 
 #endif // AIPLAYER_H

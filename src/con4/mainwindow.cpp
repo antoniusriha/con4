@@ -28,12 +28,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "indexserversview.h"
+#include "randomsetplayer.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow),
-	  _application(Application::instance()),
-	  _indexServiceList(*_application.indexServices()),
-	  _gameHosts(), _joinNetGameConf()
+	  _indexServiceList(*Application::instance().indexServices()),
+	  _aiFactories(), _gameHosts()
 {
 	ui->setupUi(this);
 
@@ -41,38 +41,23 @@ MainWindow::MainWindow(QWidget *parent)
 			this, SLOT(_update()));
 	connect(&_indexServiceList, SIGNAL(deletedAt(int)), this, SLOT(_update()));
 
-	ui->networkGameConfView->initialize(_indexServiceList);
-	ui->joinGameConf->initialize(_indexServiceList);
+	_aiFactories.append(new RandomSetPlayerInfo(this));
 
-//	_localGameConf.setDims(ui->boardConf->dims());
+	ui->localGameConf->initialize(_aiFactories);
+	ui->networkGameConfView->initialize(_indexServiceList, _aiFactories);
+	ui->joinGameConf->initialize(_indexServiceList, _aiFactories);
 
 	if (_indexServiceList.empty()) ui->networkGameConfView->setEnabled(false);
-
-//	connect(ui->pageGame, SIGNAL(closing()), this, SLOT(_quitGame()));
-
-	//	QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-	//	// use the first non-localhost IPv4 address
-	//	for (int i = 0; i < ipAddressesList.size(); i++) {
-	//		if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
-	//			ipAddressesList.at(i).toIPv4Address()) {
-	//			_ipAddress = ipAddressesList.at(i);
-	//			break;
-	//		}
-	//	}
-	//	// if we did not find one, use IPv4 localhost
-	//	if (_ipAddress.isNull())
-	//		_ipAddress = QHostAddress(QHostAddress::LocalHost);
-
-//	connect(ui->boardConf, SIGNAL(error(QString)),
-//			ui->lblStatus, SLOT(setText(QString)));
-//	connect(ui->networkBoardConf, SIGNAL(error(QString)),
-//			ui->lblStatus, SLOT(setText(QString)));
 
 	connect(ui->joinGameConf, SIGNAL(joinClicked(JoinNetworkGameHostConf)),
 			this, SLOT(_joinClicked(JoinNetworkGameHostConf)));
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow()
+{
+	qDeleteAll(_aiFactories);
+	delete ui;
+}
 
 void MainWindow::gameTypeSelectionChanged()
 {
@@ -99,7 +84,7 @@ void MainWindow::startClicked ()
 {
 	GameHost *gameHost = GameHost::CreateLocalGame(
 				ui->localGameConf->conf(), this);
-	connect(gameHost, SIGNAL(quit(GameHost*)),
+	connect(gameHost, SIGNAL(gameOver(GameHost*)),
 			this, SLOT(_quitGame(GameHost*)));
 	_gameHosts.append(gameHost);
 }
@@ -108,7 +93,7 @@ void MainWindow::createNetworkGameClicked()
 {
 	GameHost *gameHost = GameHost::CreateNetworkGame(
 				ui->networkGameConfView->conf(), this);
-	connect(gameHost, SIGNAL(quit(GameHost*)),
+	connect(gameHost, SIGNAL(gameOver(GameHost*)),
 			this, SLOT(_quitGame(GameHost*)));
 	_gameHosts.append(gameHost);
 }
@@ -116,7 +101,7 @@ void MainWindow::createNetworkGameClicked()
 void MainWindow::_joinClicked(JoinNetworkGameHostConf conf)
 {
 	GameHost *gameHost = GameHost::JoinNetworkGame(conf, this);
-	connect(gameHost, SIGNAL(quit(GameHost*)),
+	connect(gameHost, SIGNAL(gameOver(GameHost*)),
 			this, SLOT(_quitGame(GameHost*)));
 	_gameHosts.append(gameHost);
 }
@@ -132,20 +117,13 @@ void MainWindow::_quitGame(GameHost *sender)
 	delete sender;
 }
 
-
-
-//void MainWindow::joinGame(QString playerName)
-//{
-	/*
-	QString text = QString("%1 would like to join the game. Accept?")
-			.arg(playerName);
-
-	if (QMessageBox::question(this, "Player joining", text,
-							  QMessageBox::Yes | QMessageBox::No,
-							  QMessageBox::Yes) == QMessageBox::Yes) {
-		_oppService->acceptJoinRequest();
-		ui->pageGame->setPlayer2Name(playerName);
-	} else _oppService->rejectJoinRequest(
-				"The server user doesn't want to play with you.");
-				*/
-//}
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	if (_gameHosts.isEmpty()) event->accept();
+	else {
+		QMessageBox::information(this, "Window close", "The main window cannot "
+								 "be closed, when games are still running. "
+								 "End all games and try again.");
+		event->ignore();
+	}
+}

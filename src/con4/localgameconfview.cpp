@@ -46,6 +46,18 @@ LocalGameConfView::LocalGameConfView(QWidget *parent)
 
 LocalGameConfView::~LocalGameConfView() { delete ui; }
 
+void LocalGameConfView::initialize(QList<AiPlayerInfo *> &aiPlayerFactories)
+{
+	ui->player1Conf->initialize(aiPlayerFactories);
+	ui->player2Conf->initialize(aiPlayerFactories);
+}
+
+bool LocalGameConfView::isInitialized() const
+{
+	return ui->player1Conf->isInitialized() &&
+			ui->player2Conf->isInitialized();
+}
+
 void LocalGameConfView::_update()
 {
 	QString playerName;
@@ -64,6 +76,9 @@ void LocalGameConfView::_update()
 		ui->player1Conf->setColor(_conf.player1Color());
 		ui->player2Conf->setColor(_conf.player2Color());
 	}
+
+	_conf.setPlayer1AiInfo(ui->player1Conf->aiPlayerInfo());
+	_conf.setPlayer2AiInfo(ui->player2Conf->aiPlayerInfo());
 
 	_conf.setDims(ui->boardConf->dims());
 }

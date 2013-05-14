@@ -28,7 +28,8 @@
 #ifndef PLAYERCONFVIEW_H
 #define PLAYERCONFVIEW_H
 
-#include <validatingtextbox.h>
+#include "validatingtextbox.h"
+#include "aiplayerinfo.h"
 
 namespace Ui {
 class PlayerConfView;
@@ -44,6 +45,9 @@ public:
 	explicit PlayerConfView(QWidget *parent = 0);
 	~PlayerConfView();
 
+	void initialize(QList<AiPlayerInfo *> &aiPlayerInfoList);
+	bool isInitialized() const { return _aiFactories; }
+
 	bool isValid() const;
 	QList<ValidatingTextBox::Criterium *> *nameCriteria();
 
@@ -54,7 +58,10 @@ public:
 	void setColor(QColor value);
 
 	PlayerType playerType() const;
-	void setPlayerType(PlayerType type);
+	void setHumanPlayer();
+	const QList<AiPlayerInfo *> *aiPlayerInfoList() const;
+	AiPlayerInfo *aiPlayerInfo();
+	bool setAiPlayerInfo(AiPlayerInfo &value);
 
 	int moveDelay() const;
 	void setMoveDelay(int value);
@@ -64,9 +71,11 @@ signals:
 
 private slots:
 	void _playerTypeChanged(int selIndex);
+	void _delayChanged(int value);
 
 private:
 	Ui::PlayerConfView *ui;
+	QList<AiPlayerInfo *> *_aiFactories;
 };
 
 #endif // PLAYERCONFVIEW_H

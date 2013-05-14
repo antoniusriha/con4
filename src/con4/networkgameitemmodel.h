@@ -39,12 +39,12 @@ class NetworkGameItemModel : public QAbstractItemModel
 
 public:
 	explicit NetworkGameItemModel(IndexServiceList &list, QObject *parent = 0);
-	~NetworkGameItemModel() { delete _rootItem; }
+	~NetworkGameItemModel();
 
 	QModelIndex index(int row, int column, const QModelIndex &parent) const;
 	QModelIndex parent(const QModelIndex &child) const;
 	int rowCount(const QModelIndex &parent) const;
-	int columnCount(const QModelIndex &parent) const;
+	int columnCount(const QModelIndex &) const;
 	QVariant data(const QModelIndex &index, int role) const;
 	QVariant headerData(int section, Qt::Orientation orientation,
 						int role) const;

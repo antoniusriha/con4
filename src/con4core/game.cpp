@@ -46,7 +46,7 @@ void Game::Dimensions::setNConnect(int value)
 void Game::Dimensions::setWidth(int value)
 {
 	if (value < _nConnect || value > MaxDim)
-		throw Exception("width mus	qDeleteAll(_gameHosts);t be greater than nConnect "
+		throw Exception("width must be greater than nConnect "
 						"and lower than MaxDim.");
 	_width = value;
 }
@@ -142,6 +142,7 @@ bool Game::setDims(Dimensions dims)
 	if (_hasStarted) return false;
 	_board = Board(dims.nConnect(), dims.height(),
 				   dims.width(), dims.depth(), None);
+	return true;
 }
 
 Game::BoardIndex Game::index() const

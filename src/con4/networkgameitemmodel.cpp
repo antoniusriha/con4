@@ -30,7 +30,7 @@
 
 NetworkGameItemModel::NetworkGameItemModel(IndexServiceList &list,
 										   QObject *parent)
-	: QAbstractItemModel(parent), _list(list)
+	: QAbstractItemModel(parent), _list(list), _rootItem(0)
 {
 	QVector<QVariant> headers(4);
 	headers[0] = "Name";
@@ -42,6 +42,8 @@ NetworkGameItemModel::NetworkGameItemModel(IndexServiceList &list,
 	connect(&list, SIGNAL(refreshing()), this, SLOT(_refreshing()));
 	connect(&list, SIGNAL(refreshed()), this, SLOT(_refreshed()));
 }
+
+NetworkGameItemModel::~NetworkGameItemModel() { delete _rootItem; }
 
 QModelIndex NetworkGameItemModel::index(int row, int column,
 										const QModelIndex &parent) const
@@ -70,7 +72,7 @@ int NetworkGameItemModel::rowCount(const QModelIndex &parent) const
 	return parentItem->childCount();
 }
 
-int NetworkGameItemModel::columnCount(const QModelIndex &parent) const
+int NetworkGameItemModel::columnCount(const QModelIndex &) const
 {
 	return _rootItem->columnCount();
 }
@@ -133,6 +135,8 @@ void NetworkGameItemModel::_refreshed()
 			gameItem->setData(3, ipAndPort);
 		}
 	}
+
+	endResetModel();
 }
 
 NglTreeItem *NetworkGameItemModel::_getItem(const QModelIndex &index) const

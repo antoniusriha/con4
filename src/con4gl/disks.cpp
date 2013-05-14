@@ -29,7 +29,7 @@
 
 Disks::Disks(const BoardConf &conf, const Game &game, QObject *parent)
 	: QObject(parent), _conf(conf), _game(game), _cursor(_game.index()),
-	  _quad(gluNewQuadric())
+	  _quad(gluNewQuadric()), _player1WinColor(4), _player2WinColor(4)
 {
 	connect(&conf, SIGNAL(changed()), this, SLOT(_update()));
 	_update();
@@ -65,8 +65,9 @@ void Disks::_drawDisks() const
 					const float *color;
 					QVector<Game::BoardIndex> conIdcs;
 					if (_game.connected(conIdcs) && conIdcs.contains(idx)) {
-						if (field == Player1) color = _player1WinColor;
-						else color = _player2WinColor;
+						if (field == Player1)
+							color = _player1WinColor.constData();
+						else color = _player2WinColor.constData();
 					} else {
 						if (field == Player1) color = _conf.player1ColorF();
 						else color = _conf.player2ColorF();

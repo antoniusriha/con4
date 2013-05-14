@@ -55,7 +55,7 @@ private:
 	const Game &_game;
 	Game::BoardIndex _cursor;
 	GLUquadric *_quad;
-	float _player1WinColor[4], _player2WinColor[4];
+	QVector<float> _player1WinColor, _player2WinColor;
 };
 
 #endif // DISKS_H

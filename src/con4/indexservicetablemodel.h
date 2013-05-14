@@ -50,7 +50,7 @@ private slots:
 	void _creating(IndexService *, int index);
 	void _created(IndexService *, int);
 	void _deleting(IndexService *, int index);
-	void _deletedAt(int index);
+	void _deletedAt(int);
 
 private:
 	IndexServiceList &_list;

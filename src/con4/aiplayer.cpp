@@ -27,8 +27,5 @@
 
 #include "aiplayer.h"
 
-AIPlayer::AIPlayer(Game *game, QObject *parent)
-	: Player(game, parent), _delay (1000)
-{
-
-}
+AiPlayer::AiPlayer(Game &game, FieldValue player, QObject *parent)
+	: QObject(parent) {}

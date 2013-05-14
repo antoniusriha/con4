@@ -205,6 +205,12 @@ void BoardView::keyPressEvent(QKeyEvent *event)
 	updateGL();
 }
 
+void BoardView::closeEvent(QCloseEvent *event)
+{
+	emit closed();
+	event->accept();
+}
+
 void BoardView::_setWidgetsVisible(bool value)
 {
 	ui->titleLabel->setVisible(value);

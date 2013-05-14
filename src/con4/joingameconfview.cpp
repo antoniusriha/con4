@@ -44,7 +44,8 @@ JoinGameConfView::JoinGameConfView(QWidget *parent)
 
 JoinGameConfView::~JoinGameConfView() { delete ui; }
 
-void JoinGameConfView::initialize(IndexServiceList &list)
+void JoinGameConfView::initialize(IndexServiceList &list,
+								  QList<AiPlayerInfo *> &aiPlayerFactories)
 {
 	if (isInitialized()) return;
 
@@ -62,6 +63,8 @@ void JoinGameConfView::initialize(IndexServiceList &list)
 
 	connect(ui->player1ColorButton, SIGNAL(changed()), this, SLOT(_update()));
 	connect(ui->joinPlayerConf, SIGNAL(changed()), this, SLOT(_update()));
+
+	ui->joinPlayerConf->initialize(aiPlayerFactories);
 
 	_update();
 }
@@ -94,6 +97,8 @@ void JoinGameConfView::_update()
 		ui->joinPlayerConf->setColor(_conf.player2Color());
 		ui->player1ColorButton->setColor(_conf.player1Color());
 	}
+
+	_conf.setPlayer2AiInfo(ui->joinPlayerConf->aiPlayerInfo());
 
 	if (ui->joinPlayerConf->isValid())
 		_conf.setPlayer2Name(ui->joinPlayerConf->name());

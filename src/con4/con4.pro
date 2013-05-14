@@ -22,7 +22,6 @@ SOURCES += main.cpp\
 	../con4gl/grid.cpp \
 	../con4core/game.cpp \
 	../con4core/board.cpp \
-	settingsdialog.cpp \
 	../con4core/player.cpp \
 	../con4net/indexservice.cpp \
 	../con4net/indexservicelist.cpp \
@@ -54,7 +53,10 @@ SOURCES += main.cpp\
 	joingameconfview.cpp \
     ../con4gl/disks.cpp \
     ../con4gl/boardview.cpp \
-    ../con4gl/boardconf.cpp
+    ../con4gl/boardconf.cpp \
+    randomsetplayer.cpp \
+    aiplayerinfo.cpp \
+    aiplayer.cpp
 
 HEADERS  += mainwindow.h \
 	addindexserverdialog.h \
@@ -63,7 +65,6 @@ HEADERS  += mainwindow.h \
 	../con4gl/grid.h \
 	../con4core/game.h \
 	../con4core/board.h \
-	settingsdialog.h \
 	../con4core/player.h \
 	../con4net/indexservice.h \
 	../con4net/con4netglobals.h \
@@ -97,12 +98,14 @@ HEADERS  += mainwindow.h \
 	joingameconfview.h \
     ../con4gl/disks.h \
     ../con4gl/boardview.h \
-    ../con4gl/boardconf.h
+    ../con4gl/boardconf.h \
+    randomsetplayer.h \
+    aiplayerinfo.h \
+    aiplayer.h
 
 FORMS    += mainwindow.ui \
 	addindexserverdialog.ui \
 	indexserversview.ui \
-	settingsdialog.ui \
 	networkgameview.ui \
 	playerconfview.ui \
 	validatingtextbox.ui \

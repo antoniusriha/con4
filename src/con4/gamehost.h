@@ -29,6 +29,7 @@
 #define GAMEHOST_H
 
 #include <QColor>
+#include "aiplayerinfo.h"
 #include "../con4net/netinitiator.h"
 #include "../con4net/netopponent.h"
 #include "../con4gl/boardview.h"
@@ -65,16 +66,27 @@ public:
 	QString player2Name() const { return _player2Name; }
 	void setPlayerNames(QString player1Name, QString player2Name);
 
+	AiPlayerInfo *player1AiInfo() const { return _player1AiInfo; }
+	void setPlayer1AiInfo(AiPlayerInfo *value) { _player1AiInfo = value; }
+	AiPlayerInfo *player2AiInfo() const { return _player2AiInfo; }
+	void setPlayer2AiInfo(AiPlayerInfo *value) { _player2AiInfo = value; }
+
 private:
 	Game::Dimensions _dims;
 	QString _player1Name, _player2Name;
+	AiPlayerInfo *_player1AiInfo, *_player2AiInfo;
 };
 
 class NetworkGameHostConf : public GameHostConf, public NetInitiatorConf
 {
 public:
-	NetworkGameHostConf(IndexServiceList &list)
-		: GameHostConf(), NetInitiatorConf(list) {}
+	NetworkGameHostConf(IndexServiceList &list);
+
+	AiPlayerInfo *player1AiInfo() const { return _player1AiInfo; }
+	void setPlayer1AiInfo(AiPlayerInfo *value) { _player1AiInfo = value; }
+
+private:
+	AiPlayerInfo *_player1AiInfo;
 };
 
 class JoinNetworkGameHostConf : public GameHostConf
@@ -90,9 +102,13 @@ public:
 	NetOpponent *opponent() const { return _opp; }
 	void setOpponent(NetOpponent &value) { _opp = &value; }
 
+	AiPlayerInfo *player2AiInfo() const { return _player2AiInfo; }
+	void setPlayer2AiInfo(AiPlayerInfo *value) { _player2AiInfo = value; }
+
 private:
 	NetworkString _player2Name;
 	NetOpponent *_opp;
+	AiPlayerInfo *_player2AiInfo;
 };
 
 class GameHost : public QObject
@@ -103,15 +119,11 @@ public:
 									 QObject *parent = 0);
 	static GameHost *CreateNetworkGame(NetworkGameHostConf conf,
 									   QObject *parent = 0);
-	static GameHost *CreateNetworkGameWithAiPlayer(NetworkGameConf conf,
-												   QObject *parent = 0);
 	static GameHost *JoinNetworkGame(JoinNetworkGameHostConf conf,
 									 QObject *parent = 0);
-	static GameHost *JoinNetworkGameWithAiPlayer(JoinNetworkGameHostConf conf,
-												 QObject *parent = 0);
 
 signals:
-	void quit(GameHost *sender);
+	void gameOver(GameHost *sender);
 
 protected:
 	explicit GameHost(GameHostConf conf, QObject *parent = 0);
@@ -131,6 +143,7 @@ public:
 
 private:
 	Game _game;
+	AiPlayer *_player1, *_player2;
 };
 
 class NetworkGameHost : public GameHost
@@ -146,6 +159,7 @@ private slots:
 
 private:
 	NetInitiator _init;
+	AiPlayer *_player1;
 };
 
 class JoinGameHost : public GameHost
@@ -156,10 +170,11 @@ public:
 	explicit JoinGameHost(JoinNetworkGameHostConf conf, QObject *parent = 0);
 
 private slots:
-	void _joinGameFinished(bool success, QString errString);
+	void _joinGameFinished(bool success, QString);
 
 private:
 	NetOpponent &_opp;
+	AiPlayer *_player2;
 };
 
 #endif // GAMEHOST_H

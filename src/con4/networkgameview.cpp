@@ -61,7 +61,8 @@ NetworkGameView::~NetworkGameView()
 
 bool NetworkGameView::isInitialized() const { return _conf; }
 
-void NetworkGameView::initialize(IndexServiceList &list)
+void NetworkGameView::initialize(IndexServiceList &list,
+								 QList<AiPlayerInfo *> &aiPlayerFactories)
 {
 	_conf = new NetworkGameHostConf(list);
 	ui->gameNameTextBox->setText("Con4 network game");
@@ -69,6 +70,7 @@ void NetworkGameView::initialize(IndexServiceList &list)
 	ui->player1Conf->setColor(QColor(Qt::red));
 	ui->player2ColorButton->setColor(QColor(Qt::yellow));
 	ui->ipAddressTextBox->setIpAddress("127.0.0.1");
+	ui->player1Conf->initialize(aiPlayerFactories);
 	_update();
 	setEnabled(true);
 }
@@ -99,6 +101,8 @@ void NetworkGameView::_update()
 		ui->player1Conf->setColor(_conf->player1Color());
 		ui->player2ColorButton->setColor(_conf->player2Color());
 	}
+
+	_conf->setPlayer1AiInfo(ui->player1Conf->aiPlayerInfo());
 
 	if (ui->ipAddressTextBox->isValid())
 		_conf->setIpAddress(QHostAddress(ui->ipAddressTextBox->ipAddress()));

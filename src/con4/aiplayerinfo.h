@@ -1,5 +1,5 @@
 /*
- * settingsdialog.h
+ * aiplayerfactory.h
  *
  * Author:
  *       Antonius Riha <antoniusriha@gmail.com>
@@ -25,25 +25,26 @@
  * THE SOFTWARE.
  */
 
-#ifndef SETTINGSDIALOG_H
-#define SETTINGSDIALOG_H
+#ifndef AIPLAYERINFO_H
+#define AIPLAYERINFO_H
 
-#include <QDialog>
+#include "aiplayer.h"
 
-namespace Ui {
-class SettingsDialog;
-}
-
-class SettingsDialog : public QDialog
+class AiPlayerInfo : public QObject
 {
 	Q_OBJECT
-	
 public:
-	explicit SettingsDialog(QWidget *parent = 0);
-	~SettingsDialog();
-	
+	explicit AiPlayerInfo(QObject *parent = 0);
+
+	virtual QString name() const = 0;
+	virtual AiPlayer *create(Game &game, FieldValue player,
+							 QObject *parent = 0) const = 0;
+
+	int delay() const { return _delay; }
+	void setDelay(int ms) { _delay = ms; }
+
 private:
-	Ui::SettingsDialog *ui;
+	int _delay;
 };
 
-#endif // SETTINGSDIALOG_H
+#endif // AIPLAYERINFO_H
