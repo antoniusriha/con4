@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# setup log dir
+logdir="${HOME}/.con4_data"
+logfile="${logdir}/con4.log"
+mkdir $logdir > /dev/null 2>&1
+
+pkglibdir="@pkglibdir@"
+cd ${pkglibdir}
+
+echo "--------------------\n\ncon4 started on $(date) by ${USER}." >> $logfile
+./game "$@" >> $logfile 2>&1
+

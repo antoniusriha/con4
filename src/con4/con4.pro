@@ -10,7 +10,7 @@ CONFIG += exceptions
 
 LIBS = -lGLU
 
-TARGET = con4
+TARGET = game
 TEMPLATE = app
 
 
@@ -113,3 +113,16 @@ FORMS    += mainwindow.ui \
 	localgameconfview.ui \
 	joingameconfview.ui \
     ../con4gl/boardview.ui
+
+unix {
+	SRCDIR = ../..
+	
+	system(cd $${SRCDIR}; sed -e "s:\\@pkglibdir\\@:$${PREFIX}/lib/con4:g" data/con4.in > data/con4; chmod +x data/con4)
+	
+	wrapperfile.files += $${SRCDIR}/data/con4
+	wrapperfile.path = $${PREFIX}/bin
+	libfile.files += $${SRCDIR}/game
+	libfile.path = $${PREFIX}/lib/con4
+	INSTALLS += libfile wrapperfile
+}
+
