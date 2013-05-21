@@ -65,7 +65,6 @@ HEADERS  += mainwindow.h \
 	../con4core/game.h \
 	../con4core/board.h \
 	../con4net/indexservice.h \
-	../con4net/con4netglobals.h \
 	../con4net/indexservicelist.h \
 	../con4core/settings.h \
 	../con4net/networkgame.h \
