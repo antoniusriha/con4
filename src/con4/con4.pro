@@ -22,7 +22,6 @@ SOURCES += main.cpp\
 	../con4gl/grid.cpp \
 	../con4core/game.cpp \
 	../con4core/board.cpp \
-	../con4core/player.cpp \
 	../con4net/indexservice.cpp \
 	../con4net/indexservicelist.cpp \
 	../con4core/settings.cpp \
@@ -65,7 +64,6 @@ HEADERS  += mainwindow.h \
 	../con4gl/grid.h \
 	../con4core/game.h \
 	../con4core/board.h \
-	../con4core/player.h \
 	../con4net/indexservice.h \
 	../con4net/con4netglobals.h \
 	../con4net/indexservicelist.h \

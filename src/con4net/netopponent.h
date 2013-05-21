@@ -30,7 +30,7 @@
 
 #include <stdexcept>
 #include <QTcpSocket>
-#include "networkplayerservice.h"
+#include "networkgame.h"
 #include "clientendpoint.h"
 #include "messages.h"
 
