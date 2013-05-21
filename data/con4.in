@@ -9,5 +9,5 @@ pkglibdir="@pkglibdir@"
 cd ${pkglibdir}
 
 echo "--------------------\n\ncon4 started on $(date) by ${USER}." >> $logfile
-./conFour "$@" >> $logfile 2>&1
+./confour "$@" >> $logfile 2>&1
 

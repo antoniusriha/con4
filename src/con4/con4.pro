@@ -10,7 +10,7 @@ CONFIG += exceptions
 
 LIBS = -lGLU
 
-TARGET = conFour
+TARGET = confour
 TEMPLATE = app
 
 
@@ -113,11 +113,11 @@ FORMS    += mainwindow.ui \
 
 unix {
 	SRCDIR = ../..
-	
-	target.path = $${PREFIX}/lib/conFour
+
+	target.path = $${PREFIX}/lib/confour
 	INSTALLS += target
-	
-	system(sed -e "s:\\@pkglibdir\\@:$${PREFIX}/lib/con4:g" $${SRCDIR}/data/con4.in > $${SRCDIR}/data/con4; chmod +x $${SRCDIR}/data/con4)
+
+	system(sed -e "s:\\@pkglibdir\\@:$${PREFIX}/lib/confour:g" $${SRCDIR}/data/con4.in > $${SRCDIR}/data/con4; chmod +x $${SRCDIR}/data/con4)
 	wrapper.files += $${SRCDIR}/data/con4
 	wrapper.path = $${PREFIX}/bin
 	INSTALLS += wrapper
