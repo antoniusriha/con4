@@ -1,0 +1,8 @@
+BUILD and INSTALL
+-----------------
+Build and install with ./configure && make && make install
+
+
+DEPENDENCIES
+------------
+
