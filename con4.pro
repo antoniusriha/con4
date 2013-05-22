@@ -1,7 +1,4 @@
-TEMPLATE = subdirs
+TEMPLATE = app
 
-SUBDIRS += \
-    src/con4 \
-    src/con4gl \
-    src/con4core \
-    src/con4net
+include(src/con4/con4.pri)
+

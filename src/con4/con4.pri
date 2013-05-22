@@ -4,6 +4,9 @@
 #
 #-------------------------------------------------
 
+INCLUDEPATH += $$system(pwd)
+DEPENDPATH += $$system(pwd)
+
 QT       += core gui network opengl
 
 CONFIG += exceptions
