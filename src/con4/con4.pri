@@ -125,6 +125,6 @@ unix {
 	wrapper.path = $${PREFIX}/bin
 	INSTALLS += wrapper
 	
-	DISTFILES += $${SRCDIR}/configure $${SRCDIR}/data/con4.in
+	DISTFILES += data/con4.in
 }
 
