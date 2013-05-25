@@ -6,3 +6,5 @@ moc_*.cpp
 ui_*.h
 Makefile
 
+/data/con4
+/confour
