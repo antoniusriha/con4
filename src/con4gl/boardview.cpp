@@ -36,6 +36,20 @@ static void qNormalizeAngle(int &angle)
 		angle -= 360 * 16;
 }
 
+//==============================================================================
+//  Nom : getIdealTextColor
+//! @return an ideal label color, based on the given background color.
+//! Based on http://www.codeproject.com/cs/media/IdealTextColor.asp
+//==============================================================================
+static QColor getIdealTextColor(const QColor& rBackgroundColor)
+{
+    const int THRESHOLD = 105;
+    int BackgroundDelta = (rBackgroundColor.red() * 0.299) +
+            (rBackgroundColor.green() * 0.587) +
+            (rBackgroundColor.blue() * 0.114);
+    return QColor((255- BackgroundDelta < THRESHOLD) ? Qt::black : Qt::white);
+}
+
 BoardView::BoardView(QWidget *parent)
 	: QGLWidget(parent), ui(new Ui::BoardView), _conf(), _dims(), _game(0),
 	  _grid(_conf), _disks(0)
@@ -58,14 +72,18 @@ void BoardView::setGame(Game *value)
 		_disks = new Disks(_conf, *value, this);
 		connect(value, SIGNAL(set(FieldValue,Game::BoardIndex)),
 				this, SLOT(_update()));
+        connect(value, SIGNAL(started(FieldValue)), this, SLOT(_update()));
+        connect(value, SIGNAL(finished(FieldValue)), this, SLOT(_update()));
 	} else {
 		disconnect(_game, SIGNAL(set(FieldValue,Game::BoardIndex)),
 				   this, SLOT(_update()));
+        disconnect(_game, SIGNAL(started(FieldValue)), this, SLOT(_update()));
+        disconnect(value, SIGNAL(finished(FieldValue)), this, SLOT(_update()));
 		delete _disks;
 	}
 	_setWidgetsVisible(value);
 	_game = value;
-	updateGL();
+    _update();
 }
 
 void BoardView::_update()
@@ -76,12 +94,38 @@ void BoardView::_update()
 	ui->descriptionLabel->setText(_conf.gameDescription());
 
 	QColor c = _conf.background();
+    QColor txtColor = getIdealTextColor(c);
 	QString style = QString("QLabel { background-color: "
-							"rgba(%1, %2, %3, %4); }")
-			.arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+                            "rgba(%1, %2, %3, %4); color: %5; }")
+            .arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha())
+            .arg(txtColor.name());
 	ui->titleLabel->setStyleSheet(style);
 	ui->descriptionLabel->setStyleSheet(style);
-	ui->statusLabel->setStyleSheet(style);
+    ui->statusLabel->setStyleSheet(style);
+
+    if (_game) {
+        ui->statusLabel->setVisible(true);
+        if (!_game->hasStarted())
+            ui->statusLabel->setText("Game not yet started.");
+        else if (!_game->finished()) {
+            QString curPlayerName = _game->curPlayer() == Player1 ?
+                        _conf.player1Name() : _conf.player2Name();
+            curPlayerName += curPlayerName.endsWith('s', Qt::CaseInsensitive) ?
+                        "'" : "'s";
+            ui->statusLabel->setText("It's " + curPlayerName + " turn.");
+        } else if (_game->aborted())
+            ui->statusLabel->setText("Game has been aborted.");
+        else if (_game->finished()) {
+            if (_game->winner() == None)
+                ui->statusLabel->setText("Game over. No winner.");
+            else {
+                ui->statusLabel->setText("Game over. Winner: " +
+                                         (_game->winner() == Player1 ?
+                                              _conf.player1Name()
+                                              : _conf.player2Name()) + ".");
+            }
+        }
+    } else ui->statusLabel->setVisible(false);
 
 	updateGL();
 }
