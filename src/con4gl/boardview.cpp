@@ -60,6 +60,8 @@ BoardView::BoardView(QWidget *parent)
 	ui->setupUi(this);
 	_setWidgetsVisible(false);
 	connect(&_conf, SIGNAL(changed()), this, SLOT(_update()));
+
+    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(close()));
 }
 
 BoardView::~BoardView() { delete ui; }
@@ -105,25 +107,29 @@ void BoardView::_update()
 
     if (_game) {
         ui->statusLabel->setVisible(true);
-        if (!_game->hasStarted())
+        if (!_game->hasStarted()) {
             ui->statusLabel->setText("Game not yet started.");
-        else if (!_game->finished()) {
+            ui->pushButton->setText("Close");
+        } else if (!_game->finished()) {
             QString curPlayerName = _game->curPlayer() == Player1 ?
                         _conf.player1Name() : _conf.player2Name();
             curPlayerName += curPlayerName.endsWith('s', Qt::CaseInsensitive) ?
                         "'" : "'s";
             ui->statusLabel->setText("It's " + curPlayerName + " turn.");
-        } else if (_game->aborted())
+            ui->pushButton->setText("Abort");
+        } else if (_game->aborted()) {
             ui->statusLabel->setText("Game has been aborted.");
-        else if (_game->finished()) {
+            ui->pushButton->setText("Close");
+        } else if (_game->finished()) {
             if (_game->winner() == None)
-                ui->statusLabel->setText("Game over. No winner.");
+                ui->statusLabel->setText("Game over. Draw.");
             else {
                 ui->statusLabel->setText("Game over. Winner: " +
                                          (_game->winner() == Player1 ?
                                               _conf.player1Name()
                                               : _conf.player2Name()) + ".");
             }
+            ui->pushButton->setText("Close");
         }
     } else ui->statusLabel->setVisible(false);
 
@@ -251,8 +257,18 @@ void BoardView::keyPressEvent(QKeyEvent *event)
 
 void BoardView::closeEvent(QCloseEvent *event)
 {
-	emit closed();
-	event->accept();
+    if (_game && _game->hasStarted() && !_game->finished()) {
+        if (QMessageBox::question(this, "Close game view", "Abort game?",
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No) == QMessageBox::No) {
+            event->ignore();
+            return;
+        }
+
+        _game->abort(None, "User abort.");
+    }
+    emit closed();
+    event->accept();
 }
 
 void BoardView::_setWidgetsVisible(bool value)
