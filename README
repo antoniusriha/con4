@@ -1,8 +1,9 @@
 BUILD and INSTALL
 -----------------
-Build and install with ./configure && make && make install
+Build and install with qmake && make && make install
 
 
 DEPENDENCIES
 ------------
-
+boost multiarray
+qt4, qt4 network, qt4 opengl
